@@ -10,6 +10,144 @@ This file contains technical implementation details, gotchas, and important note
 
 LLM Council is a 3-stage deliberation system where multiple LLMs collaboratively answer user questions. The key innovation is anonymized peer review in Stage 2, preventing models from playing favorites.
 
+## Development Setup
+
+### Prerequisites
+
+- **Python 3.10+** (3.13.2 recommended)
+- **Node.js v18+** (v24.10.0 recommended)
+- **[uv](https://docs.astral.sh/uv/)** - Modern Python package manager
+- **npm** - Node.js package manager (comes with Node.js)
+
+### Development Dependencies
+
+The project currently uses minimal development tooling by design (see CONTRIBUTING.md). However, for development you may want:
+
+**Backend:**
+- **Runtime dependencies:** Installed via `uv sync` (FastAPI, httpx, pydantic, etc.)
+- **Test framework:** pytest 9.0.1 (installed as dev dependency via `uv sync --dev`)
+  - Run tests: `uv run pytest`
+  - Run with coverage: `uv run pytest --cov=backend --cov-report=html`
+- **Test utilities:** pytest-asyncio, pytest-cov, pytest-mock (included in dev dependencies)
+- **Formatting/Linting:** Ruff 0.8.0+ configured (formatter + linter)
+  - Format: `make format-py` or `uv run ruff format backend/ tests/`
+  - Lint: `make lint-py` or `uv run ruff check backend/ tests/`
+  - Auto-fix: `make lint-py-fix` or `uv run ruff check --fix backend/ tests/`
+
+**Frontend:**
+- **Runtime dependencies:** Installed via `npm install` (React, Vite, etc.)
+- **Linting:** ESLint 9.39.1 configured and installed
+  - Run linting: `cd frontend && npm run lint`
+  - Auto-fix: `cd frontend && npm run lint:fix`
+- **Formatting:** Prettier 3.4.2+ configured
+  - Format: `cd frontend && npm run format`
+  - Check: `cd frontend && npm run format:check`
+- **Testing:** Vitest 2.1.8 configured with React Testing Library (test infrastructure ready)
+
+**Combined Commands (via Makefile):**
+- Format all: `make format-all`
+- Lint all: `make lint-all`
+- See all commands: `make help`
+
+### Running in Development Mode
+
+**Backend:**
+```bash
+# Install dependencies
+uv sync
+
+# Run with auto-reload (if uvicorn supports it)
+uv run uvicorn backend.main:app --reload --host 0.0.0.0 --port 8001
+
+# Or use the module approach
+uv run python -m backend.main
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev  # Starts Vite dev server with hot reload
+```
+
+### Environment Variables for Development
+
+Create a `.env` file in the project root:
+
+```bash
+# Required
+OPENROUTER_API_KEY=sk-or-v1-...
+ENCRYPTION_KEY=your-generated-key-here
+
+# Optional - Development settings
+LOG_LEVEL=DEBUG  # More verbose logging
+MAX_CONCURRENT_REQUESTS=2  # Lower for development to avoid rate limits
+LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
+```
+
+### Code Style
+
+- **Python**: Ruff configured for formatting and linting (see above)
+- **JavaScript**: ESLint 9.39.1 configured in `frontend/eslint.config.js`
+- **Type Hints**: Python code uses type hints where appropriate
+- **Docstrings**: Functions and classes should have docstrings
+
+### Testing
+
+- **Current Status**: Backend tests are implemented and passing; frontend Vitest tests are configured (see `HYGIENE_REPORT.md` for coverage details).
+- **Test Location**: Backend tests live in the `tests/` directory; frontend tests live under `frontend/src` (e.g., `frontend/src/api.test.js` and component tests).
+- **Running Backend Tests**: `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage reports).
+- **Running Frontend Tests**: `cd frontend && npm test` (or `npm run test:coverage` for coverage).
+
+### Debugging
+
+**Backend Logging:**
+- Logs are configured in `backend/logging_config.py`
+- Default log file: `logs/llm_council.log`
+- Set `LOG_LEVEL=DEBUG` in `.env` for verbose output
+
+**Frontend Debugging:**
+- Use browser DevTools (F12)
+- React DevTools extension recommended
+- Check Network tab for API call issues
+
+**Common Debugging Steps:**
+1. Check backend logs: `tail -f logs/llm_council.log`
+2. Check browser console for frontend errors
+3. Verify API key is set: `echo $OPENROUTER_API_KEY` (or check `.env`)
+4. Test API directly: `curl http://localhost:8001/` should return `{"status":"ok"}`
+
+### Project Structure
+
+```
+accordant/
+├── backend/           # Python FastAPI backend
+│   ├── council.py    # Core 3-stage orchestration logic
+│   ├── main.py       # FastAPI app and endpoints
+│   ├── openrouter.py # OpenRouter API client
+│   ├── storage.py    # JSON file storage
+│   └── config.py     # Configuration management
+├── frontend/         # React + Vite frontend
+│   └── src/
+│       ├── components/ # React components
+│       └── api.js     # API client
+├── data/             # Data storage (gitignored)
+│   └── conversations/ # Conversation JSON files
+├── docs/             # Documentation
+│   ├── adr/          # Architecture Decision Records
+│   ├── api/          # API documentation
+│   └── design/       # Design documents
+└── tests/            # Test files (skeleton tests exist)
+```
+
+### Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including:
+- Code style preferences
+- Testing approach
+- CI/CD status (intentionally deferred)
+- Pre-commit hooks (intentionally deferred)
+
 ## Multi-Tenancy Architecture
 
 The system uses a "Shared Database, Separate Schema" approach (logically), adapted for file-based storage.
