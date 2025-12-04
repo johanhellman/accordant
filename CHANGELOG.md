@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2025-12-04
+
+### Added
+- Added Consensus Model Design document.
+
+## [0.2.0] - 2025-12-04
+
+### Changed
+- Renamed service from "LLM Council" to "Accordant".
+- Migrated to new repository.
+- Switched database from MySQL to SQLite.
+- Fixed stale conversation and model cache issues.
+- Implemented hygiene report recommendations.
+
 ## [0.1.1] - 2025-12-01
 
 ### Changed
