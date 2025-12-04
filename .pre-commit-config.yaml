@@ -1,0 +1,57 @@
+# Pre-commit hooks configuration (optional, non-blocking)
+# 
+# INSTALLATION (optional):
+#   make install-pre-commit
+#   OR: uv run pre-commit install
+#
+# USAGE:
+#   - Hooks run automatically on git commit
+#   - To skip hooks: git commit --no-verify
+#   - To run manually: make run-pre-commit
+#   - To skip specific hooks: SKIP=ruff,prettier git commit
+#
+# NOTE: These hooks are OPTIONAL and NON-BLOCKING.
+# You can always skip them with --no-verify if needed.
+
+repos:
+  # Python formatting with ruff (auto-fixes)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff-format
+        name: ruff format (auto-fix)
+        description: Auto-format Python code with ruff
+        # Auto-fixes formatting, doesn't block commits
+        pass_filenames: true
+
+  # Python linting with ruff (auto-fixes when possible)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        name: ruff lint (auto-fix)
+        description: Lint and auto-fix Python code with ruff
+        args: [--fix]
+        # Auto-fixes issues when possible, doesn't block commits
+        pass_filenames: true
+
+  # JavaScript/JSX formatting with prettier (auto-fixes)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: prettier format (auto-fix)
+        description: Auto-format JavaScript/JSX/CSS with prettier
+        types: [file]
+        types_or: [javascript, jsx, json, css]
+        files: ^frontend/
+        # Auto-fixes formatting, doesn't block commits
+        pass_filenames: true
+
+# Default settings
+default_language_version:
+  python: python3.10
+
+# Note: ESLint is not included here as it requires npm/node setup.
+# Run manually with: cd frontend && npm run lint
+

@@ -1,0 +1,6 @@
+# Ignore .env files (contain secrets)
+.env
+
+# Explicitly allow .env.example (it's a template file and should be tracked)
+!.env.example
+

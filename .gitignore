@@ -1,0 +1,38 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.json
+htmlcov/
+.pytest_cache/
+
+# Security and duplication analysis reports
+bandit-report.json
+jscpd-report/
+
+# Virtual environments
+.venv
+
+# Keys and secrets
+.env
+# Allow .env.example to be tracked (it contains no secrets, only documentation)
+!.env.example
+
+# Data files
+data/*
+!data/personalities/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+# Logs
+logs/
+report/jscpd-report.json

@@ -1,0 +1,85 @@
+.user-management {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.user-management h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.users-table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.users-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.id-cell {
+  font-family: monospace;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.role-badge.admin {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.role-badge.user {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.role-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s;
+}
+
+.role-btn.promote {
+  background-color: #28a745;
+  color: white;
+}
+
+.role-btn.promote:hover {
+  background-color: #218838;
+}
+
+.role-btn.demote {
+  background-color: #dc3545;
+  color: white;
+}
+
+.role-btn.demote:hover {
+  background-color: #c82333;
+}

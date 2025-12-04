@@ -1,0 +1,74 @@
+"""Schema and type definitions for LLM Council.
+
+Note: This module was renamed from 'types.py' to avoid shadowing Python's
+built-in 'types' module, which caused import conflicts when running tools
+like pip-audit from the backend directory.
+"""
+
+from typing import Any, TypedDict
+
+from pydantic import BaseModel
+
+
+# TypedDict definitions for council orchestration
+class MessageDict(TypedDict):
+    """Type definition for LLM message structure."""
+
+    role: str
+    content: str
+
+
+class Stage1Result(TypedDict, total=False):
+    """Type definition for Stage 1 response result."""
+
+    model: str
+    response: str
+    personality_id: str | None
+    personality_name: str | None
+
+
+class Stage2Result(TypedDict, total=False):
+    """Type definition for Stage 2 ranking result."""
+
+    model: str
+    personality_name: str | None
+    ranking: str
+    parsed_ranking: list[str]
+
+
+class Stage3Result(TypedDict):
+    """Type definition for Stage 3 final synthesis result."""
+
+    model: str
+    response: str
+
+
+# Pydantic models for API requests/responses
+class CreateConversationRequest(BaseModel):
+    """Request to create a new conversation."""
+
+    pass
+
+
+class SendMessageRequest(BaseModel):
+    """Request to send a message in a conversation."""
+
+    content: str
+
+
+class ConversationMetadata(BaseModel):
+    """Conversation metadata for list view."""
+
+    id: str
+    created_at: str
+    title: str
+    message_count: int
+
+
+class Conversation(BaseModel):
+    """Full conversation with all messages."""
+
+    id: str
+    created_at: str
+    title: str
+    messages: list[dict[str, Any]]
