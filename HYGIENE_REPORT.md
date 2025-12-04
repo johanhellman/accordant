@@ -114,7 +114,100 @@
 
 ## 2. Security & Supply Chain
 
-*[To be completed in Section 1]*
+### Secret Scanning
+
+**Status**: ✅ **PASS** - No cleartext secrets found in tracked files
+
+**Findings:**
+- ✅ `.env` file properly gitignored
+- ✅ API keys encrypted at rest using Fernet (symmetric encryption)
+- ✅ Test files use placeholder values (`"key"`, `"test-api-key-123"`) - acceptable
+- ✅ Development fallback `SECRET_KEY` includes warning message
+- ✅ Secrets loaded from environment variables only
+- ✅ Encryption key rotation script exists (`backend/scripts/rotate_keys.py`)
+
+**Recommendations:**
+- ✅ No action needed - secret management follows best practices (ADR-013)
+
+### Dependency Audit
+
+**Python Dependencies:**
+- ✅ **Lockfile**: `uv.lock` present and tracked
+- ⚠️ **pip-audit**: Tool configured but venv path issue detected (broken symlink to old venv)
+  - **Impact**: Cannot run automated dependency audit without fixing venv
+  - **Recommendation**: Recreate venv with `uv sync` or run `pip-audit` in fresh environment
+  - **Risk**: Medium (dependency vulnerabilities may go undetected)
+
+**JavaScript Dependencies:**
+- ✅ **Lockfile**: `package-lock.json` present and tracked
+- ✅ **npm audit**: `npm audit --audit-level=moderate` - **0 vulnerabilities found**
+- ✅ **Security plugin**: ESLint security plugin configured (`eslint-plugin-security`)
+
+**Dependency Management:**
+- ✅ Dependencies pinned in `pyproject.toml` with minimum versions
+- ✅ Dev dependencies properly separated (`[project.optional-dependencies]` and `[dependency-groups]`)
+- ✅ Makefile includes `security-audit` target for both Python and JavaScript
+
+**Recommendations:**
+- 🔧 **Quick Win**: Fix venv path issue to enable `pip-audit` runs
+- 📋 **Near-term**: Add automated dependency audit to pre-commit hooks (optional)
+- 📋 **Near-term**: Set up Dependabot or similar for automated security updates
+
+### Static Security Analysis
+
+**Python Security Linting:**
+- ⚠️ **Bandit**: Tool configured but venv path issue detected (same as pip-audit)
+  - **Configuration**: Present in `pyproject.toml` with exclusions for tests
+  - **Severity level**: Medium
+  - **Confidence level**: Medium
+  - **Recommendation**: Fix venv and run `uv run bandit -r backend/ -f txt`
+
+**JavaScript Security Linting:**
+- ✅ **ESLint Security Plugin**: Configured (`eslint-plugin-security`)
+- ✅ **Security rules**: Enabled in `frontend/eslint.config.js`
+
+**Code Review Findings:**
+- ✅ **Path Validation**: `backend/config/paths.py` implements directory traversal protection
+  - Uses `os.path.commonpath()` to prevent path escapes
+  - Validates against base directory
+  - Tests exist (`tests/test_config_validation.py`)
+- ✅ **Input Validation**: User input sent to LLM APIs (documented in SECURITY.md)
+- ✅ **Authentication**: JWT-based auth with password hashing (passlib[bcrypt])
+- ✅ **Encryption**: Fernet encryption for sensitive data at rest
+
+**Recommendations:**
+- 🔧 **Quick Win**: Fix venv to enable Bandit security scans
+- 📋 **Near-term**: Run Bandit scan and address any findings
+- ✅ **No action**: Path validation and encryption already implemented
+
+### Risky Defaults
+
+**CORS Configuration:**
+- ⚠️ **Default**: Permissive defaults for development (`*` for methods/headers, localhost origins)
+- ✅ **Production Warning**: Code includes warning if `ENVIRONMENT=production` and CORS allows `*`
+- ✅ **Documentation**: README.md includes production CORS configuration guide
+- ✅ **Configurable**: All CORS settings configurable via environment variables
+- **Risk**: Low (documented, configurable, with warnings)
+- **Recommendation**: ✅ No action needed - properly documented and configurable
+
+**Debug/Development Settings:**
+- ⚠️ **LOG_LEVEL**: Defaults to INFO, can be set to DEBUG
+- ✅ **SECRET_KEY**: Development fallback includes warning message
+- ✅ **ENCRYPTION_KEY**: Production requires key, development generates temporary key with warning
+- **Risk**: Low (warnings present, production checks exist)
+- **Recommendation**: ✅ No action needed - appropriate defaults with warnings
+
+**HTTPS/SSL:**
+- ⚠️ **Not Enforced**: No HTTPS enforcement in code (relies on deployment)
+- ✅ **Documentation**: README.md mentions HTTPS requirement for production CORS with credentials
+- **Risk**: Low (deployment concern, not code issue)
+- **Recommendation**: 📋 **Near-term**: Add HTTPS enforcement middleware for production (optional)
+
+**Summary:**
+- ✅ **Category**: Security & Supply Chain
+- ⚠️ **Severity**: Medium (venv path issues prevent automated audits)
+- 🔧 **Effort**: Low (fix venv, run audits)
+- ✅ **Quick-win**: Yes (fix venv path)
 
 ---
 
