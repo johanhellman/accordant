@@ -1166,32 +1166,29 @@ Per `CONTRIBUTING.md`:
 
 ## Appendix: Commands Executed
 
-### Discovery Commands
+### Discovery Commands (2025-12-04)
 
 ```bash
 # Repository structure
-find . -name "*.py" -type f | wc -l  # Python file count
-find frontend/src -name "*.js" -o -name "*.jsx" | wc -l  # JS/JSX file count
-git log --oneline | head -10  # Git history
+find . -name "*.py" -type f | grep -v "__pycache__" | grep -v ".venv" | wc -l  # 63 Python files
+find frontend/src -name "*.js" -o -name "*.jsx" | wc -l  # 24 JS/JSX files
+git log --oneline -10  # Git history (10 commits)
+find tests -name "test_*.py" | wc -l  # 30 test files
 
 # Dependency checks
-test -f uv.lock && echo "uv.lock exists"  # Python lockfile
-test -f frontend/package-lock.json && echo "package-lock.json exists"  # JS lockfile
+test -f uv.lock && echo "uv.lock exists"  # ✅ Python lockfile present
+test -f frontend/package-lock.json && echo "package-lock.json exists"  # ✅ JS lockfile present
 
-# Security audits (attempted)
-uv run pip-audit --desc  # Python dependency audit (venv issue)
-cd frontend && npm audit --audit-level=moderate  # JavaScript audit (successful)
-uv run bandit -r backend/ -f txt  # Python security linting (venv issue)
-
-# Test discovery (attempted)
-uv run pytest --collect-only  # Test discovery (venv issue)
-uv run pytest --co -q  # Test count (venv issue)
-
-# Duplication analysis
-# jscpd report already exists: jscpd-report/jscpd-report.json
+# Security audits (verified 2025-12-04 at 17:32 UTC)
+uv run pip-audit --desc  # ✅ No known vulnerabilities found
+cd frontend && npm audit --audit-level=moderate  # ✅ 0 vulnerabilities found
+uv run bandit -r backend/ -f txt  # ✅ Only Low severity (B101 in tests - acceptable)
 
 # Coverage analysis
-# Coverage data already exists: coverage.json
+python3 -c "import json; data = json.load(open('coverage.json')); print(f\"Coverage: {data['totals']['percent_covered']:.1f}%\")"  # 61.8%
+
+# Duplication analysis
+# jscpd report exists: jscpd-report/jscpd-report.json (1.54% overall duplication)
 ```
 
 ### Files Analyzed
@@ -1217,7 +1214,7 @@ uv run pytest --co -q  # Test count (venv issue)
 **Code Analysis:**
 - Coverage data: `coverage.json`
 - Duplication report: `jscpd-report/jscpd-report.json`
-- Test files: 28 test files in `tests/` directory
+- Test files: 30 test files in `tests/` directory (verified 2025-12-04)
 
 ### Tools Used
 
