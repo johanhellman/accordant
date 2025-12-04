@@ -314,23 +314,28 @@
 
 **Test Files Present:**
 - ✅ `tests/test_critical_paths_skeleton.py` - Comprehensive tests for council orchestration (2000+ lines)
+- ✅ `tests/test_council_implementation.py` - **NEW** - Direct implementation tests for council.py functions
 - ✅ `tests/test_main.py` - Main API endpoint tests
 - ✅ `tests/test_auth.py` - Authentication tests
 - ✅ `tests/test_council.py` - Council logic tests
 - ✅ `tests/test_integration.py` - Integration tests
 - ✅ `tests/test_security.py` - Security tests
+- ✅ `tests/test_security_edge_cases.py` - **NEW** - Edge case tests for security.py
 - ✅ `tests/test_organizations.py` - Organization management tests
 - ✅ `tests/test_storage.py` - Storage tests
 - ✅ `tests/test_streaming.py` - Streaming tests
 - ✅ `tests/test_voting_history.py` - Voting history tests
 - ✅ `tests/test_openrouter.py` - OpenRouter API tests
+- ✅ `tests/test_openrouter_edge_cases.py` - **NEW** - Edge case tests for openrouter.py (retry logic, timeouts)
 - ✅ `tests/test_llm_service.py` - LLM service tests
+- ✅ `tests/test_llm_service_edge_cases.py` - **NEW** - Edge case tests for llm_service.py (cache, error handling)
 - ✅ `tests/test_admin_routes.py` - Admin routes tests
 - ✅ `tests/test_org_routes.py` - Organization routes tests
 - ✅ `tests/test_invitations.py` - Invitation tests
 - ✅ `tests/test_users_functions.py` - User management tests
 - ✅ `tests/test_security_hardening.py` - Security hardening tests
 - ✅ `tests/test_config_validation.py` - Config validation tests
+- ✅ `tests/test_paths_edge_cases.py` - **NEW** - Edge case tests for config/paths.py
 
 **Frontend Tests:**
 - ✅ `frontend/src/api.test.js` - API client tests
@@ -339,9 +344,16 @@
 ### Coverage Gaps & Recommendations
 
 **Critical Gaps:**
-1. **`backend/council.py`** - 15% coverage despite comprehensive tests existing
-   - **Action**: Verify test execution and ensure tests are properly integrated
-   - **Effort**: Low (investigation needed)
+1. **`backend/council.py`** - 15% coverage → **Targeting 60%+**
+   - **Action**: Added comprehensive implementation tests in `tests/test_council_implementation.py`
+   - **Effort**: Medium (2-4 hours)
+   - **Status**: ✅ **COMPLETED** - Added direct tests for:
+     - `_stage1_personality_mode`: success, partial failure, exception handling
+     - `_stage2_personality_mode`: success, excludes self, partial failure
+     - `stage1_collect_responses`: with/without personalities, with history
+     - `stage2_collect_rankings`: with/without personalities
+     - `stage3_synthesize_final`: success, failure, voting details inclusion
+     - `run_full_council`: success, all Stage 1 failures
 
 2. **`backend/admin_routes.py`** - 34% coverage → **Targeting 70%+**
    - **Action**: Add tests for admin endpoints (personality management, system prompts)
@@ -361,7 +373,62 @@
      - `calculate_aggregate_rankings`: empty parsed rankings, unparseable rankings, duplicate labels, no matching labels, rounding precision
      - Additional coverage for error paths and edge cases
 
-4. **`validate_org_access`** (`backend/auth.py`) - 0% coverage
+4. **`backend/openrouter.py`** - 49% coverage → **Targeting 70%+**
+   - **Action**: Add edge case tests for retry logic, timeout handling, semaphore behavior
+   - **Effort**: Medium (2-3 hours)
+   - **Status**: ✅ **COMPLETED** - Added comprehensive edge case tests in `tests/test_openrouter_edge_cases.py`:
+     - Timeout retry logic
+     - 5xx server error retries
+     - Max retries exceeded handling
+     - Non-retryable error handling (4xx)
+     - Generic exception handling
+     - Temperature parameter handling
+     - Reasoning details extraction
+     - Parallel querying with mixed results
+     - Semaphore creation and reuse
+
+5. **`backend/llm_service.py`** - 21% coverage → **Targeting 60%+**
+   - **Action**: Add edge case tests for error handling, cache behavior
+   - **Effort**: Medium (2-3 hours)
+   - **Status**: ✅ **COMPLETED** - Added comprehensive edge case tests in `tests/test_llm_service_edge_cases.py`:
+     - Missing ID field handling
+     - Empty data array handling
+     - Missing data key handling
+     - Provider extraction logic
+     - Name fallback logic
+     - Cache per base_url separation
+     - Exception handling
+     - URL stripping for generic providers
+     - Cache TTL boundary testing
+
+6. **`backend/security.py`** - 68% coverage → **Targeting 80%+**
+   - **Action**: Add edge case tests for invalid keys, edge cases
+   - **Effort**: Low (1-2 hours)
+   - **Status**: ✅ **COMPLETED** - Added comprehensive edge case tests in `tests/test_security_edge_cases.py`:
+     - None input handling
+     - Invalid base64 encoding
+     - Wrong encryption key handling
+     - Very long strings
+     - Special characters
+     - Unicode characters
+     - Binary-like strings
+     - Multiple roundtrip testing
+
+7. **`backend/config/paths.py`** - 64% coverage → **Targeting 80%+**
+   - **Action**: Add edge case tests for Windows paths, edge cases
+   - **Effort**: Low (1-2 hours)
+   - **Status**: ✅ **COMPLETED** - Added comprehensive edge case tests in `tests/test_paths_edge_cases.py`:
+     - Relative and absolute path handling
+     - Directory traversal prevention
+     - Absolute path restrictions
+     - Path normalization
+     - Empty string handling
+     - Multiple .. sequences
+     - Windows different drives handling
+     - Symlink handling
+     - Current/parent directory references
+
+8. **`validate_org_access`** (`backend/auth.py`) - 0% coverage
    - **Action**: Add skeleton test for org access validation
    - **Effort**: Low (30 minutes)
 
@@ -393,7 +460,13 @@
 - ✅ **Category**: Tests & Coverage
 - ⚠️ **Severity**: Medium (61.8% coverage, below 80% target)
 - 🔧 **Effort**: Medium (comprehensive test infrastructure exists, coverage gaps identified)
-- 📋 **Status**: Test infrastructure excellent, coverage improvement needed for target modules
+- 📋 **Status**: Test infrastructure excellent, comprehensive new test suites added for:
+  - `council.py` implementation tests (direct function testing)
+  - `openrouter.py` edge cases (retry logic, timeouts, semaphore)
+  - `llm_service.py` edge cases (cache, error handling)
+  - `security.py` edge cases (invalid keys, unicode, special chars)
+  - `config/paths.py` edge cases (Windows paths, traversal prevention)
+- 📊 **New Test Files Added**: 5 comprehensive test files with 50+ new test cases
 
 ---
 
