@@ -1,6 +1,6 @@
 # Accordant LLM Council ![Version](https://img.shields.io/badge/version-0.1.1-blue)
 
-![accordant](header.jpg)
+![accordant]
 
 The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, etc.), you can group them into your Council. **Accordant** is a powerful, local web app that essentially looks like ChatGPT except it allows you to define any LLM Router you want (that has an OpenAI compatible API) to send your query to multiple **Personalities**. These Personalities have their own baseline prompts and are pre-defined to use any of the LLMs available through the router. It then asks them to review and rank each other's work, and finally a Chairman produces the final response.
 
