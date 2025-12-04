@@ -231,6 +231,10 @@
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
 - ✅ **Test Discovery**: 30 test files in `tests/` directory (verified 2025-12-04)
+- ⚠️ **Test Organization Issue**: 2 test files found in `backend/tests/` (should be in `tests/` per configuration)
+  - `backend/tests/test_fixes.py` - Legacy test file
+  - `backend/tests/test_multi_user.py` - Legacy test file
+  - **Recommendation**: Consolidate all tests to `tests/` directory (see Test Organization section below)
 
 **Frontend:**
 - ✅ **Test Framework**: Vitest 4.0.15+ with React Testing Library

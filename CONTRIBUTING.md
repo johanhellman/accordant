@@ -113,11 +113,21 @@ uv run pre-commit install
  
 Test infrastructure is set up for both backend and frontend. When contributing:
  
-1. **Backend**: Run tests with `uv run pytest`.
-2. **Frontend**: Run tests with `cd frontend && npm test`.
-3. Add tests for new functionality.
-4. Ensure existing tests pass.
-5. Aim for test coverage of critical functions.
+**Test Organization:**
+- **Backend Tests**: Place all backend tests in the `tests/` directory (project root)
+  - Tests should import from `backend.*` modules (e.g., `from backend.main import app`)
+  - Configured in `pyproject.toml` with `testpaths = ["tests"]`
+- **Frontend Tests**: Place frontend tests in `frontend/src/` (e.g., `frontend/src/api.test.js`)
+
+**Running Tests:**
+1. **Backend**: Run tests with `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage)
+2. **Frontend**: Run tests with `cd frontend && npm test` (or `npm run test:coverage` for coverage)
+
+**When Adding Tests:**
+1. Add tests for new functionality in the appropriate location (`tests/` for backend, `frontend/src/` for frontend)
+2. Ensure existing tests pass
+3. Aim for test coverage of critical functions
+4. Follow existing test patterns and naming conventions (`test_*.py` for Python, `*.test.js` for JavaScript)
 
 ## Documentation
 

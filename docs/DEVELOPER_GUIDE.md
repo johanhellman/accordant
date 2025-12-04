@@ -95,9 +95,24 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 ### Testing
 
 - **Current Status**: Backend tests are implemented and passing; frontend Vitest tests are configured (see `HYGIENE_REPORT.md` for coverage details).
-- **Test Location**: Backend tests live in the `tests/` directory; frontend tests live under `frontend/src` (e.g., `frontend/src/api.test.js` and component tests).
-- **Running Backend Tests**: `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage reports).
-- **Running Frontend Tests**: `cd frontend && npm test` (or `npm run test:coverage` for coverage).
+
+**Test Organization:**
+- **Backend Tests**: All backend tests should be located in the `tests/` directory (project root)
+  - Configured in `pyproject.toml` with `testpaths = ["tests"]`
+  - Tests import from `backend.*` modules (e.g., `from backend.main import app`)
+  - **Note**: There are 2 legacy test files in `backend/tests/` that should be moved to `tests/` for consistency
+- **Frontend Tests**: Frontend tests live under `frontend/src` (e.g., `frontend/src/api.test.js` and component tests)
+  - Configured in `frontend/vite.config.js` for Vitest
+
+**Running Tests:**
+- **Backend**: `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage reports)
+- **Frontend**: `cd frontend && npm test` (or `npm run test:coverage` for coverage)
+
+**Why Tests Are in Project Root:**
+- Tests are separate from source code, making it clear they're not part of the application
+- Tests import from `backend.*`, making it explicit they're testing the backend package
+- Aligns with pytest configuration (`testpaths = ["tests"]`)
+- Follows standard Python project structure
 
 ### Debugging
 
