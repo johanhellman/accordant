@@ -213,7 +213,163 @@
 
 ## 3. Tests & Coverage
 
-*[To be completed in Section 2]*
+### Test Infrastructure
+
+**Backend:**
+- ✅ **Test Framework**: pytest 8.0.0+ with pytest-asyncio, pytest-cov, pytest-mock
+- ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
+- ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
+- ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
+- ✅ **Test Discovery**: 28 test files in `tests/` directory
+
+**Frontend:**
+- ✅ **Test Framework**: Vitest 4.0.15+ with React Testing Library
+- ✅ **Test Command**: `cd frontend && npm test`
+- ✅ **Coverage Command**: `cd frontend && npm run test:coverage`
+- ⚠️ **Test Files**: Limited test files (only `api.test.js` found)
+
+### Coverage Analysis
+
+**Overall Coverage**: **62%** (61.8% statements covered)
+
+**Coverage by Module** (from `coverage.json`):
+
+| Module | Coverage | Status |
+|--------|----------|--------|
+| `backend/main.py` | 88% | ✅ Good |
+| `backend/auth.py` | 83% | ✅ Good |
+| `backend/organizations.py` | 90% | ✅ Excellent |
+| `backend/storage.py` | 91% | ✅ Excellent |
+| `backend/users.py` | 91% | ✅ Excellent |
+| `backend/voting_history.py` | 90% | ✅ Excellent |
+| `backend/streaming.py` | 96% | ✅ Excellent |
+| `backend/schema.py` | 100% | ✅ Perfect |
+| `backend/config/settings.py` | 100% | ✅ Perfect |
+| `backend/council.py` | **15%** | ⚠️ **Critical Gap** |
+| `backend/admin_routes.py` | **34%** | ⚠️ **Low** |
+| `backend/council_helpers.py` | **26%** | ⚠️ **Low** |
+| `backend/openrouter.py` | **49%** | ⚠️ **Medium** |
+| `backend/llm_service.py` | **21%** | ⚠️ **Low** |
+| `backend/security.py` | 68% | ⚠️ **Medium** |
+| `backend/config/paths.py` | 64% | ⚠️ **Medium** |
+| `backend/config/personalities.py` | 50% | ⚠️ **Medium** |
+| `backend/invitations.py` | 83% | ✅ Good |
+| `backend/admin_users_routes.py` | 70% | ⚠️ **Medium** |
+| `backend/org_routes.py` | 94% | ✅ Excellent |
+
+### Critical Functions Analysis
+
+**Top 5 Critical Functions Lacking Tests** (based on coverage data and codebase analysis):
+
+1. **`run_full_council`** (`backend/council.py`) - **0% coverage**
+   - **Criticality**: HIGH - Core 3-stage orchestration function
+   - **Impact**: Complete council workflow
+   - **Status**: ✅ **Tests exist** in `tests/test_critical_paths_skeleton.py` (comprehensive)
+   - **Note**: Coverage shows 0% but tests exist - may need to verify test execution
+
+2. **`stage1_collect_responses`** (`backend/council.py`) - **0% coverage**
+   - **Criticality**: HIGH - Stage 1 response collection
+   - **Impact**: Initial LLM responses
+   - **Status**: ✅ **Tests exist** in `tests/test_critical_paths_skeleton.py`
+
+3. **`stage2_collect_rankings`** (`backend/council.py`) - **0% coverage**
+   - **Criticality**: HIGH - Stage 2 anonymized peer review
+   - **Impact**: Ranking and voting logic
+   - **Status**: ✅ **Tests exist** in `tests/test_critical_paths_skeleton.py`
+
+4. **`stage3_synthesize_final`** (`backend/council.py`) - **0% coverage**
+   - **Criticality**: HIGH - Final synthesis step
+   - **Impact**: Final answer generation
+   - **Status**: ✅ **Tests exist** in `tests/test_critical_paths_skeleton.py`
+
+5. **`validate_org_access`** (`backend/auth.py`) - **0% coverage**
+   - **Criticality**: HIGH - Security-critical authorization check
+   - **Impact**: Multi-tenant access control
+   - **Status**: ⚠️ **No tests found** - needs skeleton test
+
+**Additional Critical Functions with Low Coverage:**
+
+- `get_available_models` (`backend/llm_service.py`) - **0% coverage** - ✅ Tests exist
+- `query_model` (`backend/openrouter.py`) - **36% coverage** - ✅ Tests exist
+- `get_active_personalities` (`backend/config/personalities.py`) - **0% coverage** - ⚠️ Needs tests
+- `_load_org_config_file` (`backend/config/personalities.py`) - **40% coverage** - ⚠️ Needs tests
+- `validate_file_path` (`backend/config/paths.py`) - **58% coverage** - ✅ Tests exist
+
+### Test Execution Status
+
+**Note**: Venv path issues prevent running tests directly. However, coverage data exists from previous test runs.
+
+**Test Files Present:**
+- ✅ `tests/test_critical_paths_skeleton.py` - Comprehensive tests for council orchestration (2000+ lines)
+- ✅ `tests/test_main.py` - Main API endpoint tests
+- ✅ `tests/test_auth.py` - Authentication tests
+- ✅ `tests/test_council.py` - Council logic tests
+- ✅ `tests/test_integration.py` - Integration tests
+- ✅ `tests/test_security.py` - Security tests
+- ✅ `tests/test_organizations.py` - Organization management tests
+- ✅ `tests/test_storage.py` - Storage tests
+- ✅ `tests/test_streaming.py` - Streaming tests
+- ✅ `tests/test_voting_history.py` - Voting history tests
+- ✅ `tests/test_openrouter.py` - OpenRouter API tests
+- ✅ `tests/test_llm_service.py` - LLM service tests
+- ✅ `tests/test_admin_routes.py` - Admin routes tests
+- ✅ `tests/test_org_routes.py` - Organization routes tests
+- ✅ `tests/test_invitations.py` - Invitation tests
+- ✅ `tests/test_users_functions.py` - User management tests
+- ✅ `tests/test_security_hardening.py` - Security hardening tests
+- ✅ `tests/test_config_validation.py` - Config validation tests
+
+**Frontend Tests:**
+- ✅ `frontend/src/api.test.js` - API client tests
+- ⚠️ **Limited component tests** - Only API tests found
+
+### Coverage Gaps & Recommendations
+
+**Critical Gaps:**
+1. **`backend/council.py`** - 15% coverage despite comprehensive tests existing
+   - **Action**: Verify test execution and ensure tests are properly integrated
+   - **Effort**: Low (investigation needed)
+
+2. **`backend/admin_routes.py`** - 34% coverage
+   - **Action**: Add tests for admin endpoints (personality management, system prompts)
+   - **Effort**: Medium (2-4 hours)
+
+3. **`backend/council_helpers.py`** - 26% coverage
+   - **Action**: Add tests for helper functions (prompt building, ranking parsing)
+   - **Effort**: Medium (2-4 hours)
+
+4. **`validate_org_access`** (`backend/auth.py`) - 0% coverage
+   - **Action**: Add skeleton test for org access validation
+   - **Effort**: Low (30 minutes)
+
+5. **Frontend Component Tests** - Limited coverage
+   - **Action**: Add component tests for React components
+   - **Effort**: High (1-2 days)
+
+### Coverage Improvement Plan
+
+**To reach 80% coverage target:**
+
+1. **Quick Wins** (≤1 hour):
+   - Add test for `validate_org_access` function
+   - Verify `council.py` tests are executing correctly
+   - Add edge case tests for `get_active_personalities`
+
+2. **Near-term** (≤1 day):
+   - Increase `admin_routes.py` coverage to 70%+
+   - Increase `council_helpers.py` coverage to 60%+
+   - Add integration tests for admin endpoints
+
+3. **Backlog**:
+   - Frontend component tests
+   - E2E tests for critical user flows
+   - Performance tests for council orchestration
+
+**Summary:**
+- ✅ **Category**: Tests & Coverage
+- ⚠️ **Severity**: Medium (62% coverage, below 80% target)
+- 🔧 **Effort**: Medium (tests exist but coverage gaps remain)
+- ✅ **Quick-win**: Yes (add `validate_org_access` test, verify council tests)
 
 ---
 
