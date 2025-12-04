@@ -375,7 +375,187 @@
 
 ## 4. Quality, Duplication & Complexity
 
-*[To be completed in Section 3]*
+### Duplication Analysis
+
+**Overall Duplication**: **1.54%** (excellent - well below typical 5-10% threshold)
+
+**Duplication by Language** (from jscpd report):
+
+| Language | Duplication | Clones | Status |
+|----------|-------------|--------|--------|
+| **Python** | **0%** | 0 | ✅ **Perfect** |
+| **JavaScript** | 4.02% | 1 | ✅ **Good** |
+| **JSX** | 1.88% | 4 | ✅ **Good** |
+| **CSS** | 1.89% | 2 | ✅ **Good** |
+
+**Duplication Clusters Identified:**
+
+1. **`frontend/src/components/ChatInterface.test.jsx`** - **33.92% duplication**
+   - **Issue**: Test setup code duplicated across multiple test cases
+   - **Lines**: 58 duplicated lines (148 total duplicated tokens)
+   - **Impact**: Low (test file only)
+   - **Recommendation**: Extract common test setup into helper functions or fixtures
+   - **Effort**: Low (30 minutes)
+
+2. **`frontend/src/components/SystemPromptsEditor.jsx`** - **17.54% duplication**
+   - **Issue**: Model selection dropdown code duplicated (3 instances)
+   - **Lines**: 40 duplicated lines (380 duplicated tokens)
+   - **Impact**: Medium (production code)
+   - **Recommendation**: Extract model selection dropdown into reusable component
+   - **Effort**: Medium (1-2 hours)
+
+3. **CSS Duplication** - **1.89% overall**
+   - **Clusters**:
+     - `Stage1.css` and `Stage2.css` share tab styling (11 lines)
+     - `PersonalityManager.css` and `SystemPromptsEditor.css` share container styles (27 lines)
+   - **Impact**: Low (CSS only)
+   - **Recommendation**: Extract shared styles into common CSS module or use CSS variables
+   - **Effort**: Low (30 minutes)
+
+**Summary**: ✅ **Excellent** - Minimal duplication, mostly in test files and CSS. No critical duplication in core business logic.
+
+### Complexity Analysis
+
+**Complexity Hotspots** (based on code analysis):
+
+**Top 10 Complex Functions/Modules:**
+
+1. **`run_full_council`** (`backend/council.py`) - **High Complexity**
+   - **Lines**: ~55 lines
+   - **Branches**: Multiple async calls, error handling, conditional logic
+   - **Rationale**: Core orchestration function coordinating 3 stages
+   - **Risk**: Medium (well-tested, but complex)
+   - **Recommendation**: ✅ No action needed - complexity is justified by functionality
+
+2. **`_stage2_personality_mode`** (`backend/council.py`) - **High Complexity**
+   - **Lines**: ~110 lines
+   - **Branches**: Nested loops, conditional logic, error handling
+   - **Rationale**: Handles anonymized peer review with response filtering
+   - **Risk**: Medium
+   - **Recommendation**: Consider extracting response filtering logic into helper function
+
+3. **`send_message`** (`backend/main.py`) - **Medium-High Complexity**
+   - **Lines**: ~60 lines
+   - **Branches**: Multiple conditional checks, async calls, error handling
+   - **Rationale**: Main API endpoint coordinating multiple operations
+   - **Risk**: Low (well-tested)
+   - **Recommendation**: ✅ No action needed
+
+4. **`create_org`** (`backend/organizations.py`) - **Medium Complexity**
+   - **Lines**: ~50 lines
+   - **Branches**: Multiple validation checks, file operations
+   - **Rationale**: Multi-step organization creation with validation
+   - **Risk**: Low
+   - **Recommendation**: ✅ No action needed
+
+5. **`query_model`** (`backend/openrouter.py`) - **Medium Complexity**
+   - **Lines**: ~60 lines
+   - **Branches**: Retry logic, error handling, semaphore management
+   - **Rationale**: Robust API client with retry and concurrency control
+   - **Risk**: Low (well-tested)
+   - **Recommendation**: ✅ No action needed
+
+6. **`validate_file_path`** (`backend/config/paths.py`) - **Medium Complexity**
+   - **Lines**: ~40 lines
+   - **Branches**: Multiple validation checks, path normalization
+   - **Rationale**: Security-critical path validation
+   - **Risk**: Low (well-tested)
+   - **Recommendation**: ✅ No action needed
+
+7. **`parse_ranking_from_text`** (`backend/council_helpers.py`) - **Medium Complexity**
+   - **Lines**: ~30 lines
+   - **Branches**: Text parsing logic, multiple regex patterns
+   - **Rationale**: Parses LLM ranking responses
+   - **Risk**: Low
+   - **Recommendation**: ✅ No action needed
+
+8. **`build_llm_history`** (`backend/council_helpers.py`) - **Medium Complexity**
+   - **Lines**: ~20 lines
+   - **Branches**: Conditional logic for history filtering
+   - **Rationale**: Prepares conversation history for LLM context
+   - **Risk**: Low
+   - **Recommendation**: ✅ No action needed
+
+9. **`update_org_settings`** (`backend/admin_routes.py`) - **Medium Complexity**
+   - **Lines**: ~30 lines
+   - **Branches**: Multiple validation checks, encryption handling
+   - **Rationale**: Updates organization settings with encryption
+   - **Risk**: Low
+   - **Recommendation**: ✅ No action needed
+
+10. **`record_votes`** (`backend/voting_history.py`) - **Medium Complexity**
+    - **Lines**: ~45 lines
+    - **Branches**: Data transformation, file operations
+    - **Rationale**: Records voting history with aggregation
+    - **Risk**: Low
+    - **Recommendation**: ✅ No action needed
+
+**Complexity Metrics** (approximate):
+- **Average function length**: ~25-30 lines (good)
+- **Maximum function length**: ~110 lines (`_stage2_personality_mode`)
+- **Nested depth**: Generally ≤3 levels (good)
+- **Cyclomatic complexity**: Estimated 5-10 for most functions (acceptable)
+
+### Maintainability Assessment
+
+**Code Quality Indicators:**
+- ✅ **Modularity**: Good - functions are well-separated
+- ✅ **Naming**: Clear and descriptive function/variable names
+- ✅ **Documentation**: Functions have docstrings
+- ✅ **Type Hints**: Python code uses type hints
+- ✅ **Error Handling**: Appropriate try/except blocks
+- ✅ **Separation of Concerns**: Clear separation between API routes, business logic, and data access
+
+**Areas for Improvement:**
+
+1. **Function Extraction Opportunities**:
+   - Extract response filtering logic from `_stage2_personality_mode` into `filter_responses_for_personality()` helper
+   - Extract model selection dropdown from `SystemPromptsEditor.jsx` into `ModelSelector` component
+
+2. **Dead Code**:
+   - ⚠️ `backend/migrate_to_multitenancy.py` - Migration script (0% coverage, likely one-time use)
+     - **Recommendation**: Document as one-time migration, consider archiving after migration complete
+
+3. **Type Safety**:
+   - ✅ Python code uses type hints
+   - ⚠️ Frontend JavaScript lacks TypeScript - consider migration for better type safety
+
+### Refactoring Recommendations
+
+**Safe Refactors** (low risk, high value):
+
+1. **Extract Model Selector Component** (`SystemPromptsEditor.jsx`)
+   ```jsx
+   // Create: frontend/src/components/ModelSelector.jsx
+   // Extract duplicated model selection dropdown code
+   // Risk: Low | Effort: 1-2 hours | Impact: Reduces duplication
+   ```
+
+2. **Extract Test Helpers** (`ChatInterface.test.jsx`)
+   ```javascript
+   // Create: frontend/src/test/helpers.js
+   // Extract common test setup functions
+   // Risk: Low | Effort: 30 minutes | Impact: Reduces test duplication
+   ```
+
+3. **Extract Shared CSS** (Stage1.css, Stage2.css)
+   ```css
+   // Create: frontend/src/components/shared/Tabs.css
+   // Extract shared tab styling
+   // Risk: Low | Effort: 30 minutes | Impact: Reduces CSS duplication
+   ```
+
+**Medium-Risk Refactors** (requires testing):
+
+1. **Extract Response Filtering Logic** (`council.py`)
+   - Extract `filter_responses_for_personality()` helper function
+   - Risk: Medium | Effort: 1-2 hours | Impact: Improves readability
+
+**Summary:**
+- ✅ **Category**: Quality, Duplication & Complexity
+- ✅ **Severity**: Low (excellent duplication metrics, manageable complexity)
+- 🔧 **Effort**: Low-Medium (mostly optional improvements)
+- ✅ **Quick-win**: Yes (extract test helpers, model selector component)
 
 ---
 
