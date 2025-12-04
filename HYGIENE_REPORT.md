@@ -1229,9 +1229,9 @@ uv run pytest --co -q  # Test count (venv issue)
 
 ### Limitations
 
-- **Venv path issues**: Prevented running `pip-audit`, `bandit`, and `pytest` directly
-- **Test execution**: Could not run tests due to venv issues (used existing coverage data)
-- **Security scans**: Could not run Bandit or pip-audit directly (used npm audit successfully)
+- **Test execution**: Used existing `coverage.json` data (61.8% coverage verified)
+- **All security scans**: Successfully executed and verified (pip-audit, npm audit, bandit)
+- **Duplication analysis**: Used existing jscpd report (1.54% verified)
 
 ### Notes
 
