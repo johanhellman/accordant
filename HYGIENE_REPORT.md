@@ -701,7 +701,160 @@
 
 ## 6. CI/CD & Policies
 
-*[To be completed in Section 5]*
+### CI/CD Configuration
+
+**Status**: ⚠️ **Intentionally Deferred** - No automated CI/CD pipelines per project policy
+
+**Present:**
+- ✅ **Dependabot**: Configured (`.github/dependabot.yml`)
+  - Python dependencies: Daily checks
+  - JavaScript dependencies: Daily checks
+  - Docker (if Dockerfile exists): Daily checks
+- ✅ **Pre-commit hooks**: Configured (`.pre-commit-config.yaml`)
+  - Ruff formatting (auto-fix)
+  - Ruff linting (auto-fix)
+  - Prettier formatting (auto-fix)
+  - **Note**: Optional and non-blocking (can skip with `--no-verify`)
+
+**Absent:**
+- ❌ **GitHub Actions workflows**: No `.github/workflows/` directory
+- ❌ **GitLab CI**: No `.gitlab-ci.yml`
+- ❌ **CircleCI**: No `.circleci/` directory
+- ❌ **Coverage badge**: No coverage badge in README
+
+**Policy Statement:**
+Per `CONTRIBUTING.md`:
+> "GitHub workflows (CI/CD) are intentionally deferred per project policy. However, formatting and linting tools are now available."
+
+### Pre-commit Hooks
+
+**Configuration**: ✅ **Present** (`.pre-commit-config.yaml`)
+
+**Hooks Configured:**
+1. **ruff-format** - Auto-formats Python code
+2. **ruff** - Lints and auto-fixes Python code
+3. **prettier** - Auto-formats JavaScript/JSX/CSS
+
+**Characteristics:**
+- ✅ **Optional**: Can be skipped with `--no-verify`
+- ✅ **Non-blocking**: Won't prevent commits
+- ✅ **Auto-fix**: Automatically fixes issues when possible
+- ⚠️ **ESLint not included**: Requires npm/node setup (run manually)
+
+**Installation:**
+- Command: `make install-pre-commit` or `uv run pre-commit install`
+- Usage: Runs automatically on `git commit`
+- Manual run: `make run-pre-commit`
+
+**Recommendations:**
+- ✅ **No action needed** - Pre-commit hooks are well-configured
+- 📋 **Optional**: Consider adding ESLint to pre-commit hooks (requires npm setup)
+
+### Dependency Management Policies
+
+**Lockfiles:**
+- ✅ **Python**: `uv.lock` present and tracked
+- ✅ **JavaScript**: `package-lock.json` present and tracked
+- ✅ **Policy**: Lockfiles are committed to repository (good practice)
+
+**Dependency Updates:**
+- ✅ **Dependabot**: Configured for automated dependency updates
+- ✅ **Manual checks**: `make check-outdated` command available
+- ✅ **Security audits**: `make security-audit` command available
+
+**Recommendations:**
+- ✅ **No action needed** - Dependency management is well-configured
+
+### CI/CD Recommendations (If Enabled in Future)
+
+**If CI/CD is enabled, recommend:**
+
+1. **Basic CI Pipeline** (`.github/workflows/ci.yml`):
+   ```yaml
+   name: CI
+   on: [push, pull_request]
+   jobs:
+     lint:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: astral-sh/setup-uv@v3
+         - run: uv sync --all-groups
+         - run: make lint-check-all
+     
+     test:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: astral-sh/setup-uv@v3
+         - run: uv sync --all-groups
+         - run: uv run pytest --cov=backend --cov-report=xml
+         - uses: codecov/codecov-action@v4
+           with:
+             files: ./coverage.xml
+     
+     frontend-test:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+         - run: cd frontend && npm ci
+         - run: cd frontend && npm test
+   ```
+
+2. **Coverage Badge**:
+   - Add coverage badge to README after CI/CD is enabled
+   - Use Codecov or similar service
+   - Format: `![Coverage](https://codecov.io/gh/owner/repo/branch/main/graph/badge.svg)`
+
+3. **Security Scanning**:
+   - Add `pip-audit` step to CI
+   - Add `npm audit` step to CI
+   - Add Bandit security scan step
+
+4. **Lockfile Validation**:
+   - Ensure `uv.lock` is up-to-date
+   - Ensure `package-lock.json` is up-to-date
+   - Fail build if lockfiles are outdated
+
+### Current State Assessment
+
+**Strengths:**
+- ✅ Pre-commit hooks configured (optional, non-blocking)
+- ✅ Dependabot configured for dependency updates
+- ✅ Lockfiles present and tracked
+- ✅ Manual testing commands available (`make lint-check-all`, `make format-check-all`)
+- ✅ Security audit commands available (`make security-audit`)
+
+**Gaps:**
+- ⚠️ **No automated CI/CD**: Intentionally deferred (per project policy)
+- ⚠️ **No coverage badge**: Cannot display coverage in README
+- ⚠️ **No automated testing**: Tests must be run manually
+- ⚠️ **No automated security scanning**: Security audits must be run manually
+
+**Risk Assessment:**
+- **Risk**: Low-Medium (manual processes require discipline)
+- **Impact**: Medium (potential for bugs/security issues to slip through)
+- **Mitigation**: Pre-commit hooks help catch issues early
+
+### Recommendations
+
+**Current State (Intentionally Deferred):**
+- ✅ **No action needed** - CI/CD intentionally deferred per project policy
+- ✅ **Pre-commit hooks**: Well-configured and optional
+- ✅ **Dependabot**: Configured for dependency updates
+
+**If CI/CD is Enabled in Future:**
+- 📋 **Quick Win**: Add basic CI pipeline with lint + test + coverage
+- 📋 **Near-term**: Add coverage badge to README
+- 📋 **Near-term**: Add security scanning to CI pipeline
+- 📋 **Backlog**: Add lockfile validation to CI
+
+**Summary:**
+- ⚠️ **Category**: CI/CD & Policies
+- ⚠️ **Severity**: Medium (CI/CD intentionally deferred, manual processes required)
+- 🔧 **Effort**: N/A (intentionally deferred)
+- ✅ **Quick-win**: N/A (policy decision)
 
 ---
 
