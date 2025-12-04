@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ChatInterface from "./ChatInterface";
+import { createMockConversation, renderChatInterface } from "../test/helpers";
 
 describe("ChatInterface", () => {
   beforeAll(() => {
@@ -18,43 +18,25 @@ describe("ChatInterface", () => {
     mockOnSendMessage.mockClear();
   });
 
-  const mockConversation = {
-    id: "test-id",
-    title: "Test Conversation",
-    messages: [
-      {
-        role: "user",
-        content: "Hello",
-      },
-      {
-        role: "assistant",
-        stage1: [],
-        stage2: [],
-        stage3: {
-          model: "test-model",
-          response: "PART 2: FINAL ANSWER\n\nHello there!",
-        },
-      },
-    ],
-  };
+  const mockConversation = createMockConversation();
 
   it("should render empty state when no conversation", () => {
-    render(
-      <ChatInterface conversation={null} onSendMessage={mockOnSendMessage} isLoading={false} />
-    );
+    renderChatInterface({
+      conversation: null,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     expect(screen.getByText("Welcome to LLM Council")).toBeInTheDocument();
     expect(screen.getByText("Create a new conversation to get started")).toBeInTheDocument();
   });
 
   it("should render conversation messages", () => {
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     expect(screen.getByText("Hello")).toBeInTheDocument();
     expect(screen.getByText("Hello there!")).toBeInTheDocument();
@@ -62,13 +44,11 @@ describe("ChatInterface", () => {
 
   it("should allow user to type and send message", async () => {
     const user = userEvent.setup();
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
     const sendButton = screen.getByRole("button", { name: /send/i });
@@ -81,13 +61,11 @@ describe("ChatInterface", () => {
 
   it("should clear input after sending message", async () => {
     const user = userEvent.setup();
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
     const sendButton = screen.getByRole("button", { name: /send/i });
@@ -102,13 +80,11 @@ describe("ChatInterface", () => {
 
   it("should not send empty messages", async () => {
     const user = userEvent.setup();
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
     const sendButton = screen.getByRole("button", { name: /send/i });
@@ -120,13 +96,11 @@ describe("ChatInterface", () => {
   });
 
   it("should disable input and button when loading", () => {
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={true}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: true,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
     const sendButton = screen.getByRole("button", { name: /send/i });
@@ -137,13 +111,11 @@ describe("ChatInterface", () => {
 
   it("should submit on Enter key (without Shift)", async () => {
     const user = userEvent.setup();
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
 
@@ -154,13 +126,11 @@ describe("ChatInterface", () => {
 
   it("should not submit on Shift+Enter", async () => {
     const user = userEvent.setup();
-    render(
-      <ChatInterface
-        conversation={mockConversation}
-        onSendMessage={mockOnSendMessage}
-        isLoading={false}
-      />
-    );
+    renderChatInterface({
+      conversation: mockConversation,
+      onSendMessage: mockOnSendMessage,
+      isLoading: false,
+    });
 
     const input = screen.getByPlaceholderText(/ask your question/i);
 

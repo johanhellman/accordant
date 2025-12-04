@@ -1,6 +1,4 @@
-# Accordant LLM Council ![Version](https://img.shields.io/badge/version-0.1.1-blue)
-
-![accordant]
+# Accordant LLM Council ![Version](https://img.shields.io/badge/version-0.2.0-blue)
 
 The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, etc.), you can group them into your Council. **Accordant** is a powerful, local web app that essentially looks like ChatGPT except it allows you to define any LLM Router you want (that has an OpenAI compatible API) to send your query to multiple **Personalities**. These Personalities have their own baseline prompts and are pre-defined to use any of the LLMs available through the router. It then asks them to review and rank each other's work, and finally a Chairman produces the final response.
 
@@ -19,6 +17,36 @@ The application supports multi-turn conversations. The Council remembers the con
 **Note on Context:** To save tokens, the history passed to the models includes only the **User Queries** and the **Final Answers** (Stage 3). The internal deliberations (Stage 1 individual responses and Stage 2 rankings) are stripped from the history.
 
 **Future Consideration:** We are considering adding the **Voting History** (Stage 2 rankings) to the context in the future to allow the Council to reflect on its own consensus levels (e.g., "Why did we disagree?"). If implemented, this will be done on a **Personality Level** to ensure character consistency.
+
+## Quick Start
+
+Get up and running in 5 minutes:
+
+```bash
+# 1. Install dependencies
+uv sync
+cd frontend && npm install && cd ..
+
+# 2. Configure API key
+cp .env.example .env
+# Edit .env and add: OPENROUTER_API_KEY=sk-or-v1-...
+
+# 3. Generate encryption key (for multi-tenancy)
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Add the output to .env as: ENCRYPTION_KEY=...
+
+# 4. Start the application
+./start.sh
+```
+
+Then open http://localhost:5173 in your browser.
+
+**Prerequisites:**
+- Python 3.10+ and [uv](https://docs.astral.sh/uv/)
+- Node.js v18+
+- OpenRouter API key ([get one here](https://openrouter.ai/))
+
+For detailed setup instructions, troubleshooting, and configuration options, see the [Setup](#setup) section below.
 
 ## Multi-User Support
 
