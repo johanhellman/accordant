@@ -634,3 +634,114 @@ class TestBuildRankingPrompt:
         # Empty string is falsy, so falls back to default template
         assert "query" in result
         assert "responses" in result
+
+
+class TestCalculateAggregateRankingsEdgeCases:
+    """Additional edge case tests for calculate_aggregate_rankings function."""
+
+    def test_calculate_with_empty_parsed_ranking(self):
+        """Test handling when parse_ranking_from_text returns empty list."""
+        stage2_results = [
+            {
+                "model": "model1",
+                "ranking": "No ranking markers found",  # Will parse to empty list
+            }
+        ]
+        label_to_model = {
+            f"{RESPONSE_LABEL_PREFIX}A": "Model1",
+        }
+
+        result = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+        # Should return empty list since no rankings were parsed
+        assert result == []
+
+    def test_calculate_with_unparseable_ranking(self):
+        """Test handling when ranking text cannot be parsed."""
+        stage2_results = [
+            {
+                "model": "model1",
+                "ranking": "Random text with no Response labels",
+            }
+        ]
+        label_to_model = {
+            f"{RESPONSE_LABEL_PREFIX}A": "Model1",
+        }
+
+        result = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+        # Should return empty list since no valid labels found
+        assert result == []
+
+    def test_calculate_with_duplicate_labels_in_ranking(self):
+        """Test handling when a ranking contains duplicate labels."""
+        stage2_results = [
+            {
+                "model": "model1",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}A\n2. {RESPONSE_LABEL_PREFIX}A\n3. {RESPONSE_LABEL_PREFIX}B",
+            }
+        ]
+        label_to_model = {
+            f"{RESPONSE_LABEL_PREFIX}A": "ModelA",
+            f"{RESPONSE_LABEL_PREFIX}B": "ModelB",
+        }
+
+        result = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+        # ModelA should appear twice (positions 1 and 2), ModelB once (position 3)
+        assert len(result) == 2
+        model_a = next(r for r in result if r["model"] == "ModelA")
+        model_b = next(r for r in result if r["model"] == "ModelB")
+        assert model_a["rankings_count"] == 2
+        assert model_a["average_rank"] == 1.5  # (1 + 2) / 2
+        assert model_b["rankings_count"] == 1
+        assert model_b["average_rank"] == 3.0
+
+    def test_calculate_with_no_matching_labels(self):
+        """Test handling when no labels in rankings match label_to_model."""
+        stage2_results = [
+            {
+                "model": "model1",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}X\n2. {RESPONSE_LABEL_PREFIX}Y",
+            }
+        ]
+        label_to_model = {
+            f"{RESPONSE_LABEL_PREFIX}A": "ModelA",
+            f"{RESPONSE_LABEL_PREFIX}B": "ModelB",
+        }
+
+        result = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+        # Should return empty list since no labels match
+        assert result == []
+
+    def test_calculate_rounding_precision(self):
+        """Test that average ranks are rounded to 2 decimal places."""
+        # Create scenario that results in non-round average
+        stage2_results = [
+            {
+                "model": "voter1",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}A\n2. {RESPONSE_LABEL_PREFIX}B",
+            },
+            {
+                "model": "voter2",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}A\n2. {RESPONSE_LABEL_PREFIX}B",
+            },
+            {
+                "model": "voter3",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n2. {RESPONSE_LABEL_PREFIX}A\n1. {RESPONSE_LABEL_PREFIX}B",
+            },
+        ]
+        label_to_model = {
+            f"{RESPONSE_LABEL_PREFIX}A": "ModelA",
+            f"{RESPONSE_LABEL_PREFIX}B": "ModelB",
+        }
+
+        result = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+        # ModelA: positions 1, 1, 2 = avg (1+1+2)/3 = 1.333...
+        # ModelB: positions 2, 2, 1 = avg (2+2+1)/3 = 1.666...
+        model_a = next(r for r in result if r["model"] == "ModelA")
+        model_b = next(r for r in result if r["model"] == "ModelB")
+        assert model_a["average_rank"] == 1.33  # Rounded to 2 decimals
+        assert model_b["average_rank"] == 1.67  # Rounded to 2 decimals
