@@ -118,7 +118,7 @@ logger = logging.getLogger(__name__)
 #         "Please set it in your .env file. See .env.example for reference."
 #     )
 
-app = FastAPI(title="LLM Council API")
+app = FastAPI(title="Accordant API")
 
 # Include Admin Routes
 app.include_router(admin_routes.router)
@@ -165,7 +165,7 @@ if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") and (
 @app.get("/")
 async def root():
     """Health check endpoint."""
-    return {"status": "ok", "service": "LLM Council API"}
+    return {"status": "ok", "service": "Accordant API"}
 
 
 # --- Auth Routes ---

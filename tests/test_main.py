@@ -22,7 +22,7 @@ class TestHealthCheck:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["service"] == "LLM Council API"
+        assert data["service"] == "Accordant API"
 
 
 class TestConversationEndpoints:

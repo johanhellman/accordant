@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# LLM Council - Start script
+# Accordant - Start script
 
-echo "Starting LLM Council..."
+echo "Starting Accordant..."
 echo ""
 
 # Load environment variables from .env if present
@@ -15,7 +15,7 @@ fi
 # Cleanup function to kill process trees
 cleanup() {
   echo ""
-  echo "Stopping LLM Council..."
+  echo "Stopping Accordant..."
   
   # Kill backend process tree
   if [ ! -z "$BACKEND_PID" ]; then
@@ -54,7 +54,7 @@ npm run dev &
 FRONTEND_PID=$!
 
 echo ""
-echo "✓ LLM Council is running!"
+echo "✓ Accordant is running!"
 echo "  Backend:  http://localhost:8001"
 echo "  Frontend: http://localhost:5173"
 echo ""

@@ -858,7 +858,7 @@ jobs:
 
 **Recommendation**: Add coverage badge to README when CI/CD is implemented:
 ```markdown
-![Coverage](https://codecov.io/gh/your-org/llm-council/branch/main/graph/badge.svg)
+![Coverage](https://codecov.io/gh/johanhellman/accordant/branch/main/graph/badge.svg)
 ```
 
 ### 6.5 Dependency Locking

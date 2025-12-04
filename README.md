@@ -1,16 +1,16 @@
-# Accordant ![Version](https://img.shields.io/badge/version-0.2.0-blue)
+# Accordant LLM Council ![Version](https://img.shields.io/badge/version-0.1.1-blue)
 
-**Accordant** is a local web application that allows you to form your own "LLM Council". Instead of relying on a single AI provider, Accordant groups multiple LLMs (e.g., OpenAI GPT-4, Google Gemini Pro, Anthropic Claude) to review, rank, and synthesize answers to your queries.
+![accordant](header.jpg)
 
-It essentially looks like a chat interface but uses OpenRouter to send your query to multiple LLMs, asks them to review and rank each other's work, and finally, a Chairman LLM produces the final response.
+The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, etc.), you can group them into your Council. **Accordant** is a powerful, local web app that essentially looks like ChatGPT except it allows you to define any LLM Router you want (that has an OpenAI compatible API) to send your query to multiple **Personalities**. These Personalities have their own baseline prompts and are pre-defined to use any of the LLMs available through the router. It then asks them to review and rank each other's work, and finally a Chairman produces the final response.
 
 It is designed to be a fully customizable platform with sophisticated personality management, allowing you to fine-tune the behavior and "voice" of each council member. The system supports multi-tenant, multi-user management, ensuring data isolation and secure access for different organizations and users. Additionally, it tracks voting history and provides aggregate statistics on a personality level, giving you deep insights into how different models and personalities align or diverge over time.
 
 In a bit more detail, here is what happens when you submit a query:
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Council takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+1. **Stage 1: First opinions**. The user query is given to all Personalities individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
+2. **Stage 2: Review**. Each individual Personality is given the responses of the other Personalities. Under the hood, the Personality identities are anonymized so that the Personality can't play favorites when judging their outputs. The Personality is asked to rank them in accuracy and insight.
+3. **Stage 3: Final response**. The designated Chairman of the Council takes all of the Personality's responses and compiles them into a single final answer that is presented to the user.
 
 ## Back-and-Forth Discussion
 
@@ -43,9 +43,9 @@ Currently, admin features are accessible via the API documentation (Swagger UI):
 2.  Authorize using your login token (click "Authorize" and enter your credentials).
 3.  Use the `admin-users` and `admin` endpoints.
 
-## Implementation Note
+## Vibe Code Alert
 
-This project has been implemented using a combination of **AntiGravity** and **Cursor**, utilizing custom commands to enforce structure, hygiene, and best practices. It aims to demonstrate a robust and scalable approach to local AI application development.
+No line of code has been written in the traditional way. It's all been done through LLMs. Inspired by Jeff Sutherland's presentation at Crisp's [Leading Complexity](https://leadingcomplexity.com/program/) session on October 16th, 2025.
 
 ## Acknowledgements
 
@@ -311,7 +311,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
 ### Project Structure
 
 ```
-llm-council/
+accordant/
 ├── backend/           # Python FastAPI backend
 │   ├── council.py    # Core 3-stage orchestration logic
 │   ├── main.py       # FastAPI app and endpoints
@@ -480,8 +480,8 @@ LLM_MAX_RETRIES=3
 
 # Logging
 LOG_LEVEL=INFO
-LOG_DIR=/var/log/llm-council
-LOG_FILE=/var/log/llm-council/llm_council.log
+LOG_DIR=/var/log/accordant
+LOG_FILE=/var/log/accordant/accordant.log
 ```
 
 #### File System Security
@@ -501,22 +501,22 @@ LOG_FILE=/var/log/llm-council/llm_council.log
 **Option 1: Docker (Recommended)**
 ```bash
 # Build and run with Docker
-docker build -t llm-council .
-docker run -p 8001:8001 --env-file .env llm-council
+docker build -t accordant .
+docker run -p 8001:8001 --env-file .env accordant
 ```
 
 **Option 2: Systemd Service**
 ```ini
 [Unit]
-Description=LLM Council API
+Description=Accordant API
 After=network.target
 
 [Service]
 Type=simple
-User=llm-council
-WorkingDirectory=/opt/llm-council
-Environment="PATH=/opt/llm-council/.venv/bin"
-ExecStart=/opt/llm-council/.venv/bin/python -m backend.main
+User=accordant
+WorkingDirectory=/opt/accordant
+Environment="PATH=/opt/accordant/.venv/bin"
+ExecStart=/opt/accordant/.venv/bin/python -m backend.main
 Restart=always
 
 [Install]
