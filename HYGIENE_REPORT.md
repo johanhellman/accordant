@@ -263,7 +263,7 @@
 | `backend/llm_service.py` | **21%** | ⚠️ **Low** |
 | `backend/security.py` | 68% | ⚠️ **Medium** |
 | `backend/config/paths.py` | 64% | ⚠️ **Medium** |
-| `backend/config/personalities.py` | 50% | ⚠️ **Medium** |
+| `backend/config/personalities.py` | **50%** → **Targeting 70%+** | ⚠️ **Medium** |
 | `backend/invitations.py` | 83% | ✅ Good |
 | `backend/admin_users_routes.py` | 70% | ⚠️ **Medium** |
 | `backend/org_routes.py` | 94% | ✅ Excellent |
@@ -309,6 +309,21 @@
   - Nested vs top-level ranking prompt config
   - Non-dict ranking config handling
   - Additional edge cases for `get_active_personalities`: invalid YAML, missing id field, disabled by default, excludes system-prompts.yaml, empty file
+- `_get_nested_config_value` (`backend/config/personalities.py`) - **0% coverage** - ✅ **COMPLETED** - Added comprehensive tests:
+  - Value exists in nested config
+  - Missing key handling
+  - Missing section handling
+  - Non-dict section handling
+  - None section handling
+- `load_org_models_config` (`backend/config/personalities.py`) - **0% coverage** - ✅ **COMPLETED** - Added comprehensive tests:
+  - Default values when no config exists
+  - Nested model config loading
+  - Partial nested config handling
+  - Non-dict section handling
+  - Missing model key handling
+- `get_org_personalities_dir` and `get_org_config_dir` (`backend/config/personalities.py`) - **0% coverage** - ✅ **COMPLETED** - Added tests:
+  - Correct path generation
+  - Different org ID handling
 - `validate_file_path` (`backend/config/paths.py`) - **58% coverage** - ✅ Tests exist
 
 ### Test Organization
@@ -371,6 +386,10 @@
 - ✅ `tests/test_security_hardening.py` - Security hardening tests
 - ✅ `tests/test_config_validation.py` - Config validation tests
 - ✅ `tests/test_paths_edge_cases.py` - **NEW** - Edge case tests for config/paths.py
+- ✅ `tests/test_config.py` - **UPDATED** - Added comprehensive tests for personalities.py:
+  - `_get_nested_config_value`: 5 test cases covering all edge cases
+  - `load_org_models_config`: 5 test cases covering nested config, defaults, partial config
+  - `get_org_personalities_dir` and `get_org_config_dir`: 4 test cases for directory helpers
 
 **Frontend Tests:**
 - ✅ `frontend/src/api.test.js` - API client tests
@@ -463,9 +482,19 @@
      - Symlink handling
      - Current/parent directory references
 
-8. **`validate_org_access`** (`backend/auth.py`) - 0% coverage
+8. **`backend/config/personalities.py`** - 50% coverage → **Targeting 70%+**
+   - **Action**: Add tests for `_get_nested_config_value`, `load_org_models_config`, and directory helpers
+   - **Effort**: Low (1-2 hours)
+   - **Status**: ✅ **COMPLETED** - Added comprehensive tests in `tests/test_config.py`:
+     - `_get_nested_config_value`: 5 test cases (exists, missing key, missing section, non-dict section, None section)
+     - `load_org_models_config`: 5 test cases (defaults, nested config, partial nested, non-dict section, missing model key)
+     - `get_org_personalities_dir` and `get_org_config_dir`: 4 test cases (correct paths, different org IDs)
+   - **Total**: 14 new test cases added
+
+9. **`validate_org_access`** (`backend/auth.py`) - 0% coverage
    - **Action**: Add skeleton test for org access validation
    - **Effort**: Low (30 minutes)
+   - **Status**: ✅ **ALREADY EXISTS** - Tests exist in `tests/test_admin_boundaries.py`
 
 5. **Frontend Component Tests** - Limited coverage
    - **Action**: Add component tests for React components

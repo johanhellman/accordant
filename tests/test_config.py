@@ -13,7 +13,11 @@ from backend.config.personalities import (
     DEFAULT_TITLE_GENERATION_PROMPT,
     get_active_personalities,
     load_org_system_prompts,
+    load_org_models_config,
+    get_org_personalities_dir,
+    get_org_config_dir,
     _load_org_config_file,
+    _get_nested_config_value,
 )
 
 
@@ -272,3 +276,200 @@ class TestPersonalityLoading:
 
         # Should fall back to default since ranking is not a dict
         assert prompts["ranking_prompt"] == DEFAULT_RANKING_PROMPT
+
+
+class TestNestedConfigValue:
+    """Tests for _get_nested_config_value helper function."""
+
+    def test_get_nested_config_value_exists(self):
+        """Test _get_nested_config_value when value exists."""
+        config = {"section": {"key": "value"}}
+        result = _get_nested_config_value(config, "section", "key", "default")
+        assert result == "value"
+
+    def test_get_nested_config_value_missing_key(self):
+        """Test _get_nested_config_value when key is missing."""
+        config = {"section": {}}
+        result = _get_nested_config_value(config, "section", "key", "default")
+        assert result == "default"
+
+    def test_get_nested_config_value_missing_section(self):
+        """Test _get_nested_config_value when section is missing."""
+        config = {}
+        result = _get_nested_config_value(config, "section", "key", "default")
+        assert result == "default"
+
+    def test_get_nested_config_value_non_dict_section(self):
+        """Test _get_nested_config_value when section is not a dict."""
+        config = {"section": "not a dict"}
+        result = _get_nested_config_value(config, "section", "key", "default")
+        assert result == "default"
+
+    def test_get_nested_config_value_none_section(self):
+        """Test _get_nested_config_value when section is None."""
+        config = {"section": None}
+        result = _get_nested_config_value(config, "section", "key", "default")
+        assert result == "default"
+
+
+class TestOrgModelsConfig:
+    """Tests for load_org_models_config function."""
+
+    @pytest.fixture
+    def temp_org_dir(self, monkeypatch):
+        """Create a temporary org directory structure."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Patch ORGS_DATA_DIR to use temp dir
+            monkeypatch.setattr("backend.config.personalities.ORGS_DATA_DIR", tmpdir)
+
+            # Create org structure
+            org_id = "test-org"
+            org_dir = os.path.join(tmpdir, org_id)
+            config_dir = os.path.join(org_dir, "config")
+
+            os.makedirs(config_dir, exist_ok=True)
+
+            yield tmpdir, org_id, config_dir
+
+    def test_load_org_models_config_defaults(self, temp_org_dir):
+        """Test load_org_models_config returns defaults when no config exists."""
+        _, org_id, _ = temp_org_dir
+
+        models = load_org_models_config(org_id)
+
+        assert models["chairman_model"] == "gemini/gemini-2.5-pro"
+        assert models["title_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+
+    def test_load_org_models_config_nested(self, temp_org_dir):
+        """Test load_org_models_config loads nested model config."""
+        _, org_id, config_dir = temp_org_dir
+
+        models_config = {
+            "chairman": {"model": "custom/chairman-model"},
+            "title_generation": {"model": "custom/title-model"},
+            "ranking": {"model": "custom/ranking-model"},
+        }
+
+        with open(os.path.join(config_dir, "system-prompts.yaml"), "w") as f:
+            yaml.dump(models_config, f)
+
+        models = load_org_models_config(org_id)
+
+        assert models["chairman_model"] == "custom/chairman-model"
+        assert models["title_model"] == "custom/title-model"
+        assert models["ranking_model"] == "custom/ranking-model"
+
+    def test_load_org_models_config_partial_nested(self, temp_org_dir):
+        """Test load_org_models_config with partial nested config."""
+        _, org_id, config_dir = temp_org_dir
+
+        models_config = {
+            "chairman": {"model": "custom/chairman-model"},
+            # title_generation and ranking missing - should use defaults
+        }
+
+        with open(os.path.join(config_dir, "system-prompts.yaml"), "w") as f:
+            yaml.dump(models_config, f)
+
+        models = load_org_models_config(org_id)
+
+        assert models["chairman_model"] == "custom/chairman-model"
+        assert models["title_model"] == "gemini/gemini-2.5-pro"  # Default
+        assert models["ranking_model"] == "gemini/gemini-2.5-pro"  # Default
+
+    def test_load_org_models_config_non_dict_section(self, temp_org_dir):
+        """Test load_org_models_config handles non-dict sections."""
+        _, org_id, config_dir = temp_org_dir
+
+        models_config = {
+            "chairman": "not a dict",  # Should fall back to default
+        }
+
+        with open(os.path.join(config_dir, "system-prompts.yaml"), "w") as f:
+            yaml.dump(models_config, f)
+
+        models = load_org_models_config(org_id)
+
+        # Should use defaults when section is not a dict
+        assert models["chairman_model"] == "gemini/gemini-2.5-pro"
+        assert models["title_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+
+    def test_load_org_models_config_missing_model_key(self, temp_org_dir):
+        """Test load_org_models_config handles missing model key in section."""
+        _, org_id, config_dir = temp_org_dir
+
+        models_config = {
+            "chairman": {},  # Empty dict - should fall back to default
+        }
+
+        with open(os.path.join(config_dir, "system-prompts.yaml"), "w") as f:
+            yaml.dump(models_config, f)
+
+        models = load_org_models_config(org_id)
+
+        # Should use defaults when model key is missing
+        assert models["chairman_model"] == "gemini/gemini-2.5-pro"
+        assert models["title_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+
+
+class TestOrgDirectoryHelpers:
+    """Tests for get_org_personalities_dir and get_org_config_dir helper functions."""
+
+    @pytest.fixture
+    def temp_org_dir(self, monkeypatch):
+        """Create a temporary org directory structure."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Patch ORGS_DATA_DIR to use temp dir
+            monkeypatch.setattr("backend.config.personalities.ORGS_DATA_DIR", tmpdir)
+
+            # Create org structure
+            org_id = "test-org"
+            org_dir = os.path.join(tmpdir, org_id)
+            personalities_dir = os.path.join(org_dir, "personalities")
+            config_dir = os.path.join(org_dir, "config")
+
+            os.makedirs(personalities_dir, exist_ok=True)
+            os.makedirs(config_dir, exist_ok=True)
+
+            yield tmpdir, org_id, personalities_dir, config_dir
+
+    def test_get_org_personalities_dir(self, temp_org_dir):
+        """Test get_org_personalities_dir returns correct path."""
+        tmpdir, org_id, expected_dir, _ = temp_org_dir
+
+        result = get_org_personalities_dir(org_id)
+
+        assert result == expected_dir
+        assert os.path.exists(result)
+
+    def test_get_org_config_dir(self, temp_org_dir):
+        """Test get_org_config_dir returns correct path."""
+        tmpdir, org_id, _, expected_dir = temp_org_dir
+
+        result = get_org_config_dir(org_id)
+
+        assert result == expected_dir
+        assert os.path.exists(result)
+
+    def test_get_org_personalities_dir_different_org(self, temp_org_dir):
+        """Test get_org_personalities_dir with different org ID."""
+        tmpdir, _, _, _ = temp_org_dir
+
+        org_id = "different-org"
+        result = get_org_personalities_dir(org_id)
+
+        expected = os.path.join(tmpdir, org_id, "personalities")
+        assert result == expected
+
+    def test_get_org_config_dir_different_org(self, temp_org_dir):
+        """Test get_org_config_dir with different org ID."""
+        tmpdir, _, _, _ = temp_org_dir
+
+        org_id = "different-org"
+        result = get_org_config_dir(org_id)
+
+        expected = os.path.join(tmpdir, org_id, "config")
+        assert result == expected
