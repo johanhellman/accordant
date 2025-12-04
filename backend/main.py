@@ -402,6 +402,7 @@ async def send_message_stream(
 
 if __name__ == "__main__":
     import os
+
     import uvicorn
 
     # Host configuration: Use HOST env var or default to 0.0.0.0 for development
