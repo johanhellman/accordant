@@ -3,7 +3,8 @@
 **Date**: 2025-12-26  
 **Trigger Reason**: Pre-release hygiene audit  
 **Risk Tolerance**: Low  
-**Coverage Target**: 80%
+**Coverage Target**: 80%  
+**Audit Version**: 2.0 (Fresh comprehensive audit)
 
 ## TL;DR
 
