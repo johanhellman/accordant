@@ -314,6 +314,37 @@
   - Additional edge cases for `get_active_personalities`: invalid YAML, missing id field, disabled by default, excludes system-prompts.yaml, empty file
 - `validate_file_path` (`backend/config/paths.py`) - **58% coverage** - ✅ Tests exist
 
+### Test Organization
+
+**Current State:**
+- ✅ **Primary Location**: `tests/` directory (project root) - **30 test files**
+  - Configured in `pyproject.toml` with `testpaths = ["tests"]`
+  - This is the **intended location** for all backend tests
+  - Tests import from `backend.*` modules (e.g., `from backend.main import app`)
+  
+- ⚠️ **Legacy Location**: `backend/tests/` directory - **2 test files**
+  - `backend/tests/test_fixes.py` - Tests for conversation snapshot fixes
+  - `backend/tests/test_multi_user.py` - Multi-user functionality tests
+  - These tests may not be discovered by default pytest runs (depends on configuration)
+  - **Issue**: Creates confusion about where tests should be located
+
+**Why Tests Are in Project Root (`tests/`):**
+1. **Separation of Concerns**: Tests are separate from source code, making it clear they're not part of the application
+2. **Import Clarity**: Tests import from `backend.*`, making it explicit they're testing the backend package
+3. **Configuration Alignment**: `pyproject.toml` specifies `testpaths = ["tests"]`, making this the canonical location
+4. **Standard Practice**: Many Python projects use a top-level `tests/` directory
+
+**Recommendation:**
+- ✅ **Consolidate**: Move `backend/tests/test_fixes.py` and `backend/tests/test_multi_user.py` to `tests/` directory
+- ✅ **Update Imports**: Ensure imports remain `from backend.*` (no changes needed)
+- ✅ **Verify Discovery**: Run `uv run pytest` to ensure all tests are discovered
+- ✅ **Document**: Update `CONTRIBUTING.md` and `DEVELOPER_GUIDE.md` to clarify test location ✅ **COMPLETED**
+
+**Frontend Tests:**
+- ✅ **Location**: `frontend/src/` directory (e.g., `frontend/src/api.test.js`)
+- ✅ **Configuration**: Vitest configured in `frontend/vite.config.js`
+- ✅ **Separation**: Frontend tests are correctly separated from backend tests
+
 ### Test Execution Status
 
 **Note**: Coverage data from `coverage.json` (verified 2025-12-04). Test infrastructure is functional.
