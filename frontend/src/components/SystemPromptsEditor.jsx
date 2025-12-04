@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
 import PromptEditor from "./PromptEditor";
+import ModelSelector from "./ModelSelector";
 import "./SystemPromptsEditor.css";
 
 function SystemPromptsEditor() {
@@ -38,9 +39,6 @@ function SystemPromptsEditor() {
     }
   };
 
-  const isOverridden = (component) => {
-    return component.effective_model && component.model !== component.effective_model;
-  };
 
   if (isLoading) return <div className="loading">Loading configuration...</div>;
 
@@ -80,30 +78,18 @@ function SystemPromptsEditor() {
             <p className="section-desc">Instructions and model used to rank peers.</p>
           </div>
           <div className="config-group">
-            <div className="form-group model-config">
-              <label>Ranking Model</label>
-              <select
-                value={config.ranking.model}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    ranking: { ...config.ranking, model: e.target.value },
-                  })
-                }
-              >
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.id})
-                  </option>
-                ))}
-              </select>
-              {isOverridden(config.ranking) && (
-                <div className="override-warning">
-                  ⚠️ Overridden by Env Var. Active:{" "}
-                  <strong>{config.ranking.effective_model}</strong>
-                </div>
-              )}
-            </div>
+            <ModelSelector
+              label="Ranking Model"
+              value={config.ranking.model}
+              models={models}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  ranking: { ...config.ranking, model: e.target.value },
+                })
+              }
+              effectiveModel={config.ranking.effective_model}
+            />
             <div className="form-group">
               <PromptEditor
                 label="Ranking Prompt"
@@ -130,30 +116,18 @@ function SystemPromptsEditor() {
           </div>
 
           <div className="config-group">
-            <div className="form-group model-config">
-              <label>Chairman Model</label>
-              <select
-                value={config.chairman.model}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    chairman: { ...config.chairman, model: e.target.value },
-                  })
-                }
-              >
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.id})
-                  </option>
-                ))}
-              </select>
-              {isOverridden(config.chairman) && (
-                <div className="override-warning">
-                  ⚠️ Overridden by Env Var. Active:{" "}
-                  <strong>{config.chairman.effective_model}</strong>
-                </div>
-              )}
-            </div>
+            <ModelSelector
+              label="Chairman Model"
+              value={config.chairman.model}
+              models={models}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  chairman: { ...config.chairman, model: e.target.value },
+                })
+              }
+              effectiveModel={config.chairman.effective_model}
+            />
 
             <div className="form-group">
               <PromptEditor
@@ -180,30 +154,18 @@ function SystemPromptsEditor() {
           </div>
 
           <div className="config-group">
-            <div className="form-group model-config">
-              <label>Title Generation Model</label>
-              <select
-                value={config.title_generation.model}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    title_generation: { ...config.title_generation, model: e.target.value },
-                  })
-                }
-              >
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.id})
-                  </option>
-                ))}
-              </select>
-              {isOverridden(config.title_generation) && (
-                <div className="override-warning">
-                  ⚠️ Overridden by Env Var. Active:{" "}
-                  <strong>{config.title_generation.effective_model}</strong>
-                </div>
-              )}
-            </div>
+            <ModelSelector
+              label="Title Generation Model"
+              value={config.title_generation.model}
+              models={models}
+              onChange={(e) =>
+                setConfig({
+                  ...config,
+                  title_generation: { ...config.title_generation, model: e.target.value },
+                })
+              }
+              effectiveModel={config.title_generation.effective_model}
+            />
 
             <div className="form-group">
               <PromptEditor

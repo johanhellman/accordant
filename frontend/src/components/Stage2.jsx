@@ -3,6 +3,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./Stage2.css";
 
+/**
+ * Replace anonymous response labels (e.g., "Response A") with actual model names.
+ * Used to display readable model names in Stage 2 rankings while preserving
+ * the original anonymized evaluation context.
+ * 
+ * @param {string} text - Text containing anonymous labels (e.g., "Response A")
+ * @param {Object<string, string>} labelToModel - Mapping from labels to model IDs
+ * @returns {string} Text with labels replaced by bold model names
+ */
 function deAnonymizeText(text, labelToModel) {
   if (!labelToModel) return text;
 

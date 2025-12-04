@@ -3,6 +3,20 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./PromptEditor.css";
 
+/**
+ * PromptEditor Component
+ * 
+ * A dual-mode editor for editing and previewing system prompts with variable insertion.
+ * Supports edit/preview modes and validates required template variables.
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.value - Current prompt text value
+ * @param {Function} props.onChange - Callback when value changes (receives new value)
+ * @param {string} props.label - Label text for the editor
+ * @param {string} [props.description] - Optional description text
+ * @param {Array<string>} [props.requiredVariables=[]] - List of required template variables (e.g., ["{user_query}"])
+ * @param {number} [props.rows=10] - Number of rows for the textarea
+ */
 function PromptEditor({ value, onChange, label, description, requiredVariables = [], rows = 10 }) {
   const [mode, setMode] = useState("edit"); // 'edit' or 'preview'
 
@@ -13,6 +27,12 @@ function PromptEditor({ value, onChange, label, description, requiredVariables =
       ? requiredVariables.filter((v) => !value.includes(v))
       : [];
 
+  /**
+   * Insert a template variable at the current cursor position in the textarea.
+   * Preserves cursor position and focus after insertion.
+   * 
+   * @param {string} variable - Variable string to insert (e.g., "{user_query}")
+   */
   const insertVariable = (variable) => {
     const textarea = document.querySelector(`textarea[name="${label}"]`);
     if (textarea) {

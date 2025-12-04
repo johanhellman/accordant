@@ -372,3 +372,285 @@ def test_update_personality_mismatch(mock_data_root, auth_headers):
 
     response = client.put("/api/personalities/id2", json=p_data, headers=headers)
     assert response.status_code == 400
+
+
+def test_list_models(mock_data_root, auth_headers):
+    """Test listing available models."""
+    headers, org_id = auth_headers
+
+    mock_models = [
+        {"id": "model1", "name": "Model 1", "provider": "openai"},
+        {"id": "model2", "name": "Model 2", "provider": "anthropic"},
+    ]
+
+    with (
+        patch("backend.admin_routes.get_org_api_config", return_value=("key", "url")),
+        patch("backend.admin_routes.get_available_models", return_value=mock_models),
+    ):
+        response = client.get("/api/models", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert data[0]["id"] == "model1"
+
+
+def test_list_models_error(mock_data_root, auth_headers):
+    """Test list_models handles errors."""
+    headers, org_id = auth_headers
+
+    with (
+        patch("backend.admin_routes.get_org_api_config", return_value=("key", "url")),
+        patch("backend.admin_routes.get_available_models", side_effect=ValueError("Invalid API key")),
+    ):
+        response = client.get("/api/models", headers=headers)
+        assert response.status_code == 400
+        assert "Invalid API key" in response.json()["detail"]
+
+
+def test_list_personalities_empty_dir(mock_data_root, auth_headers):
+    """Test listing personalities when directory doesn't exist."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+    ):
+        # Don't create personalities directory
+        response = client.get("/api/personalities", headers=headers)
+        assert response.status_code == 200
+        assert response.json() == []
+
+
+def test_list_personalities_skips_system_prompts(mock_data_root, auth_headers):
+    """Test that system-prompts.yaml is excluded from personality list."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+    personalities_dir = orgs_dir / org_id / "personalities"
+    personalities_dir.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+    ):
+        # Create a personality file
+        p_file = personalities_dir / "test.yaml"
+        with open(p_file, "w") as f:
+            yaml.dump(MOCK_PERSONALITY, f)
+
+        # Create system-prompts.yaml (should be skipped)
+        sp_file = personalities_dir / "system-prompts.yaml"
+        with open(sp_file, "w") as f:
+            yaml.dump({"test": "data"}, f)
+
+        response = client.get("/api/personalities", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == "test_personality"
+
+
+def test_get_personality_load_error(mock_data_root, auth_headers):
+    """Test get_personality handles YAML load errors."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+    personalities_dir = orgs_dir / org_id / "personalities"
+    personalities_dir.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.admin_routes._load_yaml", return_value=None),
+    ):
+        # Create file but mock load to return None
+        p_file = personalities_dir / "test.yaml"
+        p_file.touch()
+
+        response = client.get("/api/personalities/test", headers=headers)
+        assert response.status_code == 500
+        assert "Failed to read personality" in response.json()["detail"]
+
+
+def test_create_personality_duplicate(mock_data_root, auth_headers):
+    """Test creating a personality that already exists."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+    personalities_dir = orgs_dir / org_id / "personalities"
+    personalities_dir.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+    ):
+        # Create existing personality file
+        p_file = personalities_dir / "test_personality.yaml"
+        with open(p_file, "w") as f:
+            yaml.dump(MOCK_PERSONALITY, f)
+
+        response = client.post("/api/personalities", json=MOCK_PERSONALITY, headers=headers)
+        assert response.status_code == 400
+        assert "already exists" in response.json()["detail"]
+
+
+def test_delete_personality_not_found(mock_data_root, auth_headers):
+    """Test deleting a non-existent personality."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+    ):
+        response = client.delete("/api/personalities/non_existent", headers=headers)
+        assert response.status_code == 404
+
+
+def test_delete_personality_error(mock_data_root, auth_headers):
+    """Test delete_personality handles file deletion errors."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+    personalities_dir = orgs_dir / org_id / "personalities"
+    personalities_dir.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("os.remove", side_effect=OSError("Permission denied")),
+    ):
+        p_file = personalities_dir / "to_delete.yaml"
+        p_file.touch()
+
+        response = client.delete("/api/personalities/to_delete", headers=headers)
+        assert response.status_code == 500
+        assert "Failed to delete personality" in response.json()["detail"]
+
+
+def test_get_system_prompts_legacy_format(mock_data_root, auth_headers):
+    """Test get_system_prompts handles legacy ranking_prompt format."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+    config_dir = orgs_dir / org_id / "config"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+    ):
+        # Create legacy format file
+        legacy_config = {
+            "base_system_prompt": "Base",
+            "ranking_prompt": "Legacy ranking prompt with {user_query}",
+        }
+        s_file = config_dir / "system-prompts.yaml"
+        with open(s_file, "w") as f:
+            yaml.dump(legacy_config, f)
+
+        response = client.get("/api/system-prompts", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["ranking"]["prompt"] == "Legacy ranking prompt with {user_query}"
+
+
+def test_update_system_prompts_missing_tags(mock_data_root, auth_headers):
+    """Test update_system_prompts validates required tags."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+
+    invalid_config = MOCK_SYSTEM_PROMPTS.copy()
+    invalid_config["ranking"]["prompt"] = "Missing {user_query} tag"
+
+    response = client.put("/api/system-prompts", json=invalid_config, headers=headers)
+    assert response.status_code == 400
+    assert "missing required tags" in response.json()["detail"]
+
+
+def test_get_settings_no_org(mock_data_root, auth_headers):
+    """Test get_settings when organization doesn't exist."""
+    headers, org_id = auth_headers
+
+    with patch("backend.admin_routes.get_org", return_value=None):
+        response = client.get("/api/settings", headers=headers)
+        assert response.status_code == 404
+
+
+def test_get_settings_no_api_key(mock_data_root, auth_headers):
+    """Test get_settings when api_key is not set."""
+    headers, org_id = auth_headers
+
+    mock_org = MagicMock()
+    mock_org.id = org_id
+    mock_org.api_config = {"base_url": "https://test.url"}
+
+    with patch("backend.admin_routes.get_org", return_value=mock_org):
+        response = client.get("/api/settings", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["api_key"] is None
+        assert data["base_url"] == "https://test.url"
+
+
+def test_update_settings_no_org(mock_data_root, auth_headers):
+    """Test update_settings when organization doesn't exist."""
+    headers, org_id = auth_headers
+
+    with patch("backend.admin_routes.get_org", return_value=None):
+        payload = {"api_key": "new_key"}
+        response = client.put("/api/settings", json=payload, headers=headers)
+        assert response.status_code == 404
+
+
+def test_update_settings_update_failed(mock_data_root, auth_headers):
+    """Test update_settings when update_org fails."""
+    headers, org_id = auth_headers
+
+    mock_org = MagicMock()
+    mock_org.id = org_id
+    mock_org.api_config = {}
+
+    with (
+        patch("backend.admin_routes.get_org", return_value=mock_org),
+        patch("backend.admin_routes.update_org", return_value=None),
+        patch("backend.admin_routes.encrypt_value", return_value="encrypted"),
+    ):
+        payload = {"api_key": "new_key"}
+        response = client.put("/api/settings", json=payload, headers=headers)
+        assert response.status_code == 500
+        assert "Failed to update organization" in response.json()["detail"]
+
+
+def test_update_settings_only_base_url(mock_data_root, auth_headers):
+    """Test update_settings with only base_url (no api_key)."""
+    headers, org_id = auth_headers
+
+    mock_org = MagicMock()
+    mock_org.id = org_id
+    mock_org.api_config = {"api_key": "existing"}
+
+    with (
+        patch("backend.admin_routes.get_org", return_value=mock_org),
+        patch("backend.admin_routes.update_org", return_value=mock_org),
+    ):
+        payload = {"base_url": "https://new.url"}
+        response = client.put("/api/settings", json=payload, headers=headers)
+        assert response.status_code == 200
+
+
+def test_get_voting_history_no_user_id(mock_data_root, auth_headers):
+    """Test get_voting_history handles sessions without user_id."""
+    headers, org_id = auth_headers
+    orgs_dir = mock_data_root / "organizations"
+
+    with (
+        patch("backend.config.personalities.ORGS_DATA_DIR", str(orgs_dir)),
+        patch("backend.organizations.ORGS_DATA_DIR", str(orgs_dir)),
+        patch(
+            "backend.voting_history.load_voting_history",
+            return_value=[{"vote": "A"}],  # No user_id
+        ),
+        patch("backend.users.get_all_users", return_value=[]),
+    ):
+        response = client.get("/api/votes", headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["username"] == "Anonymous/Legacy"

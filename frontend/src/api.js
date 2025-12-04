@@ -17,10 +17,21 @@ const getHeaders = () => {
 };
 
 export const api = {
+  /**
+   * Set the authentication token for API requests.
+   * @param {string} token - JWT authentication token
+   */
   setToken(token) {
     authToken = token;
   },
 
+  /**
+   * Authenticate user and retrieve access token.
+   * @param {string} username - User username
+   * @param {string} password - User password
+   * @returns {Promise<{access_token: string, token_type: string}>}
+   * @throws {Error} If authentication fails
+   */
   async login(username, password) {
     const formData = new URLSearchParams();
     formData.append("username", username);
@@ -39,6 +50,13 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Register a new user account.
+   * @param {string} username - Desired username
+   * @param {string} password - User password
+   * @returns {Promise<{id: string, username: string}>}
+   * @throws {Error} If registration fails (e.g., username already exists)
+   */
   async register(username, password) {
     const response = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
@@ -54,6 +72,11 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Get the currently authenticated user's information.
+   * @returns {Promise<{id: string, username: string, org_id: string, is_admin: boolean}>}
+   * @throws {Error} If user is not authenticated or request fails
+   */
   async getCurrentUser() {
     const response = await fetch(`${API_BASE}/api/auth/me`, {
       headers: getHeaders(),
@@ -182,6 +205,11 @@ export const api = {
 
   // --- Admin API ---
 
+  /**
+   * List all available LLM models from the configured provider.
+   * @returns {Promise<Array<{id: string, name: string, provider: string}>>}
+   * @throws {Error} If API key is invalid or request fails
+   */
   async listModels() {
     const response = await fetch(`${API_BASE}/api/models`, {
       headers: getHeaders(),
@@ -190,6 +218,11 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * List all configured personalities for the current organization.
+   * @returns {Promise<Array<{id: string, name: string, description: string, model: string, enabled: boolean}>>}
+   * @throws {Error} If request fails
+   */
   async listPersonalities() {
     const response = await fetch(`${API_BASE}/api/personalities`, {
       headers: getHeaders(),
@@ -198,6 +231,19 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Create a new personality configuration.
+   * @param {Object} personality - Personality configuration object
+   * @param {string} personality.id - Unique personality identifier
+   * @param {string} personality.name - Display name
+   * @param {string} personality.description - Description text
+   * @param {string} personality.model - LLM model ID to use
+   * @param {string} personality.personality_prompt - Custom system prompt
+   * @param {number} [personality.temperature] - Optional temperature setting
+   * @param {boolean} [personality.enabled] - Whether personality is enabled
+   * @returns {Promise<Object>} Created personality object
+   * @throws {Error} If personality ID already exists or request fails
+   */
   async createPersonality(personality) {
     const response = await fetch(`${API_BASE}/api/personalities`, {
       method: "POST",
@@ -208,6 +254,13 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Update an existing personality configuration.
+   * @param {string} id - Personality ID to update
+   * @param {Object} personality - Updated personality configuration
+   * @returns {Promise<Object>} Updated personality object
+   * @throws {Error} If personality not found or request fails
+   */
   async updatePersonality(id, personality) {
     const response = await fetch(`${API_BASE}/api/personalities/${id}`, {
       method: "PUT",
@@ -218,6 +271,12 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Delete a personality configuration.
+   * @param {string} id - Personality ID to delete
+   * @returns {Promise<{status: string, message: string}>}
+   * @throws {Error} If personality not found or request fails
+   */
   async deletePersonality(id) {
     const response = await fetch(`${API_BASE}/api/personalities/${id}`, {
       method: "DELETE",
@@ -227,6 +286,11 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Get system prompts configuration for the current organization.
+   * @returns {Promise<{base_system_prompt: string, ranking: Object, chairman: Object, title_generation: Object}>}
+   * @throws {Error} If request fails
+   */
   async getSystemPrompts() {
     const response = await fetch(`${API_BASE}/api/system-prompts`, {
       headers: getHeaders(),
@@ -235,6 +299,16 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Update system prompts configuration.
+   * @param {Object} config - System prompts configuration
+   * @param {string} config.base_system_prompt - Base system prompt for all personalities
+   * @param {Object} config.ranking - Ranking prompt configuration
+   * @param {Object} config.chairman - Chairman prompt configuration
+   * @param {Object} config.title_generation - Title generation prompt configuration
+   * @returns {Promise<Object>} Updated configuration with effective models
+   * @throws {Error} If validation fails (missing required tags) or request fails
+   */
   async updateSystemPrompts(config) {
     const response = await fetch(`${API_BASE}/api/system-prompts`, {
       method: "PUT",
