@@ -860,11 +860,218 @@ Per `CONTRIBUTING.md`:
 
 ## Risk Scoring & Action Plan
 
-*[To be completed in Section 6]*
+### Risk Scoring Matrix
+
+**Risk Score Calculation**: Severity (1-5) × Likelihood (1-5) = Risk Score (1-25)
+
+| Finding | Category | Severity | Likelihood | Risk Score | Priority |
+|---------|----------|----------|------------|------------|----------|
+| Venv path issues prevent pip-audit/bandit | Security | 3 | 3 | 9 | Medium |
+| Test coverage below target (62% vs 80%) | Tests | 2 | 4 | 8 | Medium |
+| No automated CI/CD (intentionally deferred) | CI/CD | 3 | 2 | 6 | Low-Medium |
+| Frontend component tests limited | Tests | 2 | 3 | 6 | Low-Medium |
+| Code duplication in test files (33%) | Quality | 1 | 2 | 2 | Low |
+| Missing validate_org_access test | Tests | 2 | 2 | 4 | Low |
+| No coverage badge in README | CI/CD | 1 | 1 | 1 | Low |
+
+### Overall Risk Assessment
+
+**Overall Repository Health**: ✅ **Good** (Score: 7/10)
+
+**Strengths:**
+- ✅ Excellent documentation structure
+- ✅ Low code duplication (1.54%)
+- ✅ Good security practices (encryption, path validation)
+- ✅ Comprehensive test infrastructure
+- ✅ Well-configured development tools
+
+**Areas for Improvement:**
+- ⚠️ Test coverage below target (62% vs 80%)
+- ⚠️ Venv path issues prevent automated security audits
+- ⚠️ No automated CI/CD (intentionally deferred)
+
+### Action Plan
+
+#### Quick Wins (≤1 hour)
+
+1. **Fix venv path issues** (Security)
+   - **Action**: Recreate venv with `uv sync` or fix symlinks
+   - **Impact**: Enables `pip-audit` and `bandit` security scans
+   - **Effort**: 15-30 minutes
+   - **Risk**: Low
+
+2. **Add validate_org_access test** (Tests)
+   - **Action**: Create skeleton test for `validate_org_access` function
+   - **Impact**: Improves security-critical function coverage
+   - **Effort**: 30 minutes
+   - **Risk**: Low
+
+3. **Add Quick Start section to README** (Documentation)
+   - **Action**: Add "Quick Start" section at top of README
+   - **Impact**: Improves onboarding experience
+   - **Effort**: 30 minutes
+   - **Risk**: Low
+
+4. **Extract test helpers** (Quality)
+   - **Action**: Extract common test setup from `ChatInterface.test.jsx`
+   - **Impact**: Reduces test duplication (33% → <10%)
+   - **Effort**: 30 minutes
+   - **Risk**: Low
+
+**Total Quick Wins Effort**: ~2 hours
+
+#### Near-term (≤1 day)
+
+1. **Increase test coverage to 70%+** (Tests)
+   - **Action**: Add tests for `admin_routes.py` and `council_helpers.py`
+   - **Impact**: Improves coverage from 62% to 70%+
+   - **Effort**: 4-6 hours
+   - **Risk**: Low
+
+2. **Extract Model Selector component** (Quality)
+   - **Action**: Extract duplicated model selection dropdown from `SystemPromptsEditor.jsx`
+   - **Impact**: Reduces duplication, improves maintainability
+   - **Effort**: 1-2 hours
+   - **Risk**: Low
+
+3. **Add JSDoc comments** (Documentation)
+   - **Action**: Add JSDoc comments to complex JavaScript functions
+   - **Impact**: Improves code documentation
+   - **Effort**: 2-4 hours
+   - **Risk**: Low
+
+4. **Run security audits** (Security)
+   - **Action**: Fix venv, then run `pip-audit` and `bandit`
+   - **Impact**: Identifies security vulnerabilities
+   - **Effort**: 1-2 hours (including fixing venv)
+   - **Risk**: Low
+
+**Total Near-term Effort**: ~1-2 days
+
+#### Backlog
+
+1. **Increase test coverage to 80%** (Tests)
+   - **Action**: Add comprehensive tests for all modules
+   - **Impact**: Reaches coverage target
+   - **Effort**: 2-3 days
+   - **Risk**: Low
+
+2. **Frontend component tests** (Tests)
+   - **Action**: Add component tests for React components
+   - **Impact**: Improves frontend test coverage
+   - **Effort**: 1-2 days
+   - **Risk**: Low
+
+3. **CI/CD pipeline** (CI/CD) - **If policy changes**
+   - **Action**: Add GitHub Actions workflow for lint + test + coverage
+   - **Impact**: Automated quality gates
+   - **Effort**: 1 day
+   - **Risk**: Low
+
+4. **Coverage badge** (CI/CD) - **If CI/CD enabled**
+   - **Action**: Add coverage badge to README
+   - **Impact**: Visual coverage indicator
+   - **Effort**: 30 minutes
+   - **Risk**: Low
+
+5. **TypeScript migration** (Quality)
+   - **Action**: Migrate frontend to TypeScript
+   - **Impact**: Improved type safety
+   - **Effort**: 3-5 days
+   - **Risk**: Medium
+
+### Priority Recommendations
+
+**Immediate (This Week):**
+1. Fix venv path issues → Enable security audits
+2. Add `validate_org_access` test → Improve security coverage
+3. Extract test helpers → Reduce duplication
+
+**Short-term (This Month):**
+1. Increase test coverage to 70%+
+2. Run security audits (pip-audit, bandit)
+3. Extract Model Selector component
+
+**Long-term (Next Quarter):**
+1. Reach 80% test coverage
+2. Add frontend component tests
+3. Consider CI/CD if policy changes
 
 ---
 
 ## Appendix: Commands Executed
 
-*[To be completed in Section 6]*
+### Discovery Commands
+
+```bash
+# Repository structure
+find . -name "*.py" -type f | wc -l  # Python file count
+find frontend/src -name "*.js" -o -name "*.jsx" | wc -l  # JS/JSX file count
+git log --oneline | head -10  # Git history
+
+# Dependency checks
+test -f uv.lock && echo "uv.lock exists"  # Python lockfile
+test -f frontend/package-lock.json && echo "package-lock.json exists"  # JS lockfile
+
+# Security audits (attempted)
+uv run pip-audit --desc  # Python dependency audit (venv issue)
+cd frontend && npm audit --audit-level=moderate  # JavaScript audit (successful)
+uv run bandit -r backend/ -f txt  # Python security linting (venv issue)
+
+# Test discovery (attempted)
+uv run pytest --collect-only  # Test discovery (venv issue)
+uv run pytest --co -q  # Test count (venv issue)
+
+# Duplication analysis
+# jscpd report already exists: jscpd-report/jscpd-report.json
+
+# Coverage analysis
+# Coverage data already exists: coverage.json
+```
+
+### Files Analyzed
+
+**Configuration Files:**
+- `pyproject.toml` - Python project configuration
+- `frontend/package.json` - JavaScript dependencies
+- `.gitignore` - Git ignore patterns
+- `.editorconfig` - Editor configuration
+- `.gitattributes` - Git attributes
+- `.pre-commit-config.yaml` - Pre-commit hooks
+- `.github/dependabot.yml` - Dependabot configuration
+
+**Documentation Files:**
+- `README.md` - Main documentation
+- `CONTRIBUTING.md` - Contribution guidelines
+- `SECURITY.md` - Security policy
+- `ARCHITECTURE.md` - Architecture overview
+- `docs/adr/ADR_INDEX.md` - ADR index
+- `docs/DEVELOPER_GUIDE.md` - Developer guide
+- `docs/api/API_SURFACE.md` - API documentation
+
+**Code Analysis:**
+- Coverage data: `coverage.json`
+- Duplication report: `jscpd-report/jscpd-report.json`
+- Test files: 28 test files in `tests/` directory
+
+### Tools Used
+
+- **Semantic search**: Codebase exploration
+- **grep**: Pattern matching and code analysis
+- **File reading**: Configuration and documentation review
+- **Coverage analysis**: Existing coverage.json data
+- **Duplication analysis**: Existing jscpd report
+
+### Limitations
+
+- **Venv path issues**: Prevented running `pip-audit`, `bandit`, and `pytest` directly
+- **Test execution**: Could not run tests due to venv issues (used existing coverage data)
+- **Security scans**: Could not run Bandit or pip-audit directly (used npm audit successfully)
+
+### Notes
+
+- All secret values redacted in findings
+- Test coverage data from previous test runs (coverage.json)
+- Duplication analysis from existing jscpd report
+- Security findings based on code review and static analysis
 
