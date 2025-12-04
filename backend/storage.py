@@ -125,8 +125,8 @@ def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
                             "message_count": len(data["messages"]),
                         }
                     )
-            except Exception:
-                # Skip malformed files
+            except Exception:  # nosec B112
+                # Skip malformed files - intentional exception handling for robustness
                 continue
 
     # Sort by creation time, newest first

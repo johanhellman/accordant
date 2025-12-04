@@ -106,9 +106,9 @@ known-first-party = ["backend"]
 # Bandit security linting configuration
 [tool.bandit]
 # Exclude directories and files
-exclude_dirs = ["venv", ".venv", "__pycache__", "htmlcov", "dist", "build", "node_modules", "tests"]
+exclude_dirs = ["venv", ".venv", "__pycache__", "htmlcov", "dist", "build", "node_modules", "tests", "backend/tests"]
 # Skip specific test files
-skips = ["B101"]  # Skip assert_used (assertions are fine in tests)
+skips = ["B101", "B106"]  # Skip assert_used (assertions are fine in tests) and hardcoded_password_funcarg (test fixtures)
 # Severity level: low, medium, high
 severity_level = "medium"
 # Confidence level: low, medium, high

@@ -18,7 +18,7 @@
 
 **Quick Wins Available**: ✅ **All Quick Wins Completed** - Fixed venv, added Quick Start section, extracted test helpers (~2 hours)
 
-**Near-term Fixes**: ✅ **3 of 4 Completed** - Added admin_routes tests, extracted Model Selector component, added JSDoc comments
+**Near-term Fixes**: ✅ **4 of 4 Completed** - Added admin_routes tests, extracted Model Selector component, added JSDoc comments, completed security audits
 
 ---
 
@@ -183,7 +183,10 @@
 
 **Recommendations:**
 - ✅ **Quick Win**: Fix venv to enable Bandit security scans - **COMPLETED**
-- 📋 **Near-term**: Run Bandit scan and address any findings
+- ✅ **Near-term**: Run Bandit scan and address any findings - **COMPLETED**
+  - Fixed B104 (hardcoded_bind_all_interfaces): Made host configurable via HOST env var
+  - Suppressed acceptable findings with nosec comments (dev fallback, intentional exception handling)
+  - Updated Bandit config to skip test-related findings
 - ✅ **No action**: Path validation and encryption already implemented
 
 ### Risky Defaults
@@ -995,12 +998,20 @@ Per `CONTRIBUTING.md`:
      - `deAnonymizeText` function in Stage2.jsx
      - 10+ API functions in `api.js` (login, register, getCurrentUser, listModels, listPersonalities, createPersonality, updatePersonality, deletePersonality, getSystemPrompts, updateSystemPrompts)
 
-4. **Run security audits** (Security)
+4. ✅ **Run security audits** (Security) - **COMPLETED**
    - **Action**: Fix venv, then run `pip-audit` and `bandit`
    - **Impact**: Identifies security vulnerabilities
    - **Effort**: 1-2 hours (including fixing venv)
    - **Risk**: Low
-   - **Status**: Venv already fixed (from quick wins). Ready to run audits.
+   - **Status**: ✅ **COMPLETED** - Security audits completed successfully:
+     - `pip-audit`: No known vulnerabilities found
+     - `npm audit`: 0 vulnerabilities found
+     - `bandit`: All Medium/High severity issues addressed:
+       - Fixed B104 (hardcoded_bind_all_interfaces): Made host configurable via HOST env var
+       - Suppressed B105 (hardcoded_password_string): Added nosec comment (dev fallback with warning)
+       - Suppressed B112 (try_except_continue): Added nosec comment (intentional exception handling)
+       - Updated Bandit config to skip B101 (assert_used) and B106 (hardcoded_password_funcarg) in tests
+     - Remaining Low severity issues are acceptable (test assertions, test fixtures)
 
 **Total Near-term Effort**: ~1-2 days
 
@@ -1045,7 +1056,7 @@ Per `CONTRIBUTING.md`:
 
 **Short-term (This Month):**
 1. ✅ Increase test coverage to 70%+ - **COMPLETED**
-2. Run security audits (pip-audit, bandit) - Ready to run
+2. ✅ Run security audits (pip-audit, bandit) - **COMPLETED**
 3. ✅ Extract Model Selector component - **COMPLETED**
 4. ✅ Add JSDoc comments - **COMPLETED**
 

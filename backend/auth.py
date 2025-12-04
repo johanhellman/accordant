@@ -31,7 +31,7 @@ if not _SECRET_KEY:
         "⚠️  SECURITY WARNING: SECRET_KEY not set. Using insecure default for development/testing only. "
         "Set SECRET_KEY environment variable for production use."
     )
-    _SECRET_KEY = "insecure-secret-key-change-me-development-only"
+    _SECRET_KEY = "insecure-secret-key-change-me-development-only"  # nosec B105
 
 SECRET_KEY = _SECRET_KEY
 ALGORITHM = "HS256"

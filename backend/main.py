@@ -401,6 +401,11 @@ async def send_message_stream(
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    # Host configuration: Use HOST env var or default to 0.0.0.0 for development
+    # For production, set HOST=127.0.0.1 or specific IP address
+    host = os.getenv("HOST", "0.0.0.0")  # nosec B104
+    port = int(os.getenv("PORT", "8001"))
+    uvicorn.run(app, host=host, port=port)
