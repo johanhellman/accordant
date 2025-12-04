@@ -462,6 +462,88 @@ class TestGenerateConversationTitle:
 
             assert title == "Quoted Title"
 
+    @pytest.mark.asyncio
+    async def test_generate_title_empty_after_stripping_quotes(self):
+        """Test fallback when title becomes empty after stripping quotes."""
+        mock_response = MagicMock()
+        mock_response.get.return_value = '""'
+
+        with (
+            patch("backend.council.load_org_system_prompts") as mock_prompts,
+            patch("backend.council.load_org_models_config") as mock_config,
+            patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        ):
+            mock_prompts.return_value = {"title_prompt": "Prompt"}
+            mock_config.return_value = {"title_model": "test-model"}
+            mock_query.return_value = mock_response
+
+            title = await generate_conversation_title("Hello", "org1", "key", "url")
+
+            assert title == "New Conversation"
+
+    @pytest.mark.asyncio
+    async def test_generate_title_missing_content_key(self):
+        """Test fallback when response has no content key."""
+        mock_response = MagicMock()
+        mock_response.get.return_value = None  # get("content") returns None
+
+        with (
+            patch("backend.council.load_org_system_prompts") as mock_prompts,
+            patch("backend.council.load_org_models_config") as mock_config,
+            patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        ):
+            mock_prompts.return_value = {"title_prompt": "Prompt"}
+            mock_config.return_value = {"title_model": "test-model"}
+            mock_query.return_value = mock_response
+
+            title = await generate_conversation_title("Hello", "org1", "key", "url")
+
+            assert title == "New Conversation"
+
+    @pytest.mark.asyncio
+    async def test_generate_title_exactly_50_chars(self):
+        """Test that title exactly 50 characters is not truncated."""
+        exactly_50_chars = "A" * 50
+        mock_response = MagicMock()
+        mock_response.get.return_value = exactly_50_chars
+
+        with (
+            patch("backend.council.load_org_system_prompts") as mock_prompts,
+            patch("backend.council.load_org_models_config") as mock_config,
+            patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        ):
+            mock_prompts.return_value = {"title_prompt": "Prompt"}
+            mock_config.return_value = {"title_model": "test-model"}
+            mock_query.return_value = mock_response
+
+            title = await generate_conversation_title("Hello", "org1", "key", "url")
+
+            assert len(title) == 50
+            assert title == exactly_50_chars
+            assert not title.endswith("...")
+
+    @pytest.mark.asyncio
+    async def test_generate_title_exactly_51_chars(self):
+        """Test that title exactly 51 characters is truncated to 50."""
+        exactly_51_chars = "A" * 51
+        mock_response = MagicMock()
+        mock_response.get.return_value = exactly_51_chars
+
+        with (
+            patch("backend.council.load_org_system_prompts") as mock_prompts,
+            patch("backend.council.load_org_models_config") as mock_config,
+            patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        ):
+            mock_prompts.return_value = {"title_prompt": "Prompt"}
+            mock_config.return_value = {"title_model": "test-model"}
+            mock_query.return_value = mock_response
+
+            title = await generate_conversation_title("Hello", "org1", "key", "url")
+
+            assert len(title) == 50
+            assert title.endswith("...")
+            assert title.startswith("A" * 47)
+
 
 class TestTimeInstructions:
     """Tests for time instruction helper functions."""

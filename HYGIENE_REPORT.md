@@ -395,6 +395,14 @@
 - ✅ `frontend/src/api.test.js` - API client tests
 - ⚠️ **Limited component tests** - Only API tests found
 
+**Recent Test Improvements (2025-12-04):**
+- ✅ Added comprehensive edge case tests for `generate_conversation_title` in `tests/test_council.py`:
+  - Empty title after stripping quotes
+  - Missing content key in response
+  - Title exactly 50 characters (no truncation)
+  - Title exactly 51 characters (truncation to 50)
+  - These tests improve coverage from 40% to target 100% for this function
+
 ### Coverage Gaps & Recommendations
 
 **Critical Gaps:**
