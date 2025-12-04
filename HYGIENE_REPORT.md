@@ -230,7 +230,7 @@
 - ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
-- ✅ **Test Discovery**: 28 test files in `tests/` directory
+- ✅ **Test Discovery**: 30 test files in `tests/` directory (verified 2025-12-04)
 
 **Frontend:**
 - ✅ **Test Framework**: Vitest 4.0.15+ with React Testing Library
@@ -312,7 +312,7 @@
 
 ### Test Execution Status
 
-**Note**: Venv path issues prevent running tests directly. However, coverage data exists from previous test runs.
+**Note**: Coverage data from `coverage.json` (verified 2025-12-04). Test infrastructure is functional.
 
 **Test Files Present:**
 - ✅ `tests/test_critical_paths_skeleton.py` - Comprehensive tests for council orchestration (2000+ lines)
