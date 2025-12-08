@@ -4,7 +4,7 @@
 **Trigger Reason**: Fresh hygiene audit  
 **Risk Tolerance**: Low  
 **Coverage Target**: 80%  
-**Audit Version**: 2.2 (Fresh comprehensive audit - verified current state)
+**Audit Version**: 2.3 (Fresh comprehensive audit - verified current state with updated file counts)
 
 ## TL;DR
 
@@ -100,10 +100,10 @@
 
 ### Code Statistics
 
-- **Python Files**: 63 source files (excluding venv/__pycache__)
-- **JavaScript/JSX Files**: 25 files in `frontend/src` (updated count)
-- **Test Files**: 32 test files in `tests/` directory (verified 2025-12-08)
-- **Git History**: Active development with recent commits including ADR-014 implementation
+- **Python Files**: 69 source files (excluding venv/__pycache__) - verified 2025-12-08
+- **JavaScript/JSX Files**: 25 files in `frontend/src` - verified 2025-12-08
+- **Test Files**: 38 test files in `tests/` directory - verified 2025-12-08
+- **Git History**: Active development with recent commits including test coverage improvements
 
 ### Secret Patterns Detection
 
@@ -243,7 +243,7 @@
 - ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
-- ✅ **Test Discovery**: 37 test files in `tests/` directory (verified 2025-12-08)
+- ✅ **Test Discovery**: 38 test files in `tests/` directory (verified 2025-12-08)
 - ✅ **Test Organization**: All tests consolidated to `tests/` directory (legacy `backend/tests/` files moved)
 
 **Frontend:**
@@ -342,7 +342,7 @@
 ### Test Organization
 
 **Current State:**
-- ✅ **Primary Location**: `tests/` directory (project root) - **32 test files**
+- ✅ **Primary Location**: `tests/` directory (project root) - **38 test files** (verified 2025-12-08)
   - Configured in `pyproject.toml` with `testpaths = ["tests"]`
   - This is the **intended location** for all backend tests
   - Tests import from `backend.*` modules (e.g., `from backend.main import app`)
@@ -363,7 +363,7 @@
 - ✅ **COMPLETED**: Moved `backend/tests/test_fixes.py` → `tests/test_fixes.py`
 - ✅ **COMPLETED**: Moved `backend/tests/test_multi_user.py` → `tests/test_multi_user.py`
 - ✅ **Imports**: Verified - imports remain `from backend.*` (no changes needed)
-- ✅ **Discovery**: All 32 test files now in `tests/` directory
+- ✅ **Discovery**: All 38 test files now in `tests/` directory (verified 2025-12-08)
 - ✅ **Documentation**: Updated `CONTRIBUTING.md` and `DEVELOPER_GUIDE.md` ✅ **COMPLETED**
 
 **Frontend Tests:**
