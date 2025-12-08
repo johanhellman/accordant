@@ -32,6 +32,26 @@ const InheritanceToggle = ({ label, configValue, onToggle }) => {
   );
 };
 
+const ScopeSelector = ({ scope, onChange }) => (
+  <div className="scope-selector">
+    <label>Editing Scope:</label>
+    <div className="scope-buttons">
+      <button
+        className={scope === 'org' ? 'active' : ''}
+        onClick={() => onChange('org')}
+      >
+        🏢 Organization
+      </button>
+      <button
+        className={scope === 'global' ? 'active' : ''}
+        onClick={() => onChange('global')}
+      >
+        🌍 Global Defaults
+      </button>
+    </div>
+  </div>
+);
+
 function SystemPromptsEditor() {
   const [config, setConfig] = useState(null);
   const [models, setModels] = useState([]);
@@ -39,14 +59,33 @@ function SystemPromptsEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("base");
 
+  const [scope, setScope] = useState("org"); // 'org' or 'global'
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdmin();
+  }, []);
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [scope]); // Reload when scope changes
+
+  const checkAdmin = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setIsAdmin(user.is_instance_admin);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [c, mList] = await Promise.all([api.getSystemPrompts(), api.listModels()]);
+      const [c, mList] = await Promise.all([
+        scope === 'global' ? api.getDefaultSystemPrompts() : api.getSystemPrompts(),
+        api.listModels()
+      ]);
       setConfig(c);
       setModels(mList.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id)));
     } catch (error) {
@@ -59,8 +98,13 @@ function SystemPromptsEditor() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await api.updateSystemPrompts(config);
-      alert("System prompts updated successfully!");
+      if (scope === 'global') {
+        await api.updateDefaultSystemPrompts(config);
+        alert("Global defaults updated successfully!");
+      } else {
+        await api.updateSystemPrompts(config);
+        alert("Organization configuration updated successfully!");
+      }
     } catch (error) {
       alert("Failed to update: " + error.message);
     } finally {
@@ -82,16 +126,18 @@ function SystemPromptsEditor() {
             </div>
 
             <div className="form-group">
-              <InheritanceToggle
-                label="Base System Prompt"
-                configValue={config.base_system_prompt}
-                onToggle={(newIsDefault) => {
-                  setConfig({
-                    ...config,
-                    base_system_prompt: { ...config.base_system_prompt, is_default: newIsDefault }
-                  });
-                }}
-              />
+              {scope === 'org' && (
+                <InheritanceToggle
+                  label="Base System Prompt"
+                  configValue={config.base_system_prompt}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      base_system_prompt: { ...config.base_system_prompt, is_default: newIsDefault }
+                    });
+                  }}
+                />
+              )}
               <PromptEditor
                 label="Base System Prompt"
                 value={config.base_system_prompt.value}
@@ -100,7 +146,7 @@ function SystemPromptsEditor() {
                   base_system_prompt: { ...config.base_system_prompt, value: val, is_default: false }
                 })}
                 rows={12}
-                disabled={config.base_system_prompt.is_default}
+                disabled={scope === 'org' && config.base_system_prompt.is_default}
               />
             </div>
             <div className="actions">
@@ -144,16 +190,18 @@ function SystemPromptsEditor() {
               </div>
 
               <div className="form-group">
-                <InheritanceToggle
-                  label="Ranking Instructions"
-                  configValue={config.ranking.prompt}
-                  onToggle={(newIsDefault) => {
-                    setConfig({
-                      ...config,
-                      ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, is_default: newIsDefault } }
-                    });
-                  }}
-                />
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Ranking Instructions"
+                    configValue={config.ranking.prompt}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, is_default: newIsDefault } }
+                      });
+                    }}
+                  />
+                )}
                 <PromptEditor
                   label="Ranking Instructions"
                   description="Custom instructions for evaluation (e.g., 'Focus on creativity')."
@@ -165,7 +213,7 @@ function SystemPromptsEditor() {
                     })
                   }
                   rows={8}
-                  disabled={config.ranking.prompt.is_default}
+                  disabled={scope === 'org' && config.ranking.prompt.is_default}
                 />
               </div>
 
@@ -226,16 +274,18 @@ function SystemPromptsEditor() {
               />
 
               <div className="form-group">
-                <InheritanceToggle
-                  label="Chairman Prompt"
-                  configValue={config.chairman.prompt}
-                  onToggle={(newIsDefault) => {
-                    setConfig({
-                      ...config,
-                      chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, is_default: newIsDefault } }
-                    });
-                  }}
-                />
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Chairman Prompt"
+                    configValue={config.chairman.prompt}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, is_default: newIsDefault } }
+                      });
+                    }}
+                  />
+                )}
                 <PromptEditor
                   label="Chairman Prompt"
                   value={config.chairman.prompt.value}
@@ -247,7 +297,7 @@ function SystemPromptsEditor() {
                   }
                   rows={12}
                   requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
-                  disabled={config.chairman.prompt.is_default}
+                  disabled={scope === 'org' && config.chairman.prompt.is_default}
                 />
               </div>
             </div>
@@ -271,16 +321,18 @@ function SystemPromptsEditor() {
 
             <div className="config-group">
               <div className="form-group">
-                <InheritanceToggle
-                  label="Response Structure"
-                  configValue={config.stage1_response_structure}
-                  onToggle={(newIsDefault) => {
-                    setConfig({
-                      ...config,
-                      stage1_response_structure: { ...config.stage1_response_structure, is_default: newIsDefault }
-                    });
-                  }}
-                />
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Response Structure"
+                    configValue={config.stage1_response_structure}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        stage1_response_structure: { ...config.stage1_response_structure, is_default: newIsDefault }
+                      });
+                    }}
+                  />
+                )}
                 <PromptEditor
                   label="Response Structure"
                   description="Defines the required headings (e.g., Analysis, Standpoint)"
@@ -292,21 +344,23 @@ function SystemPromptsEditor() {
                     })
                   }
                   rows={8}
-                  disabled={config.stage1_response_structure.is_default}
+                  disabled={scope === 'org' && config.stage1_response_structure.is_default}
                 />
               </div>
 
               <div className="form-group">
-                <InheritanceToggle
-                  label="Meta Structure"
-                  configValue={config.stage1_meta_structure}
-                  onToggle={(newIsDefault) => {
-                    setConfig({
-                      ...config,
-                      stage1_meta_structure: { ...config.stage1_meta_structure, is_default: newIsDefault }
-                    });
-                  }}
-                />
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Meta Structure"
+                    configValue={config.stage1_meta_structure}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        stage1_meta_structure: { ...config.stage1_meta_structure, is_default: newIsDefault }
+                      });
+                    }}
+                  />
+                )}
                 <PromptEditor
                   label="Meta Structure"
                   description="Defines the required metadata block (e.g., Confidence Score)"
@@ -318,7 +372,7 @@ function SystemPromptsEditor() {
                     })
                   }
                   rows={6}
-                  disabled={config.stage1_meta_structure.is_default}
+                  disabled={scope === 'org' && config.stage1_meta_structure.is_default}
                 />
               </div>
             </div>
@@ -352,16 +406,18 @@ function SystemPromptsEditor() {
               />
 
               <div className="form-group">
-                <InheritanceToggle
-                  label="Title Prompt"
-                  configValue={config.title_generation.prompt}
-                  onToggle={(newIsDefault) => {
-                    setConfig({
-                      ...config,
-                      title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, is_default: newIsDefault } }
-                    });
-                  }}
-                />
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Title Prompt"
+                    configValue={config.title_generation.prompt}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, is_default: newIsDefault } }
+                      });
+                    }}
+                  />
+                )}
                 <PromptEditor
                   label="Title Prompt"
                   value={config.title_generation.prompt.value}
@@ -373,7 +429,7 @@ function SystemPromptsEditor() {
                   }
                   rows={4}
                   requiredVariables={["{user_query}"]}
-                  disabled={config.title_generation.prompt.is_default}
+                  disabled={scope === 'org' && config.title_generation.prompt.is_default}
                 />
               </div>
             </div>
@@ -394,6 +450,7 @@ function SystemPromptsEditor() {
       <div className="sidebar">
         <div className="sidebar-header">
           <h2>Configuration</h2>
+          {isAdmin && <ScopeSelector scope={scope} onChange={setScope} />}
         </div>
         <nav className="sidebar-nav">
           {SECTIONS.map((section) => {
@@ -411,7 +468,12 @@ function SystemPromptsEditor() {
           })}
         </nav>
       </div>
-      <div className="main-content">
+      <div className={`main-content ${scope === 'global' ? 'global-scope' : ''}`}>
+        {scope === 'global' && (
+          <div className="global-scope-banner">
+            ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit these settings.
+          </div>
+        )}
         {renderContent()}
       </div>
     </div>

@@ -36,8 +36,8 @@ function PromptEditor({
   // Derive missing variables directly from props to avoid useEffect/setState loops
   // and handle the case where requiredVariables might be a new array reference.
   const missingVars =
-    value && requiredVariables.length > 0
-      ? requiredVariables.filter((v) => !value.includes(v))
+    (value || "") && requiredVariables.length > 0
+      ? requiredVariables.filter((v) => !(value || "").includes(v))
       : [];
 
   /**
@@ -55,7 +55,7 @@ function PromptEditor({
     // Simple approach: Replace selection or append if no selection (requires tracking ref/selection)
     // Given the constraints, appending to the end or cursor requires the editor instance.
     // Let's stick to appending for simplicity unless we refactor to track selection.
-    onChange(value + variable);
+    onChange((value || "") + variable);
   };
 
   return (
@@ -89,7 +89,7 @@ function PromptEditor({
           {requiredVariables.map((v) => (
             <button
               key={v}
-              className={`variable-tag ${!value.includes(v) ? "missing" : ""}`}
+              className={`variable-tag ${!(value || "").includes(v) ? "missing" : ""}`}
               onClick={() => insertVariable(v)}
               title="Click to insert"
             >
@@ -102,7 +102,7 @@ function PromptEditor({
       {mode === "edit" ? (
         <div className="editor-wrapper">
           <div className="line-numbers">
-            {value.split("\n").map((_, i) => (
+            {(value || "").split("\n").map((_, i) => (
               <span key={i}>{i + 1}</span>
             ))}
           </div>

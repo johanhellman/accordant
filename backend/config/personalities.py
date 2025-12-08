@@ -10,6 +10,7 @@ from .paths import PROJECT_ROOT, validate_directory_path
 
 ORGS_DATA_DIR = os.path.join(PROJECT_ROOT, "data", "organizations")
 DEFAULTS_DIR = os.path.join(PROJECT_ROOT, "data", "defaults")
+DEFAULTS_FILE = os.path.join(DEFAULTS_DIR, "system-prompts.yaml")
 
 logger = logging.getLogger(__name__)
 

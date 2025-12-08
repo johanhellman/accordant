@@ -319,6 +319,30 @@ export const api = {
     return response.json();
   },
 
+  /**
+   * Get global default system prompts configuration (Instance Admin only).
+   */
+  async getDefaultSystemPrompts() {
+    const response = await fetch(`${API_BASE}/api/defaults/system-prompts`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to get default system prompts");
+    return response.json();
+  },
+
+  /**
+   * Update global default system prompts configuration (Instance Admin only).
+   */
+  async updateDefaultSystemPrompts(config) {
+    const response = await fetch(`${API_BASE}/api/defaults/system-prompts`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(config),
+    });
+    if (!response.ok) throw new Error("Failed to update default system prompts");
+    return response.json();
+  },
+
   async listUsers() {
     const response = await fetch(`${API_BASE}/api/admin/users`, {
       headers: getHeaders(),
@@ -431,10 +455,10 @@ export const api = {
         response.status === 401
           ? "Unauthorized: Authentication required"
           : response.status === 403
-          ? "Forbidden: Instance admin access required"
-          : response.status === 405
-          ? "Method not allowed: Route configuration issue"
-          : `Failed to list organizations (${response.status})`
+            ? "Forbidden: Instance admin access required"
+            : response.status === 405
+              ? "Method not allowed: Route configuration issue"
+              : `Failed to list organizations (${response.status})`
       );
       error.status = response.status;
       throw error;

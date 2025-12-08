@@ -8,7 +8,7 @@ import yaml
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from .auth import get_current_admin_user, validate_org_access
+from .auth import get_current_admin_user, get_current_instance_admin, validate_org_access
 from .config.personalities import (
     DEFAULT_BASE_SYSTEM_PROMPT,
     DEFAULT_CHAIRMAN_PROMPT,
@@ -248,6 +248,90 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
         "stage1_response_structure": to_cv("stage1_response_structure"),
         "stage1_meta_structure": to_cv("stage1_meta_structure"),
     }
+
+
+@router.get("/defaults/system-prompts", response_model=SystemPromptsConfig)
+async def get_default_system_prompts(current_user: User = Depends(get_current_instance_admin)):
+    """Get GLOBAL DEFAULT system prompts (Instance Admin only)."""
+    defaults = _load_defaults()
+    
+    # Helper to mapping dict to ConfigValue (always default, always source=default)
+    def to_cv(val):
+        return {"value": val if val else "", "is_default": True, "source": "default"}
+
+    # Extract nested values safely
+    chairman_prompt = defaults.get("chairman", {}).get("prompt", "") if isinstance(defaults.get("chairman"), dict) else ""
+    title_prompt = defaults.get("title_generation", {}).get("prompt", "") if isinstance(defaults.get("title_generation"), dict) else ""
+    ranking_prompt = defaults.get("ranking_prompt", "")
+
+    return {
+        "base_system_prompt": to_cv(defaults.get("base_system_prompt", "")),
+        "ranking": { 
+            "prompt": to_cv(ranking_prompt),
+            "model": DEFAULT_RANKING_MODEL, 
+            "effective_model": DEFAULT_RANKING_MODEL,
+        },
+        "ranking_enforced_context": ENFORCED_CONTEXT,
+        "ranking_enforced_format": ENFORCED_OUTPUT_FORMAT.replace("{FINAL_RANKING_MARKER}", "FINAL RANKING:").replace("{RESPONSE_LABEL_PREFIX}", "Response "),
+        "chairman": {
+            "prompt": to_cv(chairman_prompt),
+            "model": DEFAULT_RANKING_MODEL,
+            "effective_model": DEFAULT_RANKING_MODEL,
+        },
+        "title_generation": {
+            "prompt": to_cv(title_prompt),
+            "model": DEFAULT_RANKING_MODEL,
+            "effective_model": DEFAULT_RANKING_MODEL,
+        },
+        "stage1_response_structure": to_cv(defaults.get("stage1_response_structure", "")),
+        "stage1_meta_structure": to_cv(defaults.get("stage1_meta_structure", "")),
+    }
+
+
+@router.put("/defaults/system-prompts", response_model=SystemPromptsConfig)
+async def update_default_system_prompts(
+    config: dict, current_user: User = Depends(get_current_instance_admin)
+):
+    """
+    Update GLOBAL DEFAULT system prompts.
+    Writes directly to data/defaults/system-prompts.yaml.
+    """
+    from .config.personalities import DEFAULTS_FILE
+    
+    # Load existing to preserve keys
+    current_defaults = _load_yaml(DEFAULTS_FILE) or {}
+    
+    # Helper to update key from ConfigValue or direct value
+    def get_val(incoming):
+        if not incoming: return None
+        if isinstance(incoming, dict) and "value" in incoming:
+             return incoming["value"] # Extract value from ConfigValue
+        return incoming
+
+    # Top Level
+    if "base_system_prompt" in config:
+        current_defaults["base_system_prompt"] = get_val(config["base_system_prompt"])
+    if "stage1_response_structure" in config:
+        current_defaults["stage1_response_structure"] = get_val(config["stage1_response_structure"])
+    if "stage1_meta_structure" in config:
+        current_defaults["stage1_meta_structure"] = get_val(config["stage1_meta_structure"])
+    if config.get("ranking") and isinstance(config["ranking"], dict):
+         current_defaults["ranking_prompt"] = get_val(config["ranking"].get("prompt"))
+    
+    # Nested Updates
+    if config.get("chairman") and isinstance(config["chairman"], dict):
+         if "chairman" not in current_defaults or not isinstance(current_defaults["chairman"], dict):
+             current_defaults["chairman"] = {}
+         current_defaults["chairman"]["prompt"] = get_val(config["chairman"].get("prompt"))
+         
+    if config.get("title_generation") and isinstance(config["title_generation"], dict):
+         if "title_generation" not in current_defaults or not isinstance(current_defaults["title_generation"], dict):
+             current_defaults["title_generation"] = {}
+         current_defaults["title_generation"]["prompt"] = get_val(config["title_generation"].get("prompt"))
+
+    _save_yaml(DEFAULTS_FILE, current_defaults)
+    
+    return await get_default_system_prompts(current_user)
 
 
 @router.put("/system-prompts", response_model=SystemPromptsConfig)

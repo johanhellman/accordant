@@ -99,6 +99,14 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
     return current_user
 
 
+async def get_current_instance_admin(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_instance_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Instance Admin privileges required"
+        )
+    return current_user
+
+
 def validate_org_access(user: User, target_org_id: str):
     """
     Validate that the user has access to the target organization.

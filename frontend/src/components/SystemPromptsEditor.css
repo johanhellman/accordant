@@ -70,9 +70,34 @@
 .main-content {
   flex-grow: 1;
   padding: 40px;
-  /* max-width: 900px; Removed to fix centering issue */
-  /* margin: 0 auto; Removed to fix centering issue */
+  transition: all 0.3s ease;
 }
+
+/* Global Scope Theme */
+.main-content.global-scope {
+  background-color: #fff8f0;
+  /* Very light orange background */
+}
+
+.global-scope-banner {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(133, 100, 4, 0.1);
+}
+
+.main-content.global-scope .section-content {
+  border-top: 4px solid #f6ad55;
+  /* Orange top border */
+}
+
 
 .section-content {
   background: white;
@@ -225,4 +250,55 @@ label {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Scope Selector */
+.scope-selector {
+  margin-top: 10px;
+}
+
+.scope-selector label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.scope-buttons {
+  display: flex;
+  gap: 8px;
+  background: #f0f0f0;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.scope-buttons button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #555;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  /* Flex for icons */
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.scope-buttons button:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: #333;
+}
+
+.scope-buttons button.active {
+  background: white;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
 }
