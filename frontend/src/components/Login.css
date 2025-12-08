@@ -3,14 +3,14 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f5f7fa;
+  background-color: var(--color-bg-primary);
 }
 
 .login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   width: 100%;
   max-width: 400px;
   position: relative;
@@ -19,19 +19,19 @@
 .back-to-landing-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-2);
   background: transparent;
   border: none;
-  color: #666;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  font-size: 0.9rem;
-  padding: 8px 0;
-  margin-bottom: 1rem;
-  transition: color 0.2s ease;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-2) 0;
+  margin-bottom: var(--spacing-4);
+  transition: color var(--duration-base);
 }
 
 .back-to-landing-btn:hover {
-  color: #007bff;
+  color: var(--color-primary);
 }
 
 .back-to-landing-btn:disabled {
@@ -40,109 +40,119 @@
 }
 
 .back-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
 }
 
 .login-card h2 {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-6);
   text-align: center;
-  color: #333;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-4);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #666;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .form-group input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .registration-options {
-  margin-bottom: 20px;
-  padding-top: 10px;
-  border-top: 1px solid #eee;
+  margin-bottom: var(--spacing-5);
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--color-border);
 }
 
 .mode-toggle {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-5);
 }
 
 .mode-btn {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  border-radius: 4px;
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.9em;
-  transition: all 0.2s;
+  transition: all var(--duration-base);
+  color: var(--color-text-secondary);
 }
 
 .mode-btn.active {
-  background: #e3f2fd;
-  border-color: #2196f3;
-  color: #1976d2;
-  font-weight: 600;
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  padding: var(--spacing-3);
+  background-color: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color var(--duration-base);
+  font-weight: var(--font-weight-medium);
 }
 
 .submit-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--color-primary-hover);
 }
 
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  /* Fallback for light error bg */
+  color: var(--color-error);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-4);
   text-align: center;
+  font-size: var(--font-size-sm);
 }
 
 .toggle-text {
-  margin-top: 1rem;
+  margin-top: var(--spacing-4);
   text-align: center;
-  color: #666;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .toggle-btn {
   background: none;
   border: none;
-  color: #007bff;
+  color: var(--color-primary);
   cursor: pointer;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   padding: 0;
-  margin-left: 0.5rem;
+  margin-left: var(--spacing-2);
 }
 
 .toggle-btn:hover {

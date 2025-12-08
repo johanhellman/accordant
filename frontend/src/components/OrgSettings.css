@@ -113,7 +113,7 @@
 }
 
 .invites-table th {
-  background-color: #f8f9fa;
+  background-color: var(--color-bg-primary);
   font-weight: 600;
   color: #495057;
 }

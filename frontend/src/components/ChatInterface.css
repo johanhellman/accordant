@@ -142,7 +142,7 @@
   background: var(--primary-color);
   border: 1px solid var(--primary-color);
   border-radius: 8px;
-  color: #fff;
+  color: var(--color-bg-secondary);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;

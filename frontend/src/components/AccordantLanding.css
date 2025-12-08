@@ -1,8 +1,8 @@
 .accordant-landing {
   width: 100%;
   min-height: 100vh;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
   overflow-x: hidden;
   scroll-behavior: smooth;
 }
@@ -14,7 +14,7 @@
   z-index: 100;
   background: rgba(248, 249, 250, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border);
   padding: 16px 0;
 }
 
@@ -30,13 +30,13 @@
   gap: 12px;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
 }
 
 .header-logo {
   width: 32px;
   height: 32px;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .header-nav {
@@ -46,7 +46,7 @@
 }
 
 .nav-link {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -54,13 +54,13 @@
 }
 
 .nav-link:hover {
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .nav-login-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   font-weight: 500;
   cursor: pointer;
   padding: 8px 16px;
@@ -70,7 +70,7 @@
 }
 
 .nav-login-btn:hover {
-  color: var(--primary-color);
+  color: var(--color-primary);
   background: rgba(37, 99, 235, 0.05);
 }
 
@@ -79,7 +79,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -157,7 +157,7 @@
 .orb-1 {
   width: 500px;
   height: 500px;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   top: -200px;
   left: -200px;
   animation-delay: 0s;
@@ -166,7 +166,7 @@
 .orb-2 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, var(--color-accent-pink) 0%, var(--color-accent-orange) 100%);
   bottom: -150px;
   right: -150px;
   animation-delay: 7s;
@@ -175,7 +175,7 @@
 .orb-3 {
   width: 350px;
   height: 350px;
-  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #3b82f6 100%);
   top: 50%;
   right: 10%;
   animation-delay: 14s;
@@ -211,7 +211,7 @@
   border-radius: 50px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--primary-color);
+  color: var(--color-primary);
   margin-bottom: 24px;
 }
 
@@ -229,7 +229,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent-pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -238,7 +238,7 @@
 .hero-description {
   font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.7;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 40px;
   max-width: 700px;
   margin-left: auto;
@@ -269,7 +269,7 @@
 }
 
 .cta-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: white;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
 }
@@ -280,14 +280,14 @@
 }
 
 .cta-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 2px solid var(--border-color);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
 }
 
 .cta-secondary:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .cta-icon {
@@ -301,7 +301,7 @@
   justify-content: center;
   flex-wrap: wrap;
   padding-top: 40px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--color-border);
 }
 
 .stat-item {
@@ -311,13 +311,13 @@
 .stat-number {
   font-size: 24px;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--color-primary);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 /* Section Styles */
@@ -340,13 +340,13 @@ section {
 
 .section-subtitle {
   font-size: clamp(1rem, 1.5vw, 1.125rem);
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
 /* How It Works Section */
 .how-it-works-section {
-  background: var(--bg-secondary);
+  background: var(--color-bg-secondary);
 }
 
 .process-steps {
@@ -368,7 +368,7 @@ section {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: white;
   border-radius: 12px;
   font-size: 20px;
@@ -390,7 +390,7 @@ section {
 .step-icon {
   width: 40px;
   height: 40px;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .step-title {
@@ -400,7 +400,7 @@ section {
 }
 
 .step-description {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
@@ -414,7 +414,7 @@ section {
 .connector-icon {
   width: 32px;
   height: 32px;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 @media (min-width: 768px) {
@@ -435,8 +435,8 @@ section {
 }
 
 .content-type-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 32px;
   transition: all 0.3s ease;
@@ -445,7 +445,7 @@ section {
 .content-type-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
 }
 
 .card-icon-wrapper {
@@ -462,7 +462,7 @@ section {
 .card-icon {
   width: 32px;
   height: 32px;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .card-title {
@@ -472,7 +472,7 @@ section {
 }
 
 .card-description {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
   margin-bottom: 20px;
 }
@@ -487,7 +487,7 @@ section {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
   font-size: 14px;
 }
@@ -495,13 +495,13 @@ section {
 .feature-icon {
   width: 16px;
   height: 16px;
-  color: var(--success-color);
+  color: var(--color-success);
   flex-shrink: 0;
 }
 
 /* Benefits Section */
 .benefits-section {
-  background: var(--bg-secondary);
+  background: var(--color-bg-secondary);
 }
 
 .benefits-content {
@@ -525,7 +525,7 @@ section {
 .benefit-icon {
   width: 48px;
   height: 48px;
-  color: var(--primary-color);
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -536,7 +536,7 @@ section {
 }
 
 .benefit-description {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
@@ -545,8 +545,8 @@ section {
 }
 
 .visual-card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   padding: 32px;
   box-shadow: var(--shadow-md);
@@ -558,7 +558,7 @@ section {
   gap: 16px;
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .visual-avatar-group {
@@ -575,7 +575,7 @@ section {
   justify-content: center;
   font-weight: 700;
   color: white;
-  border: 2px solid var(--bg-primary);
+  border: 2px solid var(--color-bg-primary);
   margin-left: -8px;
 }
 
@@ -584,15 +584,15 @@ section {
 }
 
 .avatar-1 {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 }
 
 .avatar-2 {
-  background: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, var(--color-accent-pink) 0%, var(--color-accent-orange) 100%);
 }
 
 .avatar-3 {
-  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #3b82f6 100%);
 }
 
 .visual-title {
@@ -608,20 +608,20 @@ section {
 
 .visual-message {
   padding: 12px 16px;
-  background: var(--bg-tertiary);
+  background: var(--color-bg-tertiary);
   border-radius: 8px;
 }
 
 .message-author {
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--color-primary);
   margin-bottom: 4px;
 }
 
 .message-text {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .visual-synthesis {
@@ -637,12 +637,12 @@ section {
 .synthesis-icon {
   width: 24px;
   height: 24px;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .synthesis-text {
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 @media (max-width: 968px) {
@@ -664,8 +664,8 @@ section {
 }
 
 .use-case-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 32px;
   text-align: center;
@@ -675,13 +675,13 @@ section {
 .use-case-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
 }
 
 .use-case-icon {
   width: 48px;
   height: 48px;
-  color: var(--primary-color);
+  color: var(--color-primary);
   margin: 0 auto 20px;
 }
 
@@ -692,13 +692,13 @@ section {
 }
 
 .use-case-description {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: white;
   text-align: center;
 }
@@ -740,11 +740,11 @@ section {
   font-size: 16px;
   font-family: inherit;
   background: white;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
 }
 
 .email-input::placeholder {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 .email-input:focus {
@@ -770,8 +770,8 @@ section {
 
 /* Footer */
 .landing-footer {
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
   padding: 60px 0 40px;
 }
 
@@ -795,7 +795,7 @@ section {
 .footer-logo {
   width: 32px;
   height: 32px;
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .footer-links {
@@ -805,23 +805,23 @@ section {
 }
 
 .footer-link {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .footer-link:hover {
-  color: var(--primary-color);
+  color: var(--color-primary);
 }
 
 .footer-bottom {
   text-align: center;
   padding-top: 40px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--color-border);
 }
 
 .footer-copyright {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -843,7 +843,7 @@ section {
 
 .login-modal-content {
   position: relative;
-  background: var(--bg-secondary);
+  background: var(--color-bg-secondary);
   border-radius: 20px;
   max-width: 500px;
   width: 100%;
@@ -860,7 +860,7 @@ section {
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: var(--bg-tertiary);
+  background: var(--color-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -870,13 +870,13 @@ section {
 }
 
 .login-modal-close:hover {
-  background: var(--border-color);
+  background: var(--color-border);
 }
 
 .close-icon {
   width: 20px;
   height: 20px;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
 }
 
 /* Responsive Design */

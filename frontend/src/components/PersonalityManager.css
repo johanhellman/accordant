@@ -135,7 +135,7 @@
 }
 
 .source-badge.custom {
-  background-color: #fff3e0;
+  background-color: var(--color-bg-secondary);
   color: #ef6c00;
   border-color: #ffe0b2;
 }

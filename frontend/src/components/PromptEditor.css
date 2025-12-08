@@ -5,7 +5,7 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 15px;
-  background: #fff;
+  background: var(--color-bg-secondary);
 }
 
 .personality-prompt-editor {
@@ -33,7 +33,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid var(--color-border);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -44,14 +44,14 @@
   border-radius: 20px;
   padding: 6px 16px;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .prompt-tab-btn:hover {
-  background: #eee;
-  color: #333;
+  background: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .prompt-tab-btn.active {
@@ -64,7 +64,7 @@
 
 .prompt-tab-btn.system-tab {
   margin-left: auto;
-  background: #fff3e0;
+  background: var(--color-bg-secondary);
   color: #e65100;
   border-color: #ffe0b2;
 }
@@ -121,13 +121,13 @@
   flex: 1;
   width: 100%;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.6;
   resize: none;
-  background: #fff;
+  background: var(--color-bg-secondary);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
@@ -157,7 +157,7 @@
 
 .enforced-item {
   background: #fafafa;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
@@ -169,13 +169,13 @@
 
 .enforced-item h5 {
   margin: 0 0 5px 0;
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 1rem;
 }
 
 .enforced-desc {
   margin: 0 0 15px 0;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   font-style: italic;
 }
@@ -203,12 +203,12 @@
 .prompt-editor-label {
   font-weight: 600;
   font-size: 1.1em;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .prompt-editor-desc {
   font-size: 0.9em;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
@@ -245,7 +245,7 @@
 .editor-tabs {
   display: flex;
   gap: 1px;
-  background: #eee;
+  background: var(--color-border);
   padding: 2px;
   border-radius: 6px;
   width: fit-content;
@@ -259,12 +259,12 @@
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .editor-tab.active {
-  background: #fff;
-  color: #333;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -275,7 +275,7 @@
   font-size: 14px;
   line-height: 1.5;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   resize: vertical;
   min-height: 200px;
@@ -289,7 +289,7 @@
 
 .markdown-preview {
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   background: #fafafa;
   min-height: 200px;
@@ -320,7 +320,7 @@
 
 .editor-wrapper {
   display: flex;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   background: #f5f5f5;
   overflow: auto;
@@ -334,8 +334,8 @@
   align-items: flex-end;
   padding: 15px 10px 15px 15px;
   /* Match editor padding-top/bottom */
-  background: #eee;
-  border-right: 1px solid #ddd;
+  background: var(--color-border);
+  border-right: 1px solid var(--color-border);
   color: #999;
   font-family: "Fira code", "Fira Mono", monospace;
   font-size: 14px;

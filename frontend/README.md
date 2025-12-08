@@ -43,12 +43,15 @@ src/
 
 ## Theme
 
-The application uses a light theme defined in `src/index.css` using CSS variables. Key variables include:
+The application implementation uses a design system defined in `src/index.css` using CSS variables, based on the branding guidelines in `docs/branding`. Key tokens include:
 
-- `--bg-primary`: Main background color (off-white)
-- `--bg-secondary`: Surface color (white)
-- `--primary-color`: Primary accent color (soft blue)
-- `--text-primary`: Main text color (dark gray)
+- `--color-bg-primary`: Main background color
+- `--color-bg-secondary`: Surface color
+- `--color-primary`: Primary accent color (Blue #2563eb)
+- `--color-text-primary`: Main text color
+- `--color-success/warning/error`: Functional state colors
+
+See `docs/branding/04-design-tokens.md` for the complete design system reference.
 
 ## Development
 
