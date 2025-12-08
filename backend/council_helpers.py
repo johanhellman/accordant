@@ -22,22 +22,16 @@ Here are the responses from {peer_text}:
 
 {responses_text}"""
 
-ENFORCED_OUTPUT_FORMAT = """IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
+ENFORCED_OUTPUT_FORMAT = """IMPORTANT: Your response MUST be formatted EXACTLY as follows:
 - Start with the line "{FINAL_RANKING_MARKER}" (all caps, with colon)
-- Then list the responses from best to worst as a numbered list
-- Each line should be: number, period, space, then ONLY the response label (e.g., "1. {RESPONSE_LABEL_PREFIX}A")
-- Do not add any other text or explanations in the ranking section
 
-Example of the correct format for your ENTIRE response:
+For each response being evaluated, provide a structured analysis:
+> 1. **Strengths**: What does this response do well?
+> 2. **Weaknesses**: What is missing or incorrect?
 
-{RESPONSE_LABEL_PREFIX}A provides good detail on X but misses Y...
-{RESPONSE_LABEL_PREFIX}B is accurate but lacks depth on Z...
-{RESPONSE_LABEL_PREFIX}C offers the most comprehensive answer...
-
-{FINAL_RANKING_MARKER}
-1. {RESPONSE_LABEL_PREFIX}C
-2. {RESPONSE_LABEL_PREFIX}A
-3. {RESPONSE_LABEL_PREFIX}B
+End with a final ranking of the responses from best to worst.
+- The ranking MUST use the format: "1. {RESPONSE_LABEL_PREFIX}X" (e.g., "1. {RESPONSE_LABEL_PREFIX}A")
+- Each entry must be on a new line
 
 Now provide your evaluation and ranking:"""
 

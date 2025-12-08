@@ -2,13 +2,22 @@ import { useState, useEffect } from "react";
 import { api } from "../api";
 import PromptEditor from "./PromptEditor";
 import ModelSelector from "./ModelSelector";
+import { FileText, Vote, Gavel, PenTool } from "lucide-react";
 import "./SystemPromptsEditor.css";
+
+const SECTIONS = [
+  { id: "base", label: "Base System Prompt", icon: FileText },
+  { id: "ranking", label: "Voting Instructions", icon: Vote },
+  { id: "chairman", label: "Chairman Configuration", icon: Gavel },
+  { id: "title", label: "Title Generation", icon: PenTool },
+];
 
 function SystemPromptsEditor() {
   const [config, setConfig] = useState(null);
   const [models, setModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState("base");
 
   useEffect(() => {
     loadData();
@@ -42,163 +51,229 @@ function SystemPromptsEditor() {
 
   if (isLoading) return <div className="loading">Loading configuration...</div>;
 
+  const renderContent = () => {
+    switch (activeSection) {
+      case "base":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Base System Prompt</h3>
+              <p className="section-desc">Shared instructions for all council members.</p>
+            </div>
+            <div className="form-group">
+              <PromptEditor
+                label="Base System Prompt"
+                value={config.base_system_prompt}
+                onChange={(val) => setConfig({ ...config, base_system_prompt: val })}
+                rows={12}
+              />
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+      case "ranking":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Voting Instructions (Stage 2)</h3>
+              <p className="section-desc">
+                Instructions for the model on how to evaluate peers.
+              </p>
+            </div>
+            <div className="config-group">
+              <ModelSelector
+                label="Ranking Model"
+                value={config.ranking.model}
+                models={models}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    ranking: { ...config.ranking, model: e.target.value },
+                  })
+                }
+                effectiveModel={config.ranking.effective_model}
+              />
+
+              <div className="form-group">
+                <label>Enforced Context (Prepend)</label>
+                <div className="enforced-text">
+                  You are evaluating different responses to the following question:<br /><br />
+                  Question: &#123;user_query&#125;<br /><br />
+                  Here are the responses from &#123;peer_text&#125;:<br /><br />
+                  &#123;responses_text&#125;
+                </div>
+              </div>
+
+              <div className="form-group">
+                <PromptEditor
+                  label="Ranking Instructions"
+                  description="Custom instructions for evaluation (e.g., 'Focus on creativity')."
+                  value={config.ranking.prompt}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      ranking: { ...config.ranking, prompt: val },
+                    })
+                  }
+                  rows={8}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Enforced Output Format (Append)</label>
+                <div className="enforced-text">
+                  IMPORTANT: Your response MUST be formatted EXACTLY as follows:
+                  <br />
+                  - Start with the line "&#123;FINAL_RANKING_MARKER&#125;" (all caps, with colon)
+                  <br />
+                  <br />
+                  For each response being evaluated, provide a structured analysis:
+                  <br />
+                  &gt; 1. **Strengths**: What does this response do well?
+                  <br />
+                  &gt; 2. **Weaknesses**: What is missing or incorrect?
+                  <br />
+                  <br />
+                  End with a final ranking of the responses from best to worst.
+                  <br />
+                  - The ranking MUST use the format: "1. &#123;RESPONSE_LABEL_PREFIX&#125;X" (e.g.,
+                  "1. &#123;RESPONSE_LABEL_PREFIX&#125;A")
+                  <br />
+                  - Each entry must be on a new line
+                  <br />
+                  <br />
+                  Now provide your evaluation and ranking:
+                </div>
+              </div>
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+      case "chairman":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Chairman Configuration</h3>
+              <p className="section-desc">Controls the final synthesis (Stage 3).</p>
+            </div>
+
+            <div className="config-group">
+              <ModelSelector
+                label="Chairman Model"
+                value={config.chairman.model}
+                models={models}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    chairman: { ...config.chairman, model: e.target.value },
+                  })
+                }
+                effectiveModel={config.chairman.effective_model}
+              />
+
+              <div className="form-group">
+                <PromptEditor
+                  label="Chairman Prompt"
+                  value={config.chairman.prompt}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      chairman: { ...config.chairman, prompt: val },
+                    })
+                  }
+                  rows={12}
+                  requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
+                />
+              </div>
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+      case "title":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Title Generation</h3>
+              <p className="section-desc">Controls how conversation titles are generated.</p>
+            </div>
+
+            <div className="config-group">
+              <ModelSelector
+                label="Title Generation Model"
+                value={config.title_generation.model}
+                models={models}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    title_generation: { ...config.title_generation, model: e.target.value },
+                  })
+                }
+                effectiveModel={config.title_generation.effective_model}
+              />
+
+              <div className="form-group">
+                <PromptEditor
+                  label="Title Prompt"
+                  value={config.title_generation.prompt}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      title_generation: { ...config.title_generation, prompt: val },
+                    })
+                  }
+                  rows={4}
+                  requiredVariables={["{user_query}"]}
+                />
+              </div>
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="system-prompts-editor">
-      <div className="header">
-        <div>
-          <h2>System Prompts & Configuration</h2>
-          <p className="subtitle">Configure global prompts and special council roles.</p>
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <h2>Configuration</h2>
         </div>
-        <button onClick={handleSave} className="primary" disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save Configuration"}
-        </button>
+        <nav className="sidebar-nav">
+          {SECTIONS.map((section) => {
+            const Icon = section.icon;
+            return (
+              <button
+                key={section.id}
+                className={`nav-item ${activeSection === section.id ? "active" : ""}`}
+                onClick={() => setActiveSection(section.id)}
+              >
+                <Icon size={18} />
+                <span>{section.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
-
-      <div className="editor-layout">
-        {/* 1. Base System Prompt */}
-        <div className="section">
-          <div className="section-header">
-            <h3>Base System Prompt</h3>
-            <p className="section-desc">Shared instructions for all council members.</p>
-          </div>
-          <div className="form-group">
-            <PromptEditor
-              label="Base System Prompt"
-              value={config.base_system_prompt}
-              onChange={(val) => setConfig({ ...config, base_system_prompt: val })}
-              rows={8}
-            />
-          </div>
-        </div>
-
-        {/* 2. Voting Instructions (Ranking Prompt) */}
-        <div className="section">
-          <div className="section-header">
-            <h3>Voting Instructions (Stage 2)</h3>
-            <p className="section-desc">
-              Instructions for the model on how to evaluate peers. The system automatically adds context and formatting rules.
-            </p>
-          </div>
-          <div className="config-group">
-            <ModelSelector
-              label="Ranking Model"
-              value={config.ranking.model}
-              models={models}
-              onChange={(e) =>
-                setConfig({
-                  ...config,
-                  ranking: { ...config.ranking, model: e.target.value },
-                })
-              }
-              effectiveModel={config.ranking.effective_model}
-            />
-
-            <div className="form-group">
-              <label>Enforced Context (Prepend)</label>
-              <pre className="enforced-text">
-                {config.ranking_enforced_context}
-              </pre>
-            </div>
-
-            <div className="form-group">
-              <PromptEditor
-                label="Ranking Instructions"
-                description="Custom instructions for evaluation (e.g., 'Focus on creativity')."
-                value={config.ranking.prompt}
-                onChange={(val) =>
-                  setConfig({
-                    ...config,
-                    ranking: { ...config.ranking, prompt: val },
-                  })
-                }
-                rows={6}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Enforced Output Format (Append)</label>
-              <pre className="enforced-text">
-                {config.ranking_enforced_format}
-              </pre>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Chairman Configuration */}
-        <div className="section">
-          <div className="section-header">
-            <h3>Chairman Configuration</h3>
-            <p className="section-desc">Controls the final synthesis (Stage 3).</p>
-          </div>
-
-          <div className="config-group">
-            <ModelSelector
-              label="Chairman Model"
-              value={config.chairman.model}
-              models={models}
-              onChange={(e) =>
-                setConfig({
-                  ...config,
-                  chairman: { ...config.chairman, model: e.target.value },
-                })
-              }
-              effectiveModel={config.chairman.effective_model}
-            />
-
-            <div className="form-group">
-              <PromptEditor
-                label="Chairman Prompt"
-                value={config.chairman.prompt}
-                onChange={(val) =>
-                  setConfig({
-                    ...config,
-                    chairman: { ...config.chairman, prompt: val },
-                  })
-                }
-                rows={12}
-                requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Title Generation Configuration */}
-        <div className="section">
-          <div className="section-header">
-            <h3>Title Generation</h3>
-            <p className="section-desc">Controls how conversation titles are generated.</p>
-          </div>
-
-          <div className="config-group">
-            <ModelSelector
-              label="Title Generation Model"
-              value={config.title_generation.model}
-              models={models}
-              onChange={(e) =>
-                setConfig({
-                  ...config,
-                  title_generation: { ...config.title_generation, model: e.target.value },
-                })
-              }
-              effectiveModel={config.title_generation.effective_model}
-            />
-
-            <div className="form-group">
-              <PromptEditor
-                label="Title Prompt"
-                value={config.title_generation.prompt}
-                onChange={(val) =>
-                  setConfig({
-                    ...config,
-                    title_generation: { ...config.title_generation, prompt: val },
-                  })
-                }
-                rows={4}
-                requiredVariables={["{user_query}"]}
-              />
-            </div>
-          </div>
-        </div>
+      <div className="main-content">
+        {renderContent()}
       </div>
     </div>
   );

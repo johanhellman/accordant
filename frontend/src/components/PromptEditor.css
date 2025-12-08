@@ -133,6 +133,52 @@
   overflow-x: auto;
 }
 
+.editor-wrapper {
+  display: flex;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f5f5f5;
+  overflow: hidden;
+  /* Ensure rounded corners clip content */
+}
+
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 15px 10px 15px 15px;
+  /* Match editor padding-top/bottom */
+  background: #eee;
+  border-right: 1px solid #ddd;
+  color: #999;
+  font-family: "Fira code", "Fira Mono", monospace;
+  font-size: 14px;
+  line-height: normal;
+  /* Needs to match editor line-height exactly */
+  user-select: none;
+  min-width: 40px;
+}
+
+.line-numbers span {
+  display: block;
+  height: 21px;
+  /* 14px * 1.5 line-height approximately? Need to match prism */
+}
+
+/* Override prism/editor styles to match line numbers alignment */
+.rich-editor {
+  counter-reset: line;
+}
+
+.rich-editor textarea,
+.rich-editor pre {
+  line-height: 1.5 !important;
+}
+
+.line-numbers span {
+  line-height: 1.5;
+}
+
 .validation-error {
   color: #d32f2f;
   font-size: 0.85em;
