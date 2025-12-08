@@ -271,11 +271,8 @@ async def update_system_prompts(
     from .config.personalities import get_org_config_dir, load_org_models_config
 
     # Validate required tags consistently for all prompts
-    validate_prompt_tags(
-        config.ranking.prompt,
-        ["{user_query}", "{responses_text}", "{peer_text}"],
-        "Ranking Prompt",
-    )
+    # Validate required tags consistently for all prompts
+    # Ranking prompt no longer needs tags as they are enforced by the system
     validate_prompt_tags(
         config.chairman.prompt,
         ["{user_query}", "{stage1_text}", "{voting_details_text}"],

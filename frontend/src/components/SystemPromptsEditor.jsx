@@ -75,7 +75,9 @@ function SystemPromptsEditor() {
         <div className="section">
           <div className="section-header">
             <h3>Voting Instructions (Stage 2)</h3>
-            <p className="section-desc">Instructions and model used to rank peers.</p>
+            <p className="section-desc">
+              Instructions for the model on how to evaluate peers. The system automatically adds context and formatting rules.
+            </p>
           </div>
           <div className="config-group">
             <ModelSelector
@@ -90,10 +92,24 @@ function SystemPromptsEditor() {
               }
               effectiveModel={config.ranking.effective_model}
             />
+
+            <div className="form-group">
+              <label>Enforced Context (Prepend)</label>
+              <pre className="enforced-text">
+                {`You are evaluating different responses to the following question:
+
+Question: {user_query}
+
+Here are the responses from {peer_text}:
+
+{responses_text}`}
+              </pre>
+            </div>
+
             <div className="form-group">
               <PromptEditor
-                label="Ranking Prompt"
-                description="Used in Stage 2 for peer evaluation."
+                label="Ranking Instructions"
+                description="Custom instructions for evaluation (e.g., 'Focus on creativity')."
                 value={config.ranking.prompt}
                 onChange={(val) =>
                   setConfig({
@@ -101,9 +117,18 @@ function SystemPromptsEditor() {
                     ranking: { ...config.ranking, prompt: val },
                   })
                 }
-                rows={12}
-                requiredVariables={["{user_query}", "{responses_text}", "{peer_text}"]}
+                rows={6}
               />
+            </div>
+
+            <div className="form-group">
+              <label>Enforced Output Format (Append)</label>
+              <pre className="enforced-text">
+                {`IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
+- Start with the line "{FINAL_RANKING_MARKER}" (all caps, with colon)
+...
+Now provide your evaluation and ranking:`}
+              </pre>
             </div>
           </div>
         </div>

@@ -247,6 +247,21 @@ The system supports a modular "Personalities" architecture:
 
 **Note**: In Multi-Tenancy, personalities are loaded from `data/organizations/{org_id}/personalities/`. The global `data/personalities/` serves as a template/fallback.
 
+### System Prompts Configuration
+
+The system uses a hierarchical configuration for system prompts:
+
+1.  **Defaults**: `data/defaults/system-prompts.yaml` contains the baseline prompts.
+2.  **Overrides**: `data/organizations/{org_id}/config/system-prompts.yaml` contains organization-specific overrides.
+
+**Prompt Assembly (Stage 2)**:
+To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled dynamically** from three parts:
+1.  **Enforced Context**: Prepend user query and peer responses (handled by backend).
+2.  **Instructions**: The configurable part (from YAML) where admins define *how* to evaluate.
+3.  **Enforced Format**: Append strict output formatting rules (handled by backend).
+
+**Important**: When editing `ranking_prompt` in YAML or the UI, you should **ONLY** provide the evaluation instructions (e.g., "Evaluate for creativity"). Do not include placeholders like `{user_query}` or formatting rules, as these are enforced by the system.
+
 ### Frontend Structure (`frontend/src/`)
 
 **`App.jsx`**

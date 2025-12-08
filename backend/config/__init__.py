@@ -19,12 +19,6 @@ from .paths import (
     validate_file_path as validate_file_path,
 )
 from .personalities import (
-    BASE_SYSTEM_PROMPT as BASE_SYSTEM_PROMPT,
-)
-from .personalities import (
-    CHAIRMAN_PROMPT as CHAIRMAN_PROMPT,
-)
-from .personalities import (
     DEFAULT_BASE_SYSTEM_PROMPT as DEFAULT_BASE_SYSTEM_PROMPT,
 )
 from .personalities import (
@@ -38,18 +32,6 @@ from .personalities import (
 )
 from .personalities import (
     DEFAULT_TITLE_GENERATION_PROMPT as DEFAULT_TITLE_GENERATION_PROMPT,
-)
-from .personalities import (
-    PERSONALITIES_DIR as PERSONALITIES_DIR,
-)
-from .personalities import (
-    PERSONALITY_REGISTRY as PERSONALITY_REGISTRY,
-)
-from .personalities import (
-    RANKING_PROMPT as RANKING_PROMPT,
-)
-from .personalities import (
-    TITLE_GENERATION_PROMPT as TITLE_GENERATION_PROMPT,
 )
 from .personalities import (
     get_active_personalities as get_active_personalities,

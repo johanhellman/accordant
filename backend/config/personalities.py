@@ -9,6 +9,7 @@ import yaml
 from .paths import PROJECT_ROOT, validate_directory_path
 
 ORGS_DATA_DIR = os.path.join(PROJECT_ROOT, "data", "organizations")
+DEFAULTS_DIR = os.path.join(PROJECT_ROOT, "data", "defaults")
 
 logger = logging.getLogger(__name__)
 
@@ -29,48 +30,8 @@ except ValueError as e:
 # Load personalities and system prompts
 PERSONALITY_REGISTRY = {}
 
-# Start with empty prompts; we'll populate them only if the personalities
-# directory exists. This allows environments/tests with a missing directory
-# to detect that no prompts were loaded.
-BASE_SYSTEM_PROMPT = ""
-CHAIRMAN_PROMPT = ""
-TITLE_GENERATION_PROMPT = ""
-RANKING_PROMPT = ""
-
-# Default models for special components
-DEFAULT_RANKING_MODEL = "gemini/gemini-2.5-pro"
-
 # Default Ranking Prompt
-DEFAULT_RANKING_PROMPT = """You are evaluating different responses to the following question:
-
-Question: {user_query}
-
-Here are the responses from {peer_text}:
-
-{responses_text}
-
-Your task:
-1. First, evaluate each response individually. For each response, explain what it does well and what it does poorly.
-2. Then, at the very end of your response, provide a final ranking.
-
-IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
-- Start with the line "{FINAL_RANKING_MARKER}" (all caps, with colon)
-- Then list the responses from best to worst as a numbered list
-- Each line should be: number, period, space, then ONLY the response label (e.g., "1. {RESPONSE_LABEL_PREFIX}A")
-- Do not add any other text or explanations in the ranking section
-
-Example of the correct format for your ENTIRE response:
-
-{RESPONSE_LABEL_PREFIX}A provides good detail on X but misses Y...
-{RESPONSE_LABEL_PREFIX}B is accurate but lacks depth on Z...
-{RESPONSE_LABEL_PREFIX}C offers the most comprehensive answer...
-
-{FINAL_RANKING_MARKER}
-1. {RESPONSE_LABEL_PREFIX}C
-2. {RESPONSE_LABEL_PREFIX}A
-3. {RESPONSE_LABEL_PREFIX}B
-
-Now provide your evaluation and ranking:"""
+DEFAULT_RANKING_PROMPT = "First, evaluate each response individually. For each response, explain what it does well and what it does poorly."
 
 # Default Base System Prompt
 DEFAULT_BASE_SYSTEM_PROMPT = """You are a member of the **LLM Council**, a diverse group of AI intelligences assembled to provide comprehensive, multi-faceted answers to user queries.
@@ -112,7 +73,33 @@ Question: {user_query}
 
 Title:"""
 
+# Default models for special components
+DEFAULT_RANKING_MODEL = "gemini/gemini-2.5-pro"
+
+
 # --- Dynamic Configuration Loading ---
+
+
+def _load_yaml_file(filepath: str) -> dict[str, Any] | None:
+    """Load a YAML file safely."""
+    if not os.path.exists(filepath):
+        return None
+    try:
+        with open(filepath) as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        logger.error(f"Error loading YAML file {filepath}: {e}")
+        return None
+
+
+def _load_defaults() -> dict[str, Any]:
+    """Load default system prompts from data/defaults/system-prompts.yaml."""
+    defaults_file = os.path.join(DEFAULTS_DIR, "system-prompts.yaml")
+    defaults = _load_yaml_file(defaults_file)
+    if not defaults:
+        logger.warning(f"Defaults file not found at {defaults_file}. Using empty defaults.")
+        return {}
+    return defaults
 
 
 def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
@@ -127,19 +114,10 @@ def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
     """
     config_dir = get_org_config_dir(org_id)
     system_prompts_file = os.path.join(config_dir, "system-prompts.yaml")
-
-    if not os.path.exists(system_prompts_file):
-        return None
-
-    try:
-        with open(system_prompts_file) as f:
-            return yaml.safe_load(f)
-    except Exception as e:
-        logger.error(f"Error loading system prompts config for org {org_id}: {e}")
-        return None
+    return _load_yaml_file(system_prompts_file)
 
 
-def _get_nested_config_value(config: dict[str, Any], section: str, key: str, default: str) -> str:
+def _get_nested_config_value(config: dict[str, Any], section: str, key: str, default: Any) -> Any:
     """
     Extract a nested configuration value with fallback.
 
@@ -173,11 +151,19 @@ def load_org_system_prompts(org_id: str) -> dict[str, str]:
     Load system prompts for an organization.
     Returns a dict with keys: base_system_prompt, chairman_prompt, title_prompt, ranking_prompt
     """
+    defaults = _load_defaults()
+    
+    # Extract defaults
+    default_base = defaults.get("base_system_prompt", "")
+    default_ranking = defaults.get("ranking_prompt", "")
+    default_chairman = _get_nested_config_value(defaults, "chairman", "prompt", "")
+    default_title = _get_nested_config_value(defaults, "title_generation", "prompt", "")
+
     prompts = {
-        "base_system_prompt": DEFAULT_BASE_SYSTEM_PROMPT,
-        "chairman_prompt": DEFAULT_CHAIRMAN_PROMPT,
-        "title_prompt": DEFAULT_TITLE_GENERATION_PROMPT,
-        "ranking_prompt": DEFAULT_RANKING_PROMPT,
+        "base_system_prompt": default_base,
+        "chairman_prompt": default_chairman,
+        "title_prompt": default_title,
+        "ranking_prompt": default_ranking,
     }
 
     config = _load_org_config_file(org_id)
@@ -185,22 +171,22 @@ def load_org_system_prompts(org_id: str) -> dict[str, str]:
         return prompts
 
     # Load base system prompt
-    prompts["base_system_prompt"] = config.get("base_system_prompt", DEFAULT_BASE_SYSTEM_PROMPT)
+    prompts["base_system_prompt"] = config.get("base_system_prompt", default_base)
 
     # Load nested prompts with fallback
     prompts["chairman_prompt"] = _get_nested_config_value(
-        config, "chairman", "prompt", DEFAULT_CHAIRMAN_PROMPT
+        config, "chairman", "prompt", default_chairman
     )
     prompts["title_prompt"] = _get_nested_config_value(
-        config, "title_generation", "prompt", DEFAULT_TITLE_GENERATION_PROMPT
+        config, "title_generation", "prompt", default_title
     )
 
     # Ranking prompt can be nested or top-level
     ranking_conf = config.get("ranking")
     if isinstance(ranking_conf, dict):
-        prompts["ranking_prompt"] = ranking_conf.get("prompt", DEFAULT_RANKING_PROMPT)
+        prompts["ranking_prompt"] = ranking_conf.get("prompt", default_ranking)
     else:
-        prompts["ranking_prompt"] = config.get("ranking_prompt", DEFAULT_RANKING_PROMPT)
+        prompts["ranking_prompt"] = config.get("ranking_prompt", default_ranking)
 
     return prompts
 
@@ -210,10 +196,19 @@ def load_org_models_config(org_id: str) -> dict[str, str]:
     Load model configuration for an organization.
     Returns a dict with keys: chairman_model, title_model, ranking_model
     """
+    defaults = _load_defaults()
+    
+    default_chairman_model = _get_nested_config_value(defaults, "chairman", "model", "gemini/gemini-2.5-pro")
+    default_title_model = _get_nested_config_value(defaults, "title_generation", "model", "gemini/gemini-2.5-pro")
+    # Ranking model default is hardcoded for now as it's not in the prompt file usually, 
+    # but let's check if we want to put it there. The prompt file has models too.
+    # Yes, the new defaults file has models.
+    default_ranking_model = DEFAULT_RANKING_MODEL
+
     models = {
-        "chairman_model": "gemini/gemini-2.5-pro",
-        "title_model": "gemini/gemini-2.5-pro",
-        "ranking_model": DEFAULT_RANKING_MODEL,
+        "chairman_model": default_chairman_model,
+        "title_model": default_title_model,
+        "ranking_model": default_ranking_model,
     }
 
     config = _load_org_config_file(org_id)

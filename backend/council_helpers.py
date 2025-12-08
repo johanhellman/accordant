@@ -13,6 +13,35 @@ FINAL_RANKING_MARKER = "FINAL RANKING:"
 RESPONSE_LABEL_PREFIX = "Response "
 
 
+# Enforced Prompt Sections
+ENFORCED_CONTEXT = """You are evaluating different responses to the following question:
+
+Question: {user_query}
+
+Here are the responses from {peer_text}:
+
+{responses_text}"""
+
+ENFORCED_OUTPUT_FORMAT = """IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
+- Start with the line "{FINAL_RANKING_MARKER}" (all caps, with colon)
+- Then list the responses from best to worst as a numbered list
+- Each line should be: number, period, space, then ONLY the response label (e.g., "1. {RESPONSE_LABEL_PREFIX}A")
+- Do not add any other text or explanations in the ranking section
+
+Example of the correct format for your ENTIRE response:
+
+{RESPONSE_LABEL_PREFIX}A provides good detail on X but misses Y...
+{RESPONSE_LABEL_PREFIX}B is accurate but lacks depth on Z...
+{RESPONSE_LABEL_PREFIX}C offers the most comprehensive answer...
+
+{FINAL_RANKING_MARKER}
+1. {RESPONSE_LABEL_PREFIX}C
+2. {RESPONSE_LABEL_PREFIX}A
+3. {RESPONSE_LABEL_PREFIX}B
+
+Now provide your evaluation and ranking:"""
+
+
 def get_time_instructions() -> tuple[str, str]:
     """
     Returns both time instructions as a tuple.
@@ -95,25 +124,30 @@ def build_ranking_prompt(
         user_query: The original user question
         responses_text: Formatted text containing all responses to evaluate
         exclude_self: If True, uses "peers" language.
-        prompt_template: Optional custom prompt template. Defaults to DEFAULT_RANKING_PROMPT.
+        prompt_template: Optional custom instructions. Defaults to DEFAULT_RANKING_PROMPT instructions.
 
     Returns:
         Complete ranking prompt string.
     """
     peer_text = "your peers (anonymized)" if exclude_self else "different models (anonymized)"
 
-    template = prompt_template if prompt_template else DEFAULT_RANKING_PROMPT
+    # Use provided template (instructions) or fall back to default instructions
+    instructions = prompt_template if prompt_template else DEFAULT_RANKING_PROMPT
 
-    if template:
-        return template.format(
-            user_query=user_query,
-            responses_text=responses_text,
-            peer_text=peer_text,
-            FINAL_RANKING_MARKER=FINAL_RANKING_MARKER,
-            RESPONSE_LABEL_PREFIX=RESPONSE_LABEL_PREFIX,
-        )
+    # Assemble the full prompt: Enforced Context + Custom Instructions + Enforced Format
+    full_prompt_template = (
+        f"{ENFORCED_CONTEXT}\n\n"
+        f"{instructions}\n\n"
+        f"{ENFORCED_OUTPUT_FORMAT}"
+    )
 
-    return "Error: Ranking prompt not configured."
+    return full_prompt_template.format(
+        user_query=user_query,
+        responses_text=responses_text,
+        peer_text=peer_text,
+        FINAL_RANKING_MARKER=FINAL_RANKING_MARKER,
+        RESPONSE_LABEL_PREFIX=RESPONSE_LABEL_PREFIX,
+    )
 
 
 def build_llm_history(messages: list[dict[str, Any]], max_turns: int = 10) -> list[MessageDict]:
