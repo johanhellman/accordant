@@ -109,7 +109,12 @@ def build_message_chain(
 
 
 def build_ranking_prompt(
-    user_query: str, responses_text: str, exclude_self: bool = False, prompt_template: str = None
+    user_query: str, 
+    responses_text: str, 
+    exclude_self: bool = False, 
+    prompt_template: str = None,
+    enforced_context: str = "",
+    enforced_format: str = ""
 ) -> str:
     """
     Build the ranking prompt template for Stage 2.
@@ -119,20 +124,25 @@ def build_ranking_prompt(
         responses_text: Formatted text containing all responses to evaluate
         exclude_self: If True, uses "peers" language.
         prompt_template: Optional custom instructions. Defaults to DEFAULT_RANKING_PROMPT instructions.
+        enforced_context: Enforced context string (loaded from config)
+        enforced_format: Enforced output format string (loaded from config)
 
     Returns:
         Complete ranking prompt string.
     """
     peer_text = "your peers (anonymized)" if exclude_self else "different models (anonymized)"
 
-    # Use provided template (instructions) or fall back to default instructions
-    instructions = prompt_template if prompt_template else DEFAULT_RANKING_PROMPT
+    # Use provided template (instructions) or fall back to default instructions (handled by caller passing loaded prompt)
+    instructions = prompt_template if prompt_template else "" 
 
     # Assemble the full prompt: Enforced Context + Custom Instructions + Enforced Format
+    # If enforced strings are empty (not loaded), we fallback to hardcoded minimal or assume config is valid.
+    # But now we expect them to be passed in.
+
     full_prompt_template = (
-        f"{ENFORCED_CONTEXT}\n\n"
+        f"{enforced_context}\n\n"
         f"{instructions}\n\n"
-        f"{ENFORCED_OUTPUT_FORMAT}"
+        f"{enforced_format}"
     )
 
     return full_prompt_template.format(

@@ -2,11 +2,47 @@ base_system_prompt: 'You are a member of the **LLM Council**, a diverse group of
   intelligences assembled to provide comprehensive, multi-faceted answers to user
   queries.
 
-
   Your goal is not just to answer the question, but to contribute a unique perspective
   to the collective discussion. You will later review each other''s answers, so be
   thorough and distinct.'
+ranking_enforced_context: |
+  You are evaluating different responses to the following question:
 
+  Question: {user_query}
+
+  Here are the responses from {peer_text}:
+
+  {responses_text}
+
+ranking_enforced_output_format: |
+  IMPORTANT: Your response MUST be formatted EXACTLY as follows:
+  - Start with the line "{FINAL_RANKING_MARKER}" (all caps, with colon)
+
+  For each response being evaluated, provide a structured analysis:
+  > 1. **Strengths**: What does this response do well?
+  > 2. **Weaknesses**: What is missing or incorrect?
+
+  End with a final ranking of the responses from best to worst.
+  - The ranking MUST use the format: "1. {RESPONSE_LABEL_PREFIX}X" (e.g., "1. {RESPONSE_LABEL_PREFIX}A")
+  - Each entry must be on a new line
+
+  Now provide your evaluation and ranking:
+
+feedback_synthesis_prompt: |
+    You are analyzing peer feedback for an AI Personality named "{personality_name}".
+    Below are extracts from voting sessions where other AIs evaluated responses, including {personality_name}'s.
+    
+    Your task is to synthesize this feedback into a constructive report.
+    Identify:
+    1. Recurring STRENGTHS (what do peers like?)
+    2. Recurring WEAKNESSES (what do peers criticize?)
+    3. Unique Characteristics noticed by others.
+    
+    FEEDBACK LOGS:
+    
+    {feedback_text}
+    
+    Synthesize:
 ranking_prompt: 'First, evaluate each response individually. For each response, explain what it does well and what it does poorly.'
 
 stage1_response_structure: |

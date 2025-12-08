@@ -198,6 +198,8 @@ async def _stage2_personality_mode(
             filtered_responses_text,
             exclude_self=True,
             prompt_template=prompts.get("ranking_prompt"),
+            enforced_context=prompts.get("ranking_enforced_context", ""),
+            enforced_format=prompts.get("ranking_enforced_format", "")
         )
 
         # Construct system prompt

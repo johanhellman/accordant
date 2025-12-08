@@ -296,23 +296,26 @@ async def generate_feedback_summary(org_id: str, personality_name: str, api_key:
 
     feedback_text = "\n".join(reasoning_snippets)
 
+    # Load system prompts
+    from .config.personalities import load_org_system_prompts
+    prompts = load_org_system_prompts(org_id)
+    synthesis_prompt_template = prompts.get("feedback_synthesis_prompt", "")
+    
+    if not synthesis_prompt_template:
+        # Fallback if config is missing (though should come from defaults)
+        synthesis_prompt_template = """
+        You are analyzing peer feedback for an AI Personality named "{personality_name}".
+        Your task is to synthesize this feedback into a constructive report.
+        FEEDBACK LOGS:
+        {feedback_text}
+        Synthesize:
+        """
+
     # Summarize with LLM
-    prompt = f"""
-    You are analyzing peer feedback for an AI Personality named "{personality_name}".
-    Below are extracts from voting sessions where other AIs evaluated responses, including {personality_name}'s.
-    
-    Your task is to synthesize this feedback into a constructive report.
-    Identify:
-    1. Recurring STRENGTHS (what do peers like?)
-    2. Recurring WEAKNESSES (what do peers criticize?)
-    3. Unique Characteristics noticed by others.
-    
-    FEEDBACK LOGS:
-    
-    {feedback_text}
-    
-    Synthesize:
-    """
+    prompt = synthesis_prompt_template.format(
+        personality_name=personality_name,
+        feedback_text=feedback_text
+    )
     
     # Use a default smart model (Chairman model) for this analysis
     model = "gemini/gemini-2.5-pro" # TODO: Load from config

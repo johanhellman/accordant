@@ -97,85 +97,7 @@ def format_personality_prompt(personality: dict[str, Any], system_prompts: dict[
     meta_structure = system_prompts.get("stage1_meta_structure")
     if meta_structure:
         parts.append(meta_structure)
-        
     return "\n\n".join(parts)
-
-
-# Load personalities and system prompts
-PERSONALITY_REGISTRY = {}
-
-# Default Ranking Prompt
-DEFAULT_RANKING_PROMPT = "First, evaluate each response individually. For each response, explain what it does well and what it does poorly."
-
-# Default Base System Prompt
-DEFAULT_BASE_SYSTEM_PROMPT = """You are a member of the **LLM Council**, a diverse group of AI intelligences assembled to provide comprehensive, multi-faceted answers to user queries.
-
-Your goal is not just to answer the question, but to contribute a unique perspective to the collective discussion. You will later review each other's answers, so be thorough and distinct."""
-
-# Default Chairman Prompt
-DEFAULT_CHAIRMAN_PROMPT = """You are the Chairman of an LLM Council. Multiple AI models have provided responses to a user's question, and then ranked each other's responses.
-
-Original Question: {user_query}
-
-STAGE 1 - Individual Responses:
-{stage1_text}
-
-STAGE 2 - Peer Rankings (Detailed Votes):
-{voting_details_text}
-
-Your task is to provide a final response in two parts:
-
-## PART 1: COUNCIL REPORT
-- **Voting Results**: Create a standard MARKDOWN TABLE showing how each model voted.
-  - Columns: Voter, 1st Choice, 2nd Choice.
-  - **IMPORTANT**: In the table, you MUST use the **Personality Name** for all entries (Voter, 1st Choice, 2nd Choice).
-  - Do NOT include model names or IDs, as they are not provided to you.
-  - Ensure there is a newline after each row.
-- **Brief Rationale**: Briefly explain why the winner was preferred.
-
-## PART 2: FINAL ANSWER
-- Provide the single, comprehensive, best possible answer to the user's question.
-- This should be a direct answer to the user, ready to be used.
-
-Begin:"""
-
-# Default Title Generation Prompt
-DEFAULT_TITLE_GENERATION_PROMPT = """Generate a very short title (3-5 words maximum) that summarizes the following question.
-The title should be concise and descriptive. Do not use quotes or punctuation in the title.
-
-Question: {user_query}
-
-# Default Evolution Prompt
-DEFAULT_EVOLUTION_PROMPT = """You are an expert AI Personality Architect. 
-Your task is to COMBINE the traits of {parent_count} existing "Parent" personalities into a new, superior "Offspring" personality.
-
-NAME OF NEW PERSONALITY: {offspring_name}
-
-GOAL:
-- Create a coherent, integrated personality, not just a concatenation.
-- PRESERVE the STRENGTHS identified in the peer feedback for each parent.
-- MITIGATE the WEAKNESSES identified in the peer feedback.
-- The new personality should feel like a natural evolution.
-
-SOURCE MATERIAL:
-{parent_data}
-
-OUTPUT FORMAT:
-You must output a valid YAML object for the 'personality_prompt' section.
-It must have EXACTLY these keys:
-- identity_and_role
-- interpretation_of_questions
-- problem_decomposition
-- analysis_and_reasoning
-- differentiation_and_bias
-- tone
-
-Do not include markdown code fence. Just the raw YAML.
-
-YAML:"""
-
-# Default models for special components
-DEFAULT_RANKING_MODEL = "openai/gpt-4o"
 
 
 # --- Dynamic Configuration Loading ---
@@ -195,12 +117,7 @@ def _load_yaml_file(filepath: str) -> dict[str, Any] | None:
 
 def _load_defaults() -> dict[str, Any]:
     """Load default system prompts from data/defaults/system-prompts.yaml."""
-    defaults_file = os.path.join(DEFAULTS_DIR, "system-prompts.yaml")
-    defaults = _load_yaml_file(defaults_file)
-    if not defaults:
-        logger.warning(f"Defaults file not found at {defaults_file}. Using empty defaults.")
-        return {}
-    return defaults
+    return _load_yaml_file(DEFAULTS_FILE) or {}
 
 
 def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
@@ -221,19 +138,18 @@ def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
 def _get_nested_config_value(config: dict[str, Any], section: str, key: str, default: Any) -> Any:
     """
     Extract a nested configuration value with fallback.
-
+    
     Args:
         config: The configuration dict
         section: The section name (e.g., "chairman", "title_generation")
         key: The key within the section (e.g., "prompt", "model")
         default: Default value if not found
-
+        
     Returns:
-        The configuration value or default
+        The configuration value or the default.
     """
-    section_config = config.get(section, {})
-    if isinstance(section_config, dict):
-        return section_config.get(key, default)
+    if section in config and isinstance(config[section], dict):
+        return config[section].get(key, default)
     return default
 
 
@@ -243,7 +159,7 @@ def get_org_personalities_dir(org_id: str) -> str:
 
 
 def get_org_config_dir(org_id: str) -> str:
-    """Get the config directory for an organization."""
+    """Get the configuration directory for an organization."""
     return os.path.join(ORGS_DATA_DIR, org_id, "config")
 
 
@@ -302,9 +218,14 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
     default_ranking = defaults.get("ranking_prompt", "")
     default_chairman = _get_nested_config_value(defaults, "chairman", "prompt", "")
     default_title = _get_nested_config_value(defaults, "title_generation", "prompt", "")
-    default_evolution = defaults.get("evolution_prompt", DEFAULT_EVOLUTION_PROMPT)
+    default_evolution = defaults.get("evolution_prompt", "")
     default_struct_resp = defaults.get("stage1_response_structure", "")
     default_struct_meta = defaults.get("stage1_meta_structure", "")
+    
+    # New prompts for migration
+    default_ranking_enforced_context = defaults.get("ranking_enforced_context", "")
+    default_ranking_enforced_format = defaults.get("ranking_enforced_output_format", "")
+    default_feedback_synthesis = defaults.get("feedback_synthesis_prompt", "")
 
     # Build Result
     result = {}
@@ -315,6 +236,11 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
     result["evolution_prompt"] = _create_entry("evolution_prompt", default_evolution, None)
     result["stage1_response_structure"] = _create_entry("stage1_response_structure", default_struct_resp, None)
     result["stage1_meta_structure"] = _create_entry("stage1_meta_structure", default_struct_meta, None)
+    
+    # New migrated prompts
+    result["ranking_enforced_context"] = _create_entry("ranking_enforced_context", default_ranking_enforced_context, None)
+    result["ranking_enforced_format"] = _create_entry("ranking_enforced_output_format", default_ranking_enforced_format, None)
+    result["feedback_synthesis_prompt"] = _create_entry("feedback_synthesis_prompt", default_feedback_synthesis, None)
     
     # Ranking prompt requires flexible handling (nested vs top-level)
     # We will prioritize the unified "ranking_prompt" key for new overrides, but check legacy "ranking.prompt" too
@@ -338,16 +264,16 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
 
 
 def load_org_models_config(org_id: str) -> dict[str, str]:
-    # Load model configuration for an organization.
-    # Returns a dict with keys: chairman_model, title_model, ranking_model
+    """
+    Load model configuration for an organization.
+    Returns a dict with keys: chairman_model, title_model, ranking_model
+    """
     defaults = _load_defaults()
     
     default_chairman_model = _get_nested_config_value(defaults, "chairman", "model", "gemini/gemini-2.5-pro")
     default_title_model = _get_nested_config_value(defaults, "title_generation", "model", "gemini/gemini-2.5-pro")
-    # Ranking model default is hardcoded for now as it's not in the prompt file usually, 
-    # but let's check if we want to put it there. The prompt file has models too.
     # Yes, the new defaults file has models.
-    default_ranking_model = DEFAULT_RANKING_MODEL
+    default_ranking_model = _get_nested_config_value(defaults, "ranking", "model", "openai/gpt-4o")
 
     models = {
         "chairman_model": default_chairman_model,
@@ -374,17 +300,15 @@ def load_org_models_config(org_id: str) -> dict[str, str]:
 
 
 def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
-    # Get all personalities for an organization, merging Defaults + Custom.
-    # Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
+    """
+    Get all personalities for an organization, merging Defaults + Custom.
+    Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
+    """
     org_personalities_dir = get_org_personalities_dir(org_id)
     defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
     
     # Load Org Config to check for disabled system personalities
-    # (Note: For the 'all' list, we might want to return them but marked as disabled? 
-    #  But the current requirement is to show everything. 
-    #  If a system personality is disabled in org config, it should still appear in the list so it can be re-enabled.
-    #  The 'disabled_system_personalities' config might be a legacy/alternative way to 'delete' them from view,
-    #  but typically 'enabled: false' is the way. Let's assume we want to show everything.)
+    org_config = _load_org_config_file(org_id) or {}
     
     registry = {}
     
@@ -424,8 +348,10 @@ def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
 
 
 def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
-    # Get active personalities for an organization.
-    # Wraps get_all_personalities and filters for enabled=True.
+    """
+    Get active personalities for an organization.
+    Wraps get_all_personalities and filters for enabled=True.
+    """
     all_personalities = get_all_personalities(org_id)
     
     # We also need to respect the 'disabled_system_personalities' from org config if used
