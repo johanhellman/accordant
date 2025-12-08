@@ -27,11 +27,11 @@ client = TestClient(test_app)
 
 # Mock User Dependencies
 async def mock_get_current_admin_user():
-    return User(id="admin", username="admin", role="admin", org_id="test-org", is_instance_admin=False)
+    return User(id="admin", username="admin", role="admin", org_id="test-org", is_instance_admin=False, password_hash="hash")
 
 async def mock_get_current_instance_admin():
     # Instance admin has org_id="test-org" (or system org) but is_instance_admin=True
-    return User(id="sysadmin", username="sysadmin", role="admin", org_id="test-org", is_instance_admin=True)
+    return User(id="sysadmin", username="sysadmin", role="admin", org_id="test-org", is_instance_admin=True, password_hash="hash")
 
 # test_app.dependency_overrides[router.dependencies[0]] = mock_get_current_admin_user # Removed as it causes IndexError if no deps
 
@@ -57,14 +57,14 @@ def test_list_personalities_merges_defaults(mock_fs):
     org_dir, defaults_dir = mock_fs
     
     # Create Default
-    (defaults_dir / "default1.yaml").write_text("id: default1\nname: Default 1\nenabled: true\npersonality_prompt: {}")
+    (defaults_dir / "default1.yaml").write_text("id: default1\nname: Default 1\ndescription: Desc\nmodel: gpt-4\nenabled: true\npersonality_prompt: {}")
     
     # Create Custom
-    (org_dir / "custom1.yaml").write_text("id: custom1\nname: Custom 1\nenabled: true\npersonality_prompt: {}")
+    (org_dir / "custom1.yaml").write_text("id: custom1\nname: Custom 1\ndescription: Desc custom\nmodel: gpt-4\nenabled: true\npersonality_prompt: {}")
     
     # Override Default (Shadow)
-    (org_dir / "default1.yaml").write_text("id: default1\nname: Default 1 Shadowed\nenabled: true\npersonality_prompt: {}")
-
+    (org_dir / "default1.yaml").write_text("id: default1\nname: Default 1 Shadowed\ndescription: Desc shadow\nmodel: gpt-4\nenabled: true\npersonality_prompt: {}")
+    
     # Mock Auth as Admin
     test_app.dependency_overrides[admin_routes.get_current_admin_user] = mock_get_current_admin_user
     
@@ -86,7 +86,7 @@ def test_list_defaults_as_instance_admin(mock_fs):
     org_dir, defaults_dir = mock_fs
     
     # Create Default
-    (defaults_dir / "sys1.yaml").write_text("id: sys1\nname: System 1\nenabled: true\npersonality_prompt: {}")
+    (defaults_dir / "sys1.yaml").write_text("id: sys1\nname: System 1\ndescription: Desc sys\nmodel: gpt-4\nenabled: true\npersonality_prompt: {}")
 
     # Mock Auth as Instance Admin
     test_app.dependency_overrides[admin_routes.get_current_instance_admin] = mock_get_current_instance_admin

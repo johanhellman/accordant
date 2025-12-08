@@ -44,6 +44,8 @@ class Personality(BaseModel):
     enabled: bool = True
     ui: dict[str, Any] | None = None
     personality_prompt: dict[str, str]
+    source: str | None = None # "system" or "custom"
+    is_editable: bool | None = None
 
 
 from typing import Generic, TypeVar
