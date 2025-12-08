@@ -151,6 +151,13 @@ function PersonalityManager() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
+
+    const p = personalities.find(item => item.id === id);
+    if (p && p.source === 'system') {
+      alert("You cannot delete a System Personality. You can only disable it.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this personality?")) return;
     try {
       await api.deletePersonality(id);
@@ -172,11 +179,18 @@ function PersonalityManager() {
       <div className="personality-editor-container">
         <div className="personality-editor">
           <div className="editor-header">
-            <h2>{selectedPersonality.id ? "Edit Personality" : "New Personality"}</h2>
+            <h2>
+              {selectedPersonality.id ? (selectedPersonality.source === 'system' ? `Customize ${selectedPersonality.name}` : "Edit Personality") : "New Personality"}
+            </h2>
             <button className="close-btn" onClick={() => setIsEditing(false)}>
               ×
             </button>
           </div>
+          {selectedPersonality.source === 'system' && (
+            <div className="system-notice">
+              ℹ️ You are about to customize a System Personality. This will create a local copy that overrides the global default.
+            </div>
+          )}
 
           <div className="editor-content">
             <div className="form-row">
@@ -187,7 +201,7 @@ function PersonalityManager() {
                   onChange={(e) =>
                     setSelectedPersonality({ ...selectedPersonality, id: e.target.value })
                   }
-                  disabled={personalities.some((p) => p.id === selectedPersonality.id)}
+                  disabled={personalities.some((p) => p.id === selectedPersonality.id) || selectedPersonality.source === 'system'} // Keep ID locked for system override too
                   placeholder="e.g., gpt_expert"
                 />
               </div>
@@ -279,7 +293,7 @@ function PersonalityManager() {
               Cancel
             </button>
             <button onClick={handleSave} className="primary">
-              Save Changes
+              {selectedPersonality.source === 'system' ? "Save as Custom Override" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -324,11 +338,16 @@ function PersonalityManager() {
             <p className="description">{p.description}</p>
 
             <div className="card-footer">
-              <span className="id-badge">{p.id}</span>
+              <div className="badge-group">
+                <span className="id-badge">{p.id}</span>
+                {p.source === 'system' && <span className="source-badge system" title="System Default">🔒 System</span>}
+                {p.source === 'custom' && <span className="source-badge custom" title="Custom Override">✏️ Custom</span>}
+              </div>
               <button
                 className="icon-btn delete-btn"
                 onClick={(e) => handleDelete(p.id, e)}
-                title="Delete"
+                title={p.source === 'system' ? "Cannot delete System Personality" : "Delete"}
+                disabled={p.source === 'system'}
               >
                 🗑️
               </button>

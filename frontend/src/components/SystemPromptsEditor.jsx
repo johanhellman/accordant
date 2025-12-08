@@ -13,6 +13,25 @@ const SECTIONS = [
   { id: "title", label: "Title Generation (Utility)", icon: PenTool },
 ];
 
+
+
+const InheritanceToggle = ({ label, configValue, onToggle }) => {
+  return (
+    <div className="inheritance-toggle">
+      <label className="toggle-label">
+        <input
+          type="checkbox"
+          checked={configValue.is_default}
+          onChange={(e) => onToggle(e.target.checked)}
+        />
+        <span className="toggle-text">Inherit {label} from Defaults</span>
+      </label>
+      {configValue.is_default && <span className="badge badge-default">Inherited</span>}
+      {!configValue.is_default && <span className="badge badge-custom">Custom Override</span>}
+    </div>
+  );
+};
+
 function SystemPromptsEditor() {
   const [config, setConfig] = useState(null);
   const [models, setModels] = useState([]);
@@ -61,12 +80,27 @@ function SystemPromptsEditor() {
               <h3>Base System Prompt</h3>
               <p className="section-desc">Shared instructions for all council members.</p>
             </div>
+
             <div className="form-group">
+              <InheritanceToggle
+                label="Base System Prompt"
+                configValue={config.base_system_prompt}
+                onToggle={(newIsDefault) => {
+                  setConfig({
+                    ...config,
+                    base_system_prompt: { ...config.base_system_prompt, is_default: newIsDefault }
+                  });
+                }}
+              />
               <PromptEditor
                 label="Base System Prompt"
-                value={config.base_system_prompt}
-                onChange={(val) => setConfig({ ...config, base_system_prompt: val })}
+                value={config.base_system_prompt.value}
+                onChange={(val) => setConfig({
+                  ...config,
+                  base_system_prompt: { ...config.base_system_prompt, value: val, is_default: false }
+                })}
                 rows={12}
+                disabled={config.base_system_prompt.is_default}
               />
             </div>
             <div className="actions">
@@ -110,17 +144,28 @@ function SystemPromptsEditor() {
               </div>
 
               <div className="form-group">
+                <InheritanceToggle
+                  label="Ranking Instructions"
+                  configValue={config.ranking.prompt}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, is_default: newIsDefault } }
+                    });
+                  }}
+                />
                 <PromptEditor
                   label="Ranking Instructions"
                   description="Custom instructions for evaluation (e.g., 'Focus on creativity')."
-                  value={config.ranking.prompt}
+                  value={config.ranking.prompt.value}
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      ranking: { ...config.ranking, prompt: val },
+                      ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, value: val, is_default: false } },
                     })
                   }
                   rows={8}
+                  disabled={config.ranking.prompt.is_default}
                 />
               </div>
 
@@ -181,17 +226,28 @@ function SystemPromptsEditor() {
               />
 
               <div className="form-group">
+                <InheritanceToggle
+                  label="Chairman Prompt"
+                  configValue={config.chairman.prompt}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, is_default: newIsDefault } }
+                    });
+                  }}
+                />
                 <PromptEditor
                   label="Chairman Prompt"
-                  value={config.chairman.prompt}
+                  value={config.chairman.prompt.value}
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      chairman: { ...config.chairman, prompt: val },
+                      chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, value: val, is_default: false } },
                     })
                   }
                   rows={12}
                   requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
+                  disabled={config.chairman.prompt.is_default}
                 />
               </div>
             </div>
@@ -215,32 +271,54 @@ function SystemPromptsEditor() {
 
             <div className="config-group">
               <div className="form-group">
+                <InheritanceToggle
+                  label="Response Structure"
+                  configValue={config.stage1_response_structure}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      stage1_response_structure: { ...config.stage1_response_structure, is_default: newIsDefault }
+                    });
+                  }}
+                />
                 <PromptEditor
                   label="Response Structure"
                   description="Defines the required headings (e.g., Analysis, Standpoint)"
-                  value={config.stage1_response_structure || ""}
+                  value={config.stage1_response_structure.value || ""}
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      stage1_response_structure: val,
+                      stage1_response_structure: { ...config.stage1_response_structure, value: val, is_default: false },
                     })
                   }
                   rows={8}
+                  disabled={config.stage1_response_structure.is_default}
                 />
               </div>
 
               <div className="form-group">
+                <InheritanceToggle
+                  label="Meta Structure"
+                  configValue={config.stage1_meta_structure}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      stage1_meta_structure: { ...config.stage1_meta_structure, is_default: newIsDefault }
+                    });
+                  }}
+                />
                 <PromptEditor
                   label="Meta Structure"
                   description="Defines the required metadata block (e.g., Confidence Score)"
-                  value={config.stage1_meta_structure || ""}
+                  value={config.stage1_meta_structure.value || ""}
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      stage1_meta_structure: val,
+                      stage1_meta_structure: { ...config.stage1_meta_structure, value: val, is_default: false },
                     })
                   }
                   rows={6}
+                  disabled={config.stage1_meta_structure.is_default}
                 />
               </div>
             </div>
@@ -274,17 +352,28 @@ function SystemPromptsEditor() {
               />
 
               <div className="form-group">
+                <InheritanceToggle
+                  label="Title Prompt"
+                  configValue={config.title_generation.prompt}
+                  onToggle={(newIsDefault) => {
+                    setConfig({
+                      ...config,
+                      title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, is_default: newIsDefault } }
+                    });
+                  }}
+                />
                 <PromptEditor
                   label="Title Prompt"
-                  value={config.title_generation.prompt}
+                  value={config.title_generation.prompt.value}
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      title_generation: { ...config.title_generation, prompt: val },
+                      title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, value: val, is_default: false } },
                     })
                   }
                   rows={4}
                   requiredVariables={["{user_query}"]}
+                  disabled={config.title_generation.prompt.is_default}
                 />
               </div>
             </div>

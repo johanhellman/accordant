@@ -105,6 +105,24 @@ Key components:
 - `label_to_model`: Mapping from anonymous labels to model identifiers
 - `aggregate_rankings`: Calculated average rankings across all peer evaluations
 
+## Configuration Architecture
+
+The system employs a **Runtime Inheritance Model** for prompts and personalities to facilitate easy maintenance across multiple organizations.
+
+### Prompt Inheritance
+*   **Sources**:
+    *   **Defaults**: `data/defaults/system-prompts.yaml` (Global)
+    *   **Overrides**: `data/organizations/{id}/config/system-prompts.yaml` (Org-Specific)
+*   **Merge Logic**:
+    At runtime, the system loads defaults first. Then, it checks the Org config. If a key is present in the Org config, it overrides the default. If not, the default is used.
+*   **UI Indication**: The Admin UI requests metadata from the backend to determine if a value is "Inherited" (from Default) or "Custom" (Override).
+
+### Personality Shadowing
+*   **System Personalities**: Loaded from `data/defaults/personalities/`. Read-only by default.
+*   **Shadowing**: To customize a system personality, an organization creates a copy in `data/organizations/{id}/personalities/` with the same ID.
+*   **Resolution**: The system loads the Organization's copy in place of the System copy (Shadowing).
+*   **Disabling**: Organizations can disable system personalities by adding their ID to a `disabled_system_personalities` list in their config, preventing them from appearing in the registry.
+
 ## Related Documentation
 
 - [Architecture Decision Records](../adr/ADR_INDEX.md) - Detailed architectural decisions

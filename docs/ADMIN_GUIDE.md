@@ -22,5 +22,15 @@ In the "System Prompts" configuration, you can define:
 
 Changing these in System Prompts will instantly update *all* personalities.
 
+## Default vs. Organization Prompts
+
+The system uses a smart **Inheritance Model** to manage configurations:
+
+1.  **Global Defaults**: The system ships with "Default" configuration for Prompts and Personalities.
+2.  **Organization Overrides**: Each organization "inherits" these defaults automatically.
+3.  **Customization**:
+    *   **Prompts**: In the System Prompts editor, you can toggle "Inherit from Default" off to customize any prompt. If you customize it, your organization will no longer receive updates to that specific prompt. You can revert to default at any time.
+    *   **Personalities**: System Personalities (marked with a lock icon) are read-only. To edit one, click "Customize" to create a local copy (Shadowing). This copy will override the system original for your organization.
+
 ## Other Configurations
 ...

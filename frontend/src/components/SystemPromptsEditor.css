@@ -159,6 +159,55 @@ label {
   line-height: 1.5;
   border: 1px solid #e1e4e8;
   font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+/* Inheritance Toggle */
+.inheritance-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background-color: #f7f9fc;
+  border-radius: 6px;
+  border: 1px solid #e1e8ed;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 0;
+  /* Override generic label margin */
+  user-select: none;
+}
+
+.toggle-text {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-default {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+}
+
+.badge-custom {
+  background-color: #fffaf0;
+  color: #c05621;
+  border: 1px solid #fbd38d;
 }
 
 /* Animation */

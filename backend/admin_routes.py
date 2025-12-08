@@ -42,21 +42,31 @@ class Personality(BaseModel):
     personality_prompt: dict[str, str]
 
 
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+
+class ConfigValue(BaseModel, Generic[T]):
+    value: T
+    is_default: bool
+    source: str  # "default" or "custom"
+
+
 class ComponentConfig(BaseModel):
-    prompt: str
-    model: str
-    effective_model: str | None = None  # Read-only, from env/config
+    prompt: ConfigValue[str]
+    model: str # Simplification: Models are not yet fully inherited-aware in the UI schema, but loaded via config
+    effective_model: str | None = None
 
 
 class SystemPromptsConfig(BaseModel):
-    base_system_prompt: str
+    base_system_prompt: ConfigValue[str]
     ranking: ComponentConfig
     chairman: ComponentConfig
     title_generation: ComponentConfig
     ranking_enforced_context: str | None = None
     ranking_enforced_format: str | None = None
-    stage1_response_structure: str | None = None
-    stage1_meta_structure: str | None = None
+    stage1_response_structure: ConfigValue[str] | None = None
+    stage1_meta_structure: ConfigValue[str] | None = None
 
 
 def validate_prompt_tags(prompt: str, required_tags: list[str], prompt_name: str):
@@ -205,131 +215,117 @@ async def delete_personality(
 
 @router.get("/system-prompts", response_model=SystemPromptsConfig)
 async def get_system_prompts(current_user: User = Depends(get_current_admin_user)):
-    """Get current system prompts and configuration."""
-    from .config.personalities import get_org_config_dir, load_org_models_config
+    """Get current system prompts and configuration with inheritance metadata."""
+    from .config.personalities import load_org_system_prompts_config, load_org_models_config
 
-    config_dir = get_org_config_dir(current_user.org_id)
-    file_path = os.path.join(config_dir, "system-prompts.yaml")
-
-    # Load defaults
+    prompts_data = load_org_system_prompts_config(current_user.org_id)
     models_config = load_org_models_config(current_user.org_id)
-    defaults = _load_defaults()
-
-    if not os.path.exists(file_path):
-        # Return defaults if file doesn't exist
-        return {
-            "base_system_prompt": defaults.get("base_system_prompt", DEFAULT_BASE_SYSTEM_PROMPT),
-            "ranking": {
-                "prompt": DEFAULT_RANKING_PROMPT,
-                "model": DEFAULT_RANKING_MODEL,
-                "effective_model": models_config["ranking_model"],
-            },
-            "chairman": {
-                "prompt": DEFAULT_CHAIRMAN_PROMPT,
-                "model": "gemini/gemini-2.5-pro",
-                "effective_model": models_config["chairman_model"],
-            },
-            "title_generation": {
-                "prompt": DEFAULT_TITLE_GENERATION_PROMPT,
-                "model": "gemini/gemini-2.5-pro",
-                "effective_model": models_config["title_model"],
-            },
-            "title_generation": {
-                "prompt": DEFAULT_TITLE_GENERATION_PROMPT,
-                "model": "gemini/gemini-2.5-pro",
-                "effective_model": models_config["title_model"],
-            },
-            "stage1_response_structure": defaults.get("stage1_response_structure", ""),
-            "stage1_meta_structure": defaults.get("stage1_meta_structure", ""),
-        }
-
-    config = _load_yaml(file_path) or {}
-
-    ranking_conf = config.get("ranking", {})
-    # Backwards compat: if legacy top-level `ranking_prompt` exists,
-    # surface it through the ComponentConfig shape.
-    if not ranking_conf and "ranking_prompt" in config:
-        ranking_conf = {
-            "prompt": config.get("ranking_prompt", DEFAULT_RANKING_PROMPT),
-            "model": DEFAULT_RANKING_MODEL,
-        }
-
-    chairman_conf = config.get("chairman", {})
-    title_conf = config.get("title_generation", {})
+    
+    # Helper to mapping dict to ConfigValue
+    def to_cv(key_name):
+        d = prompts_data.get(key_name, {"value": "", "is_default": True, "source": "default"})
+        return {"value": d["value"], "is_default": d["is_default"], "source": d["source"]}
 
     return {
-        "base_system_prompt": config.get("base_system_prompt", DEFAULT_BASE_SYSTEM_PROMPT),
+        "base_system_prompt": to_cv("base_system_prompt"),
         "ranking": {
-            "prompt": ranking_conf.get("prompt", DEFAULT_RANKING_PROMPT),
-            "model": ranking_conf.get("model", DEFAULT_RANKING_MODEL),
+            "prompt": to_cv("ranking_prompt"),
+            "model": models_config["ranking_model"], # Model inheritance logic is separate, kept simple for now
             "effective_model": models_config["ranking_model"],
         },
         "ranking_enforced_context": ENFORCED_CONTEXT,
         "ranking_enforced_format": ENFORCED_OUTPUT_FORMAT.replace("{FINAL_RANKING_MARKER}", "FINAL RANKING:").replace("{RESPONSE_LABEL_PREFIX}", "Response "),
         "chairman": {
-            "prompt": chairman_conf.get("prompt", DEFAULT_CHAIRMAN_PROMPT),
-            "model": chairman_conf.get("model", "gemini/gemini-2.5-pro"),
+            "prompt": to_cv("chairman_prompt"),
+            "model": models_config["chairman_model"], 
             "effective_model": models_config["chairman_model"],
         },
         "title_generation": {
-            "prompt": title_conf.get("prompt", DEFAULT_TITLE_GENERATION_PROMPT),
-            "model": title_conf.get("model", "gemini/gemini-2.5-pro"),
+            "prompt": to_cv("title_prompt"),
+            "model": models_config["title_model"],
             "effective_model": models_config["title_model"],
         },
-        "stage1_response_structure": config.get("stage1_response_structure", defaults.get("stage1_response_structure", "")),
-        "stage1_meta_structure": config.get("stage1_meta_structure", defaults.get("stage1_meta_structure", "")),
+        "stage1_response_structure": to_cv("stage1_response_structure"),
+        "stage1_meta_structure": to_cv("stage1_meta_structure"),
     }
 
 
 @router.put("/system-prompts", response_model=SystemPromptsConfig)
 async def update_system_prompts(
-    config: SystemPromptsConfig, current_user: User = Depends(get_current_admin_user)
+    config: dict, current_user: User = Depends(get_current_admin_user)
 ):
-    """Update system prompts and configuration."""
-    from .config.personalities import get_org_config_dir, load_org_models_config
-
-    # Validate required tags consistently for all prompts
-    # Validate required tags consistently for all prompts
-    # Ranking prompt no longer needs tags as they are enforced by the system
-    validate_prompt_tags(
-        config.chairman.prompt,
-        ["{user_query}", "{stage1_text}", "{voting_details_text}"],
-        "Chairman Prompt",
-    )
-    validate_prompt_tags(
-        config.title_generation.prompt,
-        ["{user_query}"],
-        "Title Generation Prompt",
-    )
+    """
+    Update system prompts.
+    Accepts a raw dict to handle the 'is_default' toggle logic.
+    If 'is_default' is True for a field, we REMOVE it from the org config to revert to inheritance.
+    """
+    from .config.personalities import get_org_config_dir, _load_defaults
 
     config_dir = get_org_config_dir(current_user.org_id)
     os.makedirs(config_dir, exist_ok=True)
     file_path = os.path.join(config_dir, "system-prompts.yaml")
+    
+    # Load existing config to preserve other fields (like models not being edited here)
+    current_config = _load_yaml(file_path) or {}
+    
+    # Helper to update or remove a key based on 'is_default'
+    def update_field(target_dict, key, incoming_data):
+        if not isinstance(incoming_data, dict):
+            return # Should be ConfigValue dict
+        
+        if incoming_data.get("is_default"):
+            # Revert to default -> Remove from org config
+            target_dict.pop(key, None)
+        else:
+            # Set custom value
+            target_dict[key] = incoming_data.get("value")
 
-    # Construct YAML structure using the explicit values provided
-    yaml_data = {
-        "base_system_prompt": config.base_system_prompt,
-        "ranking": {
-            "prompt": config.ranking.prompt,
-            "model": config.ranking.model,
-        },
-        "chairman": {"prompt": config.chairman.prompt, "model": config.chairman.model},
-        "title_generation": {
-            "prompt": config.title_generation.prompt,
-            "model": config.title_generation.model,
-        },
-        "stage1_response_structure": config.stage1_response_structure,
-        "stage1_meta_structure": config.stage1_meta_structure,
-    }
+    # update base prompts
+    update_field(current_config, "base_system_prompt", config.get("base_system_prompt"))
+    update_field(current_config, "stage1_response_structure", config.get("stage1_response_structure"))
+    update_field(current_config, "stage1_meta_structure", config.get("stage1_meta_structure"))
+    
+    # Handle nested components
+    # Chairman
+    if "chairman" not in current_config: current_config["chairman"] = {}
+    if isinstance(config.get("chairman"), dict):
+        chairman_in = config["chairman"]
+        if "prompt" in chairman_in: # it's the ConfigValue object
+             update_field(current_config["chairman"], "prompt", chairman_in["prompt"])
+        # Persist model if sent (UI might send it)
+        if "model" in chairman_in and isinstance(chairman_in["model"], str):
+             current_config["chairman"]["model"] = chairman_in["model"]
 
-    _save_yaml(file_path, yaml_data)
+    # Title Gen
+    if "title_generation" not in current_config: current_config["title_generation"] = {}
+    if isinstance(config.get("title_generation"), dict):
+        title_in = config["title_generation"]
+        if "prompt" in title_in:
+             update_field(current_config["title_generation"], "prompt", title_in["prompt"])
+        if "model" in title_in and isinstance(title_in["model"], str):
+             current_config["title_generation"]["model"] = title_in["model"]
 
-    # Return with effective models (re-inject them)
-    models_config = load_org_models_config(current_user.org_id)
-    config.ranking.effective_model = models_config["ranking_model"]
-    config.chairman.effective_model = models_config["chairman_model"]
-    config.title_generation.effective_model = models_config["title_model"]
-    return config
+    # Ranking
+    # For ranking, we prioritize the new top-level "ranking_prompt" key for clarity, but support nested.
+    # To keep it clean, let's use "ranking_prompt" at top level if possible, or stick to nested "ranking.prompt"
+    # match existing structure.
+    if "ranking" not in current_config: current_config["ranking"] = {}
+    if isinstance(config.get("ranking"), dict):
+        ranking_in = config["ranking"]
+        if "prompt" in ranking_in:
+             # We use the nested 'ranking' dict for storage to keep models and prompts together
+             update_field(current_config["ranking"], "prompt", ranking_in["prompt"]) 
+        if "model" in ranking_in and isinstance(ranking_in["model"], str):
+             current_config["ranking"]["model"] = ranking_in["model"]
+             
+    # Clean up empty nested dicts if they become empty?
+    # No, keep them for potential model configs.
+
+    _save_yaml(file_path, current_config)
+
+    # Return the new state (which effectively re-reads defaults + overrides)
+    # We call the GET logic to ensure full consistency
+    return await get_system_prompts(current_user)
 
 
 @router.get("/votes")

@@ -98,30 +98,10 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None) -> Organiza
     config_dest = os.path.join(org_dir, "config")
     os.makedirs(config_dest, exist_ok=True)
 
-    # Copy default personalities from data/personalities/ to the new org
-    personalities_src = os.path.join(PROJECT_ROOT, "data", "personalities")
-    if os.path.exists(personalities_src):
-        # Copy system-prompts.yaml to config/
-        sys_prompts_src = os.path.join(personalities_src, "system-prompts.yaml")
-        sys_prompts_dst = os.path.join(config_dest, "system-prompts.yaml")
-
-        if os.path.exists(sys_prompts_src):
-            try:
-                shutil.copy2(sys_prompts_src, sys_prompts_dst)
-                logger.info(f"Copied system-prompts.yaml to org {org_id}")
-            except Exception as e:
-                logger.error(f"Error copying system-prompts.yaml for org {org_id}: {e}")
-
-        # Copy all personality yaml files (except system-prompts.yaml)
-        for filename in os.listdir(personalities_src):
-            if filename.endswith(".yaml") and filename != "system-prompts.yaml":
-                src = os.path.join(personalities_src, filename)
-                dst = os.path.join(personalities_dest, filename)
-                try:
-                    shutil.copy2(src, dst)
-                    logger.info(f"Copied personality {filename} to org {org_id}")
-                except Exception as e:
-                    logger.error(f"Error copying personality {filename} for org {org_id}: {e}")
+    # Note: We no longer copy default personalities or system prompts.
+    # The system now uses runtime inheritance from data/defaults/.
+    # This allows global updates to propagate to all organizations 
+    # unless they have explicitly overridden a value.
 
     return new_org
 

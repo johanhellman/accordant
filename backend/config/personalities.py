@@ -221,58 +221,90 @@ def get_org_config_dir(org_id: str) -> str:
 
 def load_org_system_prompts(org_id: str) -> dict[str, str]:
     """
-    Load system prompts for an organization.
-    Returns a dict with keys: base_system_prompt, chairman_prompt, title_prompt, ranking_prompt
+    Load system prompts for an organization with fallback to defaults.
+    Returns a dict of final prompt values (strings).
+    """
+    config_data = load_org_system_prompts_config(org_id)
+    
+    # Flatten structure for consumers
+    prompts = {}
+    for key, item in config_data.items():
+        if isinstance(item, dict) and "value" in item:
+            prompts[key] = item["value"]
+            
+    return prompts
+
+
+def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
+    """
+    Load system prompts configuration with metadata (value, is_default, source).
+    This allows the UI to know if a value is inherited or custom.
     """
     defaults = _load_defaults()
+    org_config = _load_org_config_file(org_id) or {}
     
-    # Extract defaults
+    # helper to construct the metadata object
+    def _create_entry(key: str, default_val: str, org_val: str | None, section: str = None) -> dict[str, Any]:
+        is_custom = False
+        value = default_val
+        
+        # Check if org has an override
+        if section:
+            # Nested check logic matching _get_nested_config_value but checking existence
+            if section in org_config and isinstance(org_config[section], dict) and key in org_config[section]:
+                 value = org_config[section][key]
+                 is_custom = True
+        else:
+            # Top level check
+            if key in org_config:
+                value = org_config[key]
+                is_custom = True
+                
+        # Special case for ranking which moved from nested to top level in some versions
+        # logic handled in specific construction below
+        
+        return {
+            "value": value,
+            "is_default": not is_custom,
+            "source": "default" if not is_custom else "custom"
+        }
+
+    # Extract Defaults
     default_base = defaults.get("base_system_prompt", "")
     default_ranking = defaults.get("ranking_prompt", "")
     default_chairman = _get_nested_config_value(defaults, "chairman", "prompt", "")
     default_title = _get_nested_config_value(defaults, "title_generation", "prompt", "")
+    default_struct_resp = defaults.get("stage1_response_structure", "")
+    default_struct_meta = defaults.get("stage1_meta_structure", "")
 
-    prompts = {
-        "base_system_prompt": default_base,
-        "chairman_prompt": default_chairman,
-        "title_prompt": default_title,
-        "ranking_prompt": default_ranking,
-        "stage1_response_structure": defaults.get("stage1_response_structure", ""),
-        "stage1_meta_structure": defaults.get("stage1_meta_structure", ""),
+    # Build Result
+    result = {}
+    
+    result["base_system_prompt"] = _create_entry("base_system_prompt", default_base, None)
+    result["chairman_prompt"] = _create_entry("prompt", default_chairman, None, section="chairman")
+    result["title_prompt"] = _create_entry("prompt", default_title, None, section="title_generation")
+    result["stage1_response_structure"] = _create_entry("stage1_response_structure", default_struct_resp, None)
+    result["stage1_meta_structure"] = _create_entry("stage1_meta_structure", default_struct_meta, None)
+    
+    # Ranking prompt requires flexible handling (nested vs top-level)
+    # We will prioritize the unified "ranking_prompt" key for new overrides, but check legacy "ranking.prompt" too
+    ranking_custom = False
+    ranking_val = default_ranking
+    
+    if "ranking_prompt" in org_config:
+        ranking_val = org_config["ranking_prompt"]
+        ranking_custom = True
+    elif "ranking" in org_config and isinstance(org_config["ranking"], dict) and "prompt" in org_config["ranking"]:
+        ranking_val = org_config["ranking"]["prompt"]
+        ranking_custom = True
+        
+    result["ranking_prompt"] = {
+        "value": ranking_val,
+        "is_default": not ranking_custom,
+        "source": "default" if not ranking_custom else "custom"
     }
 
-    config = _load_org_config_file(org_id)
-    if config is None:
-        return prompts
-
-    # Load base system prompt
-    prompts["base_system_prompt"] = config.get("base_system_prompt", default_base)
-
-    # Load nested prompts with fallback
-    prompts["chairman_prompt"] = _get_nested_config_value(
-        config, "chairman", "prompt", default_chairman
-    )
-    prompts["title_prompt"] = _get_nested_config_value(
-        config, "title_generation", "prompt", default_title
-    )
-
-    # Ranking prompt can be nested or top-level
-    ranking_conf = config.get("ranking")
-    if isinstance(ranking_conf, dict):
-        prompts["ranking_prompt"] = ranking_conf.get("prompt", default_ranking)
-    else:
-        prompts["ranking_prompt"] = config.get("ranking_prompt", default_ranking)
-
-
-    # Load Stage 1 structures
-    prompts["stage1_response_structure"] = config.get(
-        "stage1_response_structure", prompts["stage1_response_structure"]
-    )
-    prompts["stage1_meta_structure"] = config.get(
-        "stage1_meta_structure", prompts["stage1_meta_structure"]
-    )
-
-    return prompts
+    return result
 
 
 def load_org_models_config(org_id: str) -> dict[str, str]:
@@ -315,23 +347,52 @@ def load_org_models_config(org_id: str) -> dict[str, str]:
 
 def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
     """
-    Get active personalities for an organization.
+    Get active personalities for an organization, merging Defaults + Custom.
     """
-    personalities_dir = get_org_personalities_dir(org_id)
+    org_personalities_dir = get_org_personalities_dir(org_id)
+    defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+    
+    # Load Org Config to check for disabled system personalities
+    org_config = _load_org_config_file(org_id) or {}
+    disabled_ids = org_config.get("disabled_system_personalities", [])
+    
     registry = {}
-
-    if os.path.exists(personalities_dir):
-        for filename in os.listdir(personalities_dir):
-            if filename.endswith(".yaml") and filename != "system-prompts.yaml":
-                filepath = os.path.join(personalities_dir, filename)
+    
+    # 1. Load Defaults (System Personalities)
+    if os.path.exists(defaults_personalities_dir):
+        for filename in os.listdir(defaults_personalities_dir):
+            if filename.endswith(".yaml"):
+                filepath = os.path.join(defaults_personalities_dir, filename)
                 try:
                     with open(filepath) as f:
                         p = yaml.safe_load(f)
-                        if p and "id" in p and p.get("enabled", True):
-                            registry[p["id"]] = p
+                        if p and "id" in p:
+                            p_id = p["id"]
+                            if p_id in disabled_ids:
+                                continue # Skip disabled system personalities
+                            
+                            p["source"] = "system"
+                            p["is_editable"] = False # System personalities are read-only until shadowed
+                            registry[p_id] = p
                 except Exception as e:
-                    logger.error(f"Error loading personality {filename} for org {org_id}: {e}")
+                    logger.error(f"Error loading default personality {filename}: {e}")
 
-    # In future, we might filter by an "active_personalities" setting in org config
-    # For now, return all enabled personalities in the folder
+    # 2. Load Org Overrides (Custom Personalities)
+    # These will overwrite registry entries if IDs match (Shadowing)
+    if os.path.exists(org_personalities_dir):
+        for filename in os.listdir(org_personalities_dir):
+            if filename.endswith(".yaml") and filename != "system-prompts.yaml":
+                filepath = os.path.join(org_personalities_dir, filename)
+                try:
+                    with open(filepath) as f:
+                        p = yaml.safe_load(f)
+                        if p and "id" in p:
+                            # Org personalities are always enabled if they exist as files (unless 'enabled' flag is false)
+                            if p.get("enabled", True):
+                                p["source"] = "custom"
+                                p["is_editable"] = True
+                                registry[p["id"]] = p # Overwrites system version
+                except Exception as e:
+                    logger.error(f"Error loading org personality {filename} for org {org_id}: {e}")
+
     return list(registry.values())
