@@ -16,6 +16,7 @@ from .config.personalities import (
     DEFAULT_RANKING_PROMPT,
     DEFAULT_TITLE_GENERATION_PROMPT,
     get_org_personalities_dir,
+    _load_defaults,
 )
 from .llm_service import get_available_models
 from .organizations import get_org, get_org_api_config, update_org
@@ -38,7 +39,7 @@ class Personality(BaseModel):
     temperature: float | None = None
     enabled: bool = True
     ui: dict[str, Any] | None = None
-    personality_prompt: str
+    personality_prompt: dict[str, str]
 
 
 class ComponentConfig(BaseModel):
@@ -54,6 +55,8 @@ class SystemPromptsConfig(BaseModel):
     title_generation: ComponentConfig
     ranking_enforced_context: str | None = None
     ranking_enforced_format: str | None = None
+    stage1_response_structure: str | None = None
+    stage1_meta_structure: str | None = None
 
 
 def validate_prompt_tags(prompt: str, required_tags: list[str], prompt_name: str):
@@ -210,11 +213,12 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
 
     # Load defaults
     models_config = load_org_models_config(current_user.org_id)
+    defaults = _load_defaults()
 
     if not os.path.exists(file_path):
         # Return defaults if file doesn't exist
         return {
-            "base_system_prompt": DEFAULT_BASE_SYSTEM_PROMPT,
+            "base_system_prompt": defaults.get("base_system_prompt", DEFAULT_BASE_SYSTEM_PROMPT),
             "ranking": {
                 "prompt": DEFAULT_RANKING_PROMPT,
                 "model": DEFAULT_RANKING_MODEL,
@@ -230,6 +234,13 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
                 "model": "gemini/gemini-2.5-pro",
                 "effective_model": models_config["title_model"],
             },
+            "title_generation": {
+                "prompt": DEFAULT_TITLE_GENERATION_PROMPT,
+                "model": "gemini/gemini-2.5-pro",
+                "effective_model": models_config["title_model"],
+            },
+            "stage1_response_structure": defaults.get("stage1_response_structure", ""),
+            "stage1_meta_structure": defaults.get("stage1_meta_structure", ""),
         }
 
     config = _load_yaml(file_path) or {}
@@ -265,6 +276,8 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
             "model": title_conf.get("model", "gemini/gemini-2.5-pro"),
             "effective_model": models_config["title_model"],
         },
+        "stage1_response_structure": config.get("stage1_response_structure", defaults.get("stage1_response_structure", "")),
+        "stage1_meta_structure": config.get("stage1_meta_structure", defaults.get("stage1_meta_structure", "")),
     }
 
 
@@ -305,6 +318,8 @@ async def update_system_prompts(
             "prompt": config.title_generation.prompt,
             "model": config.title_generation.model,
         },
+        "stage1_response_structure": config.stage1_response_structure,
+        "stage1_meta_structure": config.stage1_meta_structure,
     }
 
     _save_yaml(file_path, yaml_data)

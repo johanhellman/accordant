@@ -804,14 +804,17 @@ class TestCalculateAggregateRankingsEdgeCases:
             {
                 "model": "voter1",
                 "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}A\n2. {RESPONSE_LABEL_PREFIX}B",
+                "parsed_ranking": [f"{RESPONSE_LABEL_PREFIX}A", f"{RESPONSE_LABEL_PREFIX}B"],
             },
             {
                 "model": "voter2",
                 "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}A\n2. {RESPONSE_LABEL_PREFIX}B",
+                "parsed_ranking": [f"{RESPONSE_LABEL_PREFIX}A", f"{RESPONSE_LABEL_PREFIX}B"],
             },
             {
                 "model": "voter3",
-                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n2. {RESPONSE_LABEL_PREFIX}A\n1. {RESPONSE_LABEL_PREFIX}B",
+                "ranking": f"Evaluation\n\n{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}B\n2. {RESPONSE_LABEL_PREFIX}A",
+                "parsed_ranking": [f"{RESPONSE_LABEL_PREFIX}B", f"{RESPONSE_LABEL_PREFIX}A"],  # Note swapped order
             },
         ]
         label_to_model = {

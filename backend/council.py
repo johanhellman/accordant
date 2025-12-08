@@ -8,6 +8,7 @@ from .config.personalities import (
     get_active_personalities,
     load_org_models_config,
     load_org_system_prompts,
+    format_personality_prompt,
 )
 
 # Re-export for backward compatibility
@@ -58,7 +59,7 @@ async def _stage1_personality_mode(
             + "\n\n"
             + system_time_instruction
             + "\n\n"
-            + p.get("personality_prompt", "")
+            + format_personality_prompt(p, prompts, include_enforced=True)
         )
 
         # Prepend time instruction to user query
@@ -208,7 +209,7 @@ async def _stage2_personality_mode(
             + "\n\n"
             + system_time_instruction
             + "\n\n"
-            + p.get("personality_prompt", "")
+            + format_personality_prompt(p, prompts, include_enforced=False)
         )
 
         # Prepend time instruction
@@ -418,7 +419,11 @@ async def generate_conversation_title(
         # Fallback to a generic title
         return "New Conversation"
 
-    title = response.get("content", "New Conversation").strip()
+    content = response.get("content")
+    if content is None:
+        title = "New Conversation"
+    else:
+        title = content.strip()
 
     # Clean up the title - remove quotes, limit length
     title = title.strip("\"'")

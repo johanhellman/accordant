@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
+import PersonalityPromptEditor from "./PersonalityPromptEditor";
 import "./PersonalityManager.css";
 
 function PersonalityManager() {
   const [personalities, setPersonalities] = useState([]);
   const [models, setModels] = useState([]);
+  const [systemPrompts, setSystemPrompts] = useState({});
   const [selectedPersonality, setSelectedPersonality] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,9 +21,14 @@ function PersonalityManager() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [pList, mList] = await Promise.all([api.listPersonalities(), api.listModels()]);
+      const [pList, mList, sPrompts] = await Promise.all([
+        api.listPersonalities(),
+        api.listModels(),
+        api.getSystemPrompts(),
+      ]);
       setPersonalities(pList);
       setModels(mList);
+      setSystemPrompts(sPrompts);
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
@@ -30,9 +37,19 @@ function PersonalityManager() {
   };
 
   const handleEdit = (p) => {
+    // Ensure prompt is a dict for editor, even if backend sends string legacy
+    // (Though backend should handle migration, let's be safe for UI state)
+    let safePrompt = p.personality_prompt;
+    if (typeof safePrompt === "string") {
+      safePrompt = { "IDENTITY & ROLE": safePrompt };
+    } else if (!safePrompt) {
+      safePrompt = {};
+    }
+
     setSelectedPersonality({
       ...p,
-      ui: p.ui || { avatar: "default", color: "#888888", group: "Custom", tags: [] },
+      personality_prompt: safePrompt,
+      // Remove UI legacy fallback injection if we want to stop using it
     });
     setIsEditing(true);
   };
@@ -45,13 +62,9 @@ function PersonalityManager() {
       model: "",
       temperature: 0.7,
       enabled: true,
-      personality_prompt: "",
-      ui: {
-        avatar: "default",
-        color: "#888888",
-        group: "Custom",
-        tags: [],
-      },
+      personality_prompt: {},
+      // UI dict is kept minimal or effectively empty for now as requested
+      ui: {},
     });
     setIsEditing(true);
   };
@@ -63,6 +76,11 @@ function PersonalityManager() {
     if (!p.description) errors.push("Description is required");
     if (!p.model) errors.push("Model is required");
     if (!p.personality_prompt) errors.push("Personality Prompt is required");
+    // Simple check if dict is empty
+    if (typeof p.personality_prompt === 'object' && Object.keys(p.personality_prompt).length === 0) {
+      // Technically can be valid if user wants empty, but let's encourage at least Identity
+      // Let's not strict enforce Identity for now, but general 'required' check on backend might fail
+    }
     if (p.temperature === undefined || p.temperature === null || p.temperature === "")
       errors.push("Temperature is required");
     return errors;
@@ -73,15 +91,7 @@ function PersonalityManager() {
     const pToSave = {
       ...selectedPersonality,
       temperature: parseFloat(selectedPersonality.temperature),
-      ui: {
-        ...selectedPersonality.ui,
-        tags: Array.isArray(selectedPersonality.ui?.tags)
-          ? selectedPersonality.ui.tags
-          : (selectedPersonality.ui?.tags || "")
-              .split(",")
-              .map((t) => t.trim())
-              .filter((t) => t),
-      },
+      // No UI processing needed anymore
     };
 
     const errors = validateForm(pToSave);
@@ -235,81 +245,18 @@ function PersonalityManager() {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Avatar (UI)</label>
-                <input
-                  value={selectedPersonality.ui?.avatar || ""}
-                  onChange={(e) =>
-                    setSelectedPersonality({
-                      ...selectedPersonality,
-                      ui: { ...selectedPersonality.ui, avatar: e.target.value },
-                    })
-                  }
-                  placeholder="e.g., 🤖 or image URL"
-                />
-              </div>
-              <div className="form-group">
-                <label>Color (UI)</label>
-                <input
-                  type="color"
-                  value={selectedPersonality.ui?.color || "#888888"}
-                  onChange={(e) =>
-                    setSelectedPersonality({
-                      ...selectedPersonality,
-                      ui: { ...selectedPersonality.ui, color: e.target.value },
-                    })
-                  }
-                  style={{ height: "38px", padding: "2px" }}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Group (UI)</label>
-                <input
-                  value={selectedPersonality.ui?.group || ""}
-                  onChange={(e) =>
-                    setSelectedPersonality({
-                      ...selectedPersonality,
-                      ui: { ...selectedPersonality.ui, group: e.target.value },
-                    })
-                  }
-                  placeholder="e.g., Custom"
-                />
-              </div>
-              <div className="form-group">
-                <label>Tags (UI)</label>
-                <input
-                  value={
-                    Array.isArray(selectedPersonality.ui?.tags)
-                      ? selectedPersonality.ui.tags.join(", ")
-                      : selectedPersonality.ui?.tags || ""
-                  }
-                  onChange={(e) =>
-                    setSelectedPersonality({
-                      ...selectedPersonality,
-                      ui: { ...selectedPersonality.ui, tags: e.target.value },
-                    })
-                  }
-                  placeholder="Comma separated tags"
-                />
-              </div>
-            </div>
+            {/* Removed UI Fields (Avatar, Color, Group, Tags) */}
 
             <div className="form-group">
-              <label>Personality Prompt *</label>
-              <textarea
-                value={selectedPersonality.personality_prompt}
-                onChange={(e) =>
+              <PersonalityPromptEditor
+                promptData={selectedPersonality.personality_prompt}
+                systemPrompts={systemPrompts}
+                onChange={(newData) =>
                   setSelectedPersonality({
                     ...selectedPersonality,
-                    personality_prompt: e.target.value,
+                    personality_prompt: newData,
                   })
                 }
-                rows={8}
-                placeholder="Define how this personality should behave..."
               />
             </div>
           </div>

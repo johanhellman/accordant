@@ -138,7 +138,8 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #f5f5f5;
-  overflow: hidden;
+  overflow: auto;
+  max-height: 600px;
   /* Ensure rounded corners clip content */
 }
 

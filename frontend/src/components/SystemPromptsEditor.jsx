@@ -6,10 +6,11 @@ import { FileText, Vote, Gavel, PenTool } from "lucide-react";
 import "./SystemPromptsEditor.css";
 
 const SECTIONS = [
-  { id: "base", label: "Base System Prompt", icon: FileText },
-  { id: "ranking", label: "Voting Instructions", icon: Vote },
-  { id: "chairman", label: "Chairman Configuration", icon: Gavel },
-  { id: "title", label: "Title Generation", icon: PenTool },
+  { id: "base", label: "Base System Prompt (Global)", icon: FileText },
+  { id: "enforced", label: "Enforced Structure (Stage 1)", icon: FileText },
+  { id: "ranking", label: "Voting Instructions (Stage 2)", icon: Vote },
+  { id: "chairman", label: "Chairman Configuration (Stage 3)", icon: Gavel },
+  { id: "title", label: "Title Generation (Utility)", icon: PenTool },
 ];
 
 function SystemPromptsEditor() {
@@ -191,6 +192,55 @@ function SystemPromptsEditor() {
                   }
                   rows={12}
                   requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
+                />
+              </div>
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+
+      case "enforced":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Enforced Response Structure (Stage 1)</h3>
+              <p className="section-desc">
+                These instructions are appended to EVERY personality prompt to ensure consistent output format.
+              </p>
+            </div>
+
+            <div className="config-group">
+              <div className="form-group">
+                <PromptEditor
+                  label="Response Structure"
+                  description="Defines the required headings (e.g., Analysis, Standpoint)"
+                  value={config.stage1_response_structure || ""}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      stage1_response_structure: val,
+                    })
+                  }
+                  rows={8}
+                />
+              </div>
+
+              <div className="form-group">
+                <PromptEditor
+                  label="Meta Structure"
+                  description="Defines the required metadata block (e.g., Confidence Score)"
+                  value={config.stage1_meta_structure || ""}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      stage1_meta_structure: val,
+                    })
+                  }
+                  rows={6}
                 />
               </div>
             </div>

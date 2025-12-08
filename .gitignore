@@ -27,8 +27,6 @@ jscpd-report/
 
 # Data files
 data/*
-!data/personalities/
-!data/organizations/
 !data/defaults/
 
 # Frontend

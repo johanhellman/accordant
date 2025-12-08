@@ -27,6 +27,79 @@ except ValueError as e:
     )
     PERSONALITIES_DIR = os.path.join(PROJECT_ROOT, "data", "personalities")
 
+    PERSONALITIES_DIR = os.path.join(PROJECT_ROOT, "data", "personalities")
+
+# Ordered list of editable personality sections
+# Ordered list of editable personality sections (snake_case keys)
+PERSONALITY_SECTIONS = [
+    "identity_and_role",
+    "interpretation_of_questions",
+    "problem_decomposition",
+    "analysis_and_reasoning",
+    "differentiation_and_bias",
+    "tone",
+]
+
+# Display headers for the sections
+SECTION_HEADERS = {
+    "identity_and_role": "IDENTITY & ROLE",
+    "interpretation_of_questions": "INTERPRETATION OF QUESTIONS",
+    "problem_decomposition": "PROBLEM DECOMPOSITION",
+    "analysis_and_reasoning": "ANALYSIS & REASONING",
+    "differentiation_and_bias": "DIFFERENTIATION & BIAS",
+    "tone": "TONE",
+}
+
+def format_personality_prompt(personality: dict[str, Any], system_prompts: dict[str, str], include_enforced: bool = True) -> str:
+    """
+    Format a personality into a string system prompt.
+    appends the enforced global structure.
+    """
+    p_prompt = personality.get("personality_prompt")
+    
+    parts = []
+    
+    # 1. User Editable Sections
+    if isinstance(p_prompt, dict):
+        for i, section_key in enumerate(PERSONALITY_SECTIONS, 1):
+            content = p_prompt.get(section_key, "")
+            # Fallback to old keys if strictly migrating on the fly (optional safety)
+            # if not content:
+            #     old_key = SECTION_HEADERS[section_key]
+            #     content = p_prompt.get(old_key, "")
+            
+            if content:
+                header = SECTION_HEADERS[section_key]
+                parts.append(f"**{i}. {header}**\n{content}")
+    else:
+        # Fallback for legacy string (though migration should have caught this)
+        parts.append(f"**1. IDENTITY & ROLE**\n{str(p_prompt)}")
+        
+    if not include_enforced:
+        return "\n\n".join(parts)
+    
+    # 2. Key for next section
+    # Logic assumes 6 fixed sections.
+    
+    # 3. Enforced Sections
+    start_index = 7 # Since we have 6 sections above
+    
+    # 3. Enforced Sections
+    response_structure = system_prompts.get("stage1_response_structure")
+    if response_structure:
+        # Header is already in the default text usually, but let's ensure consistency?
+        # The default text has "**7. RESPONSE STRUCTURE**". 
+        # If user changed it, it might duplicate or be missing.
+        # Ideally we just append the text.
+        parts.append(response_structure)
+        
+    meta_structure = system_prompts.get("stage1_meta_structure")
+    if meta_structure:
+        parts.append(meta_structure)
+        
+    return "\n\n".join(parts)
+
+
 # Load personalities and system prompts
 PERSONALITY_REGISTRY = {}
 
@@ -164,6 +237,8 @@ def load_org_system_prompts(org_id: str) -> dict[str, str]:
         "chairman_prompt": default_chairman,
         "title_prompt": default_title,
         "ranking_prompt": default_ranking,
+        "stage1_response_structure": defaults.get("stage1_response_structure", ""),
+        "stage1_meta_structure": defaults.get("stage1_meta_structure", ""),
     }
 
     config = _load_org_config_file(org_id)
@@ -187,6 +262,15 @@ def load_org_system_prompts(org_id: str) -> dict[str, str]:
         prompts["ranking_prompt"] = ranking_conf.get("prompt", default_ranking)
     else:
         prompts["ranking_prompt"] = config.get("ranking_prompt", default_ranking)
+
+
+    # Load Stage 1 structures
+    prompts["stage1_response_structure"] = config.get(
+        "stage1_response_structure", prompts["stage1_response_structure"]
+    )
+    prompts["stage1_meta_structure"] = config.get(
+        "stage1_meta_structure", prompts["stage1_meta_structure"]
+    )
 
     return prompts
 

@@ -18,7 +18,7 @@ MOCK_PERSONALITY = {
     "model": "openai/gpt-4",
     "temperature": 0.7,
     "enabled": True,
-    "personality_prompt": "You are a test bot.",
+    "personality_prompt": {"identity_and_role": "You are a test bot."},
     "ui": {"avatar": "default", "color": "#000000"},
 }
 
@@ -308,7 +308,7 @@ def test_get_personality(mock_data_root, auth_headers):
             "name": "Single Test",
             "description": "Test Desc",
             "model": "test-model",
-            "personality_prompt": "Test Prompt",
+            "personality_prompt": {"identity_and_role": "Test Prompt"},
         }
         with open(p_file, "w") as f:
             yaml.dump(p_data, f)
@@ -557,7 +557,7 @@ def test_update_system_prompts_missing_tags(mock_data_root, auth_headers):
     orgs_dir = mock_data_root / "organizations"
 
     invalid_config = MOCK_SYSTEM_PROMPTS.copy()
-    invalid_config["ranking"]["prompt"] = "Missing {user_query} tag"
+    invalid_config["chairman"]["prompt"] = "Missing {user_query} tag"
 
     response = client.put("/api/system-prompts", json=invalid_config, headers=headers)
     assert response.status_code == 400

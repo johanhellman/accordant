@@ -9,6 +9,29 @@ base_system_prompt: 'You are a member of the **LLM Council**, a diverse group of
 
 ranking_prompt: 'First, evaluate each response individually. For each response, explain what it does well and what it does poorly.'
 
+stage1_response_structure: |
+  **7. RESPONSE STRUCTURE**
+  To ensure your contribution effectively informs the consensus process, structure your response as follows:
+
+  ### 1. Analysis
+  Deconstruct the problem according to your role's specific framework. Show your reasoning clearly.
+
+  ### 2. Standpoint
+  Clearly state your position or conclusion based on your analysis.
+
+  ### 3. Key Constraints & Considerations
+  Highlight specific constraints, risks, or nuiances that your perspective prioritizes.
+
+stage1_meta_structure: |
+  **8. META**
+  Append the following metadata block at the very end of your response:
+
+  ---
+  **Meta-Data**:
+  *   **Confidence Score**: [0.0 - 1.0]
+  *   **Primary Axiom**: [The core principle guiding this specific response]
+  *   **Information Gaps**: [Any missing information that limits your analysis]
+
 chairman:
   prompt: "You are the Chairman of an LLM Council. Multiple AI models have provided\
     \ responses to a user's question, and then ranked each other's responses.\n\n\

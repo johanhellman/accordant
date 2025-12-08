@@ -1,119 +1,26 @@
 # Admin Guide
 
-This guide is for administrators managing the LLM Council application.
+## Managing Personalities
 
-## Roles
+Accordant uses a **Structured Personality System**. This ensures that while each personality has a unique "Soul" (Identity, Tone, Reasoning), they all share a common "Body" (Structure, Metadata) to facilitate effective collaboration in the Council.
 
-There are two types of administrators:
+### Editing a Personality
+When you edit a personality, you will see 6 specific sections:
+1.  **IDENTITY & ROLE**: The core persona. Who are they?
+2.  **INTERPRETATION OF QUESTIONS**: How do they view user queries?
+3.  **PROBLEM DECOMPOSITION**: How do they break down complex tasks?
+4.  **ANALYSIS & REASONING**: What is their logical framework?
+5.  **DIFFERENTIATION & BIAS**: What specific angle or bias do they represent?
+6.  **TONE**: What is their voice?
 
-1.  **Instance Admin**: Has full control over the entire deployment, including all organizations and users.
-2.  **Organization Admin**: Has control over a specific organization, its users, and its settings.
+You do **not** need to define the output format (e.g., "Start with Analysis..."). This is handled automatically by the system.
 
-## Instance Admin Tasks
+### System Enforced Structure
+In the "System Prompts" configuration, you can define:
+*   **Enforced Response Structure**: The headings and organization every personality must use.
+*   **Enforced Meta**: The metadata block (e.g., Confidence Score) that every personality must append.
 
-Instance Admins have access to all Organization Admin features (see below) plus system-wide management capabilities.
+Changing these in System Prompts will instantly update *all* personalities.
 
-### Accessing Admin Features
-
-**Via UI:**
-1. Log in to the application.
-2. Click on "Settings" in the sidebar (under the Admin section).
-3. Instance Admins will see the "Instance Admin" badge next to their username.
-
-**Via API (Swagger UI):**
-1. Go to `http://localhost:8001/docs`
-2. Authorize using your login token (click "Authorize" and enter your credentials).
-3. Use the `admin-users` and `admin` endpoints.
-
-### Managing Organizations
-
-Currently, organization management is done via the API or directly in the database (`data/organizations.json`).
-- **Create Org**: Use the `POST /api/organizations` endpoint.
-- **List Orgs**: Use the `GET /api/organizations` endpoint (Admin only).
-
-### Managing Users
-
-**User Management Features:**
-- **View All Users**: See all users across all organizations
-- **Promote/Demote Admins**: Change admin status for users
-- **Move Users**: Transfer users between organizations
-
-**Via API:**
-- Use the `admin-users` endpoints in Swagger UI (`http://localhost:8001/docs`)
-- Endpoints include: `GET /api/admin/users`, `PUT /api/admin/users/{user_id}`
-
-**Via Database (Advanced):**
-- **Promote to Instance Admin**: Edit `data/users.json` and set `is_instance_admin: true` for the user.
-- **Move User**: Use the `update_user_org` function in `backend/users.py` (via script) or the API if available.
-
-### Global Voting History
-
-Instance Admins can view the full history of how personalities voted across all user conversations:
-- Access via API: `GET /api/admin/voting-history`
-- View voting patterns and consensus levels across the entire system
-- Analyze personality alignment and divergence over time
-
-## Organization Admin Tasks
-
-Organization Admins manage users, settings, and invitations within their organization.
-
-### Accessing Settings
-1. Log in to the application.
-2. Click on "Settings" in the sidebar (under the Admin section).
-
-### Configuring API Keys
-**Critical**: Each organization must configure its own LLM API keys to function.
-1.  Go to **Settings**.
-2.  Enter your **OpenRouter API Key**.
-3.  (Optional) Update the **Base URL** if using a different provider compatible with the OpenAI API format.
-4.  Click **Save Settings**.
-
-*Note: The API key is encrypted before storage and is never shown in plain text in the UI.*
-
-### Managing Invitations
-To add new users to your organization:
-1.  Go to **Settings**.
-2.  Scroll to the **Invitations** section.
-3.  Click **Generate New Invite Code**.
-4.  Share the generated code with the user.
-5.  The user can use this code during registration by selecting "Join Existing" and entering the code.
-
-### Managing Personalities
-Organization Admins (and Instance Admins) can customize the personalities available to their users.
-1.  Go to **Personalities** in the sidebar.
-2.  Enable/Disable specific personalities.
-3.  Edit system prompts for specific personalities to tailor them to your organization's needs.
-
-**Note**: When a new organization is created, all default personalities from `data/personalities/` are automatically copied to the organization's personalities directory.
-
-## Admin Features Summary
-
-### User Management
-- View all users in your organization (Org Admin) or across all organizations (Instance Admin)
-- Promote/demote admin roles
-- Transfer users between organizations (Instance Admin only)
-
-### Organization Settings
-- Configure API Keys and Gateway URLs for your organization
-- Manage organization-level configuration
-- Set up encryption and security settings
-
-### Invitations
-- Generate invite codes to add users to your organization
-- Manage invitation expiration and usage
-- Track invitation history
-
-### Global Voting History (Instance Admin)
-- View the full history of how personalities voted across all user conversations
-- Analyze voting patterns and consensus levels
-- Track personality alignment and divergence over time
-
-## Troubleshooting
-
-### "LLM API Key not configured"
-If users see this error, it means the Organization Admin has not yet configured the API key in the Settings page.
-
-### "Invitation code invalid"
-- Check if the code has already been used (codes are single-use).
-- Check if the code has expired (default expiry is 7 days).
-- Generate a new code if necessary.
+## Other Configurations
+...
