@@ -378,6 +378,7 @@
 **Test Files Present:**
 - ✅ `tests/test_critical_paths_skeleton.py` - Comprehensive tests for council orchestration (2000+ lines)
 - ✅ `tests/test_council_implementation.py` - **NEW** - Direct implementation tests for council.py functions
+- ✅ `tests/test_council_helpers_unit.py` - **NEW** - Direct unit tests for council_helpers.py helper functions
 - ✅ `tests/test_main.py` - Main API endpoint tests
 - ✅ `tests/test_auth.py` - Authentication tests
 - ✅ `tests/test_council.py` - Council logic tests
@@ -487,6 +488,16 @@
        - `build_ranking_prompt`: empty inputs, custom templates
        - `calculate_aggregate_rankings`: empty inputs, missing keys, non-string rankings, single positions
      - **Total**: 30+ new edge case test scenarios added
+   - **Direct Unit Tests Added (2025-12-08)**:
+     - New test file `tests/test_council_helpers_unit.py` with direct unit tests for:
+       - `get_time_instructions`: returns tuple, includes timestamp, timestamp formatting
+       - `get_system_time_instruction`: returns string, calls get_time_instructions
+       - `get_user_time_instruction`: returns string, calls get_time_instructions
+       - `prepare_history_context`: excludes last user message, keeps all if last not user, empty list, single user message
+       - `build_message_chain`: basic chain, with history, excludes last user from history
+       - `build_ranking_prompt`: basic prompt, exclude_self flag, custom template
+       - `build_llm_history`: basic conversion, sliding window, filters non-relevant messages, extracts PART 2, handles missing stage3, empty messages
+     - **Total**: 20+ direct unit test cases added
 
 4. **`backend/openrouter.py`** - 49% coverage → **Targeting 70%+**
    - **Action**: Add edge case tests for retry logic, timeout handling, semaphore behavior
