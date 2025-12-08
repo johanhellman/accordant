@@ -8,6 +8,7 @@ import VotingHistory from "./components/VotingHistory";
 import OrgSettings from "./components/OrgSettings";
 import OrganizationManagement from "./components/OrganizationManagement";
 import Login from "./components/Login";
+import ContentCreatorLanding from "./components/ContentCreatorLanding";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "./App.css";
@@ -18,6 +19,7 @@ function Dashboard() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const [view, setView] = useState("chat"); // 'chat', 'personalities', 'prompts'
 
@@ -224,7 +226,10 @@ function Dashboard() {
   }
 
   if (!user) {
-    return <Login />;
+    if (showLogin) {
+      return <Login onBackToLanding={() => setShowLogin(false)} />;
+    }
+    return <ContentCreatorLanding onShowLogin={() => setShowLogin(true)} />;
   }
 
   return (

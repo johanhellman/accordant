@@ -13,6 +13,35 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  position: relative;
+}
+
+.back-to-landing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 8px 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.back-to-landing-btn:hover {
+  color: #007bff;
+}
+
+.back-to-landing-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .login-card h2 {

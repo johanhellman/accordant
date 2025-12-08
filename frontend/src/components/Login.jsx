@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
 import "./Login.css";
 
-const Login = () => {
+const Login = ({ onBackToLanding }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -79,6 +80,17 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        {onBackToLanding && (
+          <button
+            type="button"
+            className="back-to-landing-btn"
+            onClick={onBackToLanding}
+            disabled={loading}
+          >
+            <ArrowLeft className="back-icon" />
+            Back to Landing Page
+          </button>
+        )}
         <h2>{isRegistering ? "Create Account" : "Login"}</h2>
         {error && <div className="error-message">{error}</div>}
 
