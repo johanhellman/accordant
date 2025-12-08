@@ -8,7 +8,7 @@ import VotingHistory from "./components/VotingHistory";
 import OrgSettings from "./components/OrgSettings";
 import OrganizationManagement from "./components/OrganizationManagement";
 import Login from "./components/Login";
-import ContentCreatorLanding from "./components/ContentCreatorLanding";
+import AccordantLanding from "./components/AccordantLanding";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "./App.css";
@@ -229,7 +229,7 @@ function Dashboard() {
     if (showLogin) {
       return <Login onBackToLanding={() => setShowLogin(false)} />;
     }
-    return <ContentCreatorLanding onShowLogin={() => setShowLogin(true)} />;
+    return <AccordantLanding onShowLogin={() => setShowLogin(true)} />;
   }
 
   return (

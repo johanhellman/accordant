@@ -23,9 +23,9 @@ import {
   X
 } from "lucide-react";
 import Login from "./Login";
-import "./ContentCreatorLanding.css";
+import "./AccordantLanding.css";
 
-function ContentCreatorLanding({ onShowLogin }) {
+function AccordantLanding({ onShowLogin }) {
   const [email, setEmail] = useState("");
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -44,7 +44,7 @@ function ContentCreatorLanding({ onShowLogin }) {
   };
 
   return (
-    <div className="content-creator-landing">
+    <div className="accordant-landing">
       {/* Header Navigation */}
       <header className="landing-header">
         <div className="container">
@@ -83,17 +83,17 @@ function ContentCreatorLanding({ onShowLogin }) {
               <span>Powered by Accordant LLM Council</span>
             </div>
             <h1 className="hero-title">
-              Create Content That Converts
-              <span className="gradient-text"> Across Every Platform</span>
+              Get Better Answers Through
+              <span className="gradient-text"> Collaborative AI Intelligence</span>
             </h1>
             <p className="hero-description">
-              Meet your Content Creator AI Council—a team of specialized AI personalities 
-              that collaborate to produce blog posts, video scripts, social content, and more. 
-              Get multiple perspectives, peer-reviewed quality, and synthesized excellence in every piece.
+              Accordant AI Council brings together multiple specialized AI personalities 
+              that collaborate, debate, and synthesize the best possible answer to your questions. 
+              Get multiple perspectives, peer-reviewed quality, and comprehensive solutions for any challenge.
             </p>
             <div className="hero-cta-group">
               <button className="cta-primary" onClick={handleGetStarted}>
-                Start Creating Free
+                Get Started Free
                 <ArrowRight className="cta-icon" />
               </button>
               <button className="cta-secondary" onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}>
@@ -136,8 +136,9 @@ function ContentCreatorLanding({ onShowLogin }) {
               </div>
               <h3 className="step-title">Multiple Perspectives</h3>
               <p className="step-description">
-                Your content request goes to multiple specialized AI personalities simultaneously. 
-                Each provides their unique take—from creative angles to SEO optimization.
+                Your query goes to multiple specialized AI personalities simultaneously. 
+                Each provides their unique perspective—from creative thinking to analytical rigor, 
+                strategic planning to tactical execution.
               </p>
             </div>
             <div className="process-connector">
@@ -165,7 +166,7 @@ function ContentCreatorLanding({ onShowLogin }) {
               <h3 className="step-title">Synthesized Excellence</h3>
               <p className="step-description">
                 The Chairman AI synthesizes all perspectives and reviews into one comprehensive, 
-                high-quality piece that combines the best of every approach.
+                high-quality answer that combines the best insights from every approach.
               </p>
             </div>
           </div>
@@ -176,9 +177,10 @@ function ContentCreatorLanding({ onShowLogin }) {
       <section id="content-types" className="content-types-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Create Any Content Type</h2>
+            <h2 className="section-title">Versatile AI Council Capabilities</h2>
             <p className="section-subtitle">
-              From long-form articles to viral social posts, your Content Creator Council adapts to every format.
+              From strategic planning to creative execution, your Accordant Council adapts to tackle 
+              any challenge across industries and use cases.
             </p>
           </div>
           <div className="content-types-grid">
@@ -186,84 +188,90 @@ function ContentCreatorLanding({ onShowLogin }) {
               <div className="card-icon-wrapper">
                 <FileText className="card-icon" />
               </div>
-              <h3 className="card-title">Blog Posts & Articles</h3>
+              <h3 className="card-title">Strategic Planning</h3>
               <p className="card-description">
-                SEO-optimized long-form content, pillar articles, and comprehensive guides that drive organic traffic.
+                Comprehensive analysis, strategic frameworks, and actionable plans that consider 
+                multiple perspectives and potential outcomes.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Keyword optimization</li>
-                <li><CheckCircle2 className="feature-icon" /> Internal linking</li>
-                <li><CheckCircle2 className="feature-icon" /> Scannable structure</li>
+                <li><CheckCircle2 className="feature-icon" /> Multi-faceted analysis</li>
+                <li><CheckCircle2 className="feature-icon" /> Risk assessment</li>
+                <li><CheckCircle2 className="feature-icon" /> Actionable recommendations</li>
               </ul>
             </div>
             <div className="content-type-card">
               <div className="card-icon-wrapper">
                 <Video className="card-icon" />
               </div>
-              <h3 className="card-title">Video Scripts</h3>
+              <h3 className="card-title">Creative Solutions</h3>
               <p className="card-description">
-                Engaging YouTube scripts, TikTok content, and webinar presentations with hooks that capture attention.
+                Innovative ideas, creative approaches, and out-of-the-box thinking that combines 
+                imagination with practical execution.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Retention optimization</li>
-                <li><CheckCircle2 className="feature-icon" /> Platform-specific formats</li>
-                <li><CheckCircle2 className="feature-icon" /> Strong CTAs</li>
+                <li><CheckCircle2 className="feature-icon" /> Creative ideation</li>
+                <li><CheckCircle2 className="feature-icon" /> Multiple concepts</li>
+                <li><CheckCircle2 className="feature-icon" /> Feasibility analysis</li>
               </ul>
             </div>
             <div className="content-type-card">
               <div className="card-icon-wrapper">
                 <Share2 className="card-icon" />
               </div>
-              <h3 className="card-title">Social Media Content</h3>
+              <h3 className="card-title">Problem Solving</h3>
               <p className="card-description">
-                Platform-optimized posts for LinkedIn, Instagram, Twitter, and more. Native formatting for maximum engagement.
+                Complex problem decomposition, root cause analysis, and systematic solutions 
+                that address challenges from multiple angles.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Platform-specific tone</li>
-                <li><CheckCircle2 className="feature-icon" /> Optimal length</li>
-                <li><CheckCircle2 className="feature-icon" /> Engagement hooks</li>
+                <li><CheckCircle2 className="feature-icon" /> Root cause analysis</li>
+                <li><CheckCircle2 className="feature-icon" /> Solution evaluation</li>
+                <li><CheckCircle2 className="feature-icon" /> Implementation planning</li>
               </ul>
             </div>
             <div className="content-type-card">
               <div className="card-icon-wrapper">
                 <Mail className="card-icon" />
               </div>
-              <h3 className="card-title">Email Campaigns</h3>
+              <h3 className="card-title">Technical Analysis</h3>
               <p className="card-description">
-                Compelling newsletters, automation sequences, and conversion-focused email content.
+                Deep technical insights, code reviews, architecture recommendations, and 
+                implementation strategies backed by multiple expert perspectives.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Subject line optimization</li>
-                <li><CheckCircle2 className="feature-icon" /> Mobile-first design</li>
-                <li><CheckCircle2 className="feature-icon" /> Clear CTAs</li>
+                <li><CheckCircle2 className="feature-icon" /> Code quality review</li>
+                <li><CheckCircle2 className="feature-icon" /> Architecture patterns</li>
+                <li><CheckCircle2 className="feature-icon" /> Best practices</li>
               </ul>
             </div>
             <div className="content-type-card">
               <div className="card-icon-wrapper">
                 <Layers className="card-icon" />
               </div>
-              <h3 className="card-title">Content Repurposing</h3>
+              <h3 className="card-title">Research & Analysis</h3>
               <p className="card-description">
-                Transform one piece into multiple formats. Extract micro-content, create infographics, and build content series.
+                Comprehensive research synthesis, data analysis, and evidence-based insights 
+                that combine multiple sources and methodologies.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Multi-format extraction</li>
-                <li><CheckCircle2 className="feature-icon" /> Content multiplication</li>
-                <li><CheckCircle2 className="feature-icon" /> Series planning</li>
+                <li><CheckCircle2 className="feature-icon" /> Multi-source synthesis</li>
+                <li><CheckCircle2 className="feature-icon" /> Data interpretation</li>
+                <li><CheckCircle2 className="feature-icon" /> Evidence evaluation</li>
               </ul>
             </div>
             <div className="content-type-card">
               <div className="card-icon-wrapper">
                 <Search className="card-icon" />
               </div>
-              <h3 className="card-title">SEO Strategy</h3>
+              <h3 className="card-title">Decision Support</h3>
               <p className="card-description">
-                Keyword research, content clusters, meta descriptions, and comprehensive SEO optimization.
+                Informed decision-making with pros/cons analysis, scenario planning, and 
+                recommendations that consider multiple factors and stakeholders.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Keyword research</li>
-                <li><CheckCircle2 className="feature-icon" /> Content clusters</li>
-                <li><CheckCircle2 className="feature-icon" /> Topical authority</li>
+                <li><CheckCircle2 className="feature-icon" /> Pros/cons analysis</li>
+                <li><CheckCircle2 className="feature-icon" /> Scenario planning</li>
+                <li><CheckCircle2 className="feature-icon" /> Stakeholder considerations</li>
               </ul>
             </div>
           </div>
@@ -286,8 +294,8 @@ function ContentCreatorLanding({ onShowLogin }) {
                   <div className="benefit-content">
                     <h3 className="benefit-title">Multiple Perspectives</h3>
                     <p className="benefit-description">
-                      Each AI personality brings unique expertise—creative angles, SEO focus, 
-                      conversion optimization, and more.
+                      Each AI personality brings unique expertise—creative thinking, analytical rigor, 
+                      strategic planning, tactical execution, and more.
                     </p>
                   </div>
                 </div>
@@ -297,7 +305,7 @@ function ContentCreatorLanding({ onShowLogin }) {
                     <h3 className="benefit-title">Quality Assurance</h3>
                     <p className="benefit-description">
                       Peer review process catches errors, identifies gaps, and ensures 
-                      your content meets the highest standards.
+                      your answers meet the highest standards of accuracy and completeness.
                     </p>
                   </div>
                 </div>
@@ -306,18 +314,18 @@ function ContentCreatorLanding({ onShowLogin }) {
                   <div className="benefit-content">
                     <h3 className="benefit-title">Optimized for Results</h3>
                     <p className="benefit-description">
-                      Content is crafted with SEO, engagement, and conversion metrics in mind 
-                      from the start.
+                      Solutions are crafted with practical applicability, effectiveness, and 
+                      real-world impact in mind from the start.
                     </p>
                   </div>
                 </div>
                 <div className="benefit-item">
                   <Globe className="benefit-icon" />
                   <div className="benefit-content">
-                    <h3 className="benefit-title">Cross-Platform Mastery</h3>
+                    <h3 className="benefit-title">Versatile Application</h3>
                     <p className="benefit-description">
-                      Adapt your core message across platforms while maintaining brand consistency 
-                      and platform-specific best practices.
+                      Adapt solutions across contexts and domains while maintaining consistency 
+                      and applying domain-specific best practices.
                     </p>
                   </div>
                 </div>
@@ -335,16 +343,16 @@ function ContentCreatorLanding({ onShowLogin }) {
                 </div>
                 <div className="visual-content">
                   <div className="visual-message">
-                    <div className="message-author">Creative Director</div>
-                    <div className="message-text">"Let's use storytelling to hook readers..."</div>
+                    <div className="message-author">Creative Thinker</div>
+                    <div className="message-text">"Let's explore innovative approaches..."</div>
                   </div>
                   <div className="visual-message">
-                    <div className="message-author">SEO Strategist</div>
-                    <div className="message-text">"We need to optimize for 'content marketing'..."</div>
+                    <div className="message-author">Analytical Strategist</div>
+                    <div className="message-text">"We need to consider the data..."</div>
                   </div>
                   <div className="visual-message">
-                    <div className="message-author">Conversion Expert</div>
-                    <div className="message-text">"The CTA should be more prominent..."</div>
+                    <div className="message-author">Practical Operator</div>
+                    <div className="message-text">"Let's focus on implementation..."</div>
                   </div>
                   <div className="visual-synthesis">
                     <Brain className="synthesis-icon" />
@@ -363,56 +371,56 @@ function ContentCreatorLanding({ onShowLogin }) {
           <div className="section-header">
             <h2 className="section-title">Perfect For</h2>
             <p className="section-subtitle">
-              Whether you're a solo creator or part of a team, Accordant scales with your needs.
+              Whether you're working solo or as part of a team, Accordant scales with your needs.
             </p>
           </div>
           <div className="use-cases-grid">
             <div className="use-case-card">
               <PenTool className="use-case-icon" />
-              <h3 className="use-case-title">Content Creators</h3>
+              <h3 className="use-case-title">Knowledge Workers</h3>
               <p className="use-case-description">
-                Scale your content production without sacrificing quality. 
-                Get multiple AI perspectives on every piece.
+                Get comprehensive answers to complex questions without sacrificing quality. 
+                Leverage multiple AI perspectives on every challenge.
               </p>
             </div>
             <div className="use-case-card">
               <TrendingUp className="use-case-icon" />
-              <h3 className="use-case-title">Marketing Teams</h3>
+              <h3 className="use-case-title">Business Teams</h3>
               <p className="use-case-description">
-                Maintain brand consistency across platforms while optimizing 
-                for each channel's unique requirements.
+                Make informed decisions with comprehensive analysis and multiple perspectives 
+                while maintaining strategic consistency.
               </p>
             </div>
             <div className="use-case-card">
               <Rocket className="use-case-icon" />
               <h3 className="use-case-title">Startups</h3>
               <p className="use-case-description">
-                Launch your content strategy with limited resources. 
-                Get enterprise-level quality without the enterprise budget.
+                Make strategic decisions with limited resources. 
+                Get enterprise-level analysis without the enterprise budget.
               </p>
             </div>
             <div className="use-case-card">
               <BarChart3 className="use-case-icon" />
-              <h3 className="use-case-title">Agencies</h3>
+              <h3 className="use-case-title">Consultants</h3>
               <p className="use-case-description">
-                Deliver consistent, high-quality content to multiple clients 
-                while maintaining each brand's unique voice.
+                Deliver consistent, high-quality analysis and recommendations to multiple clients 
+                while maintaining each client's unique context and requirements.
               </p>
             </div>
             <div className="use-case-card">
               <Globe className="use-case-icon" />
-              <h3 className="use-case-title">Businesses</h3>
+              <h3 className="use-case-title">Enterprises</h3>
               <p className="use-case-description">
-                Build your content marketing engine with SEO-optimized articles, 
-                social content, and email campaigns.
+                Enhance decision-making processes with comprehensive analysis, 
+                strategic planning, and multi-perspective problem-solving.
               </p>
             </div>
             <div className="use-case-card">
               <PlayCircle className="use-case-icon" />
-              <h3 className="use-case-title">Video Creators</h3>
+              <h3 className="use-case-title">Researchers</h3>
               <p className="use-case-description">
-                Create engaging scripts that maximize retention and drive 
-                subscribers across YouTube, TikTok, and more.
+                Synthesize complex information, evaluate multiple sources, and develop 
+                comprehensive insights across diverse domains.
               </p>
             </div>
           </div>
@@ -423,10 +431,10 @@ function ContentCreatorLanding({ onShowLogin }) {
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
-            <h2 className="cta-title">Ready to Transform Your Content Creation?</h2>
+            <h2 className="cta-title">Ready to Get Better Answers?</h2>
             <p className="cta-description">
-              Join creators, marketers, and businesses who are using Accordant Council 
-              to produce better content faster.
+              Join professionals, teams, and organizations who are using Accordant Council 
+              to make better decisions and solve complex challenges.
             </p>
             <form className="cta-form" onSubmit={handleEmailSubmit}>
               <div className="form-group">
@@ -445,7 +453,7 @@ function ContentCreatorLanding({ onShowLogin }) {
               </div>
             </form>
             <p className="cta-note">
-              No credit card required • Start creating in seconds • Cancel anytime
+              No credit card required • Start using in seconds • Cancel anytime
             </p>
           </div>
         </div>
@@ -493,4 +501,4 @@ function ContentCreatorLanding({ onShowLogin }) {
   );
 }
 
-export default ContentCreatorLanding;
+export default AccordantLanding;
