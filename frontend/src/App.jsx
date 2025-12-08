@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import Sidebar from "./components/Sidebar";
 import ChatInterface from "./components/ChatInterface";
 import PersonalityManager from "./components/PersonalityManager";
+import LeagueTable from "./components/LeagueTable";
+import EvolutionPanel from "./components/EvolutionPanel";
 import SystemPromptsEditor from "./components/SystemPromptsEditor";
 import UserManagement from "./components/UserManagement";
 import VotingHistory from "./components/VotingHistory";
@@ -119,7 +121,7 @@ function Dashboard() {
       await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
         // Normalize event type (trim whitespace, handle variations)
         const normalizedType = eventType?.trim();
-        
+
         switch (normalizedType) {
           case "stage1_start":
             setCurrentConversation((prev) => {
@@ -257,6 +259,18 @@ function Dashboard() {
         )}
         {view === "prompts" && (user?.is_admin || user?.is_instance_admin) && (
           <SystemPromptsEditor />
+        )}
+        {view === "league" && (user?.is_admin || user?.is_instance_admin) && (
+          <div className="section-container">
+            <h2>Personality League Table</h2>
+            <LeagueTable isInstanceAdmin={user?.is_instance_admin} />
+          </div>
+        )}
+        {view === "evolution" && (user?.is_admin || user?.is_instance_admin) && (
+          <div className="section-container">
+            <h2>Board Evolution</h2>
+            <EvolutionPanel />
+          </div>
         )}
         {view === "users" && (user?.is_admin || user?.is_instance_admin) && <UserManagement />}
         {view === "organizations" && user?.is_instance_admin && <OrganizationManagement />}

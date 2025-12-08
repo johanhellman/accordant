@@ -63,6 +63,18 @@ export default function Sidebar({
                 Personalities
               </div>
               <div
+                className={`nav-item ${currentView === "league" ? "active" : ""}`}
+                onClick={() => onViewChange("league")}
+              >
+                League Table
+              </div>
+              <div
+                className={`nav-item ${currentView === "evolution" ? "active" : ""}`}
+                onClick={() => onViewChange("evolution")}
+              >
+                Board Evolution
+              </div>
+              <div
                 className={`nav-item ${currentView === "prompts" ? "active" : ""}`}
                 onClick={() => onViewChange("prompts")}
               >

@@ -32,6 +32,7 @@ Each ADR follows this structure:
 | [ADR-012](012-multi-tenancy-architecture.md) | Multi-Tenancy Architecture | Accepted | 2025-12-04 |
 | [ADR-013](013-secrets-management.md) | Secrets Management | Accepted | 2025-12-04 |
 | [ADR-014](ADR-014-structured-personality-prompts.md) | Structured Personality Prompts | Accepted | 2025-12-08 |
+| [ADR-015](ADR-015-federated-voting-privacy.md) | Federated Voting Privacy | Accepted | 2025-12-08 |
 
 ## Decision Timeline
 
@@ -51,6 +52,7 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 12. **ADR-012**: Architecture - multi-tenancy architecture with data isolation
 13. **ADR-013**: Security - secrets management with encryption at rest
 14. **ADR-014**: Configuration - structured personality prompts with editable sections
+15. **ADR-015**: Privacy - federated voting stats with privacy firewalls
 
 ## Related Documentation
 

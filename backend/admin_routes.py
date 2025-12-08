@@ -27,6 +27,8 @@ from .organizations import get_org, get_org_api_config, update_org
 from .security import encrypt_value
 from .users import User
 from .council_helpers import ENFORCED_CONTEXT, ENFORCED_OUTPUT_FORMAT
+from .ranking_service import calculate_league_table, calculate_instance_league_table, generate_feedback_summary
+from .evolution_service import combine_personalities
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,13 @@ class ModelInfo(BaseModel):
 class OrgSettingsUpdate(BaseModel):
     api_key: str | None = None
     base_url: str | None = None
+
+
+class CombineRequest(BaseModel):
+    parent_ids: list[str]
+    name_suggestion: str
+    model: str | None = None  # Optional override
+
 
 
 # --- Helpers ---
@@ -483,7 +492,110 @@ async def update_org_settings(
     return {"status": "success", "message": "Settings updated"}
 
 
-# --- Instance Admin Defaults Routes ---
+# --- League Table & Evolution Routes ---
+
+
+@router.get("/league-table")
+async def get_org_league_table(current_user: User = Depends(get_current_admin_user)):
+    """Get the league table for the current organization."""
+    return calculate_league_table(current_user.org_id)
+
+
+@router.get("/instance-league-table")
+async def get_global_league_table(current_user: User = Depends(get_current_instance_admin)):
+    """Get the global aggregated league table (Instance Admin Only)."""
+    return calculate_instance_league_table()
+
+
+@router.get("/personalities/{personality_id}/feedback")
+async def get_personality_feedback(
+    personality_id: str, current_user: User = Depends(get_current_admin_user)
+):
+    """
+    Get qualitative feedback summary (Strengths, Weaknesses) for a personality.
+    """
+    # Verify personality exists in Org context
+    # (Checking visibility implicit by passing org_id to generator)
+    
+    # We need the name to find votes.
+    # Load personality to get name
+    all_ps = get_all_personalities(current_user.org_id)
+    p = next((x for x in all_ps if x["id"] == personality_id), None)
+    if not p:
+        raise HTTPException(status_code=404, detail="Personality not found")
+        
+    api_key, base_url = get_org_api_config(current_user.org_id)
+    
+    summary = await generate_feedback_summary(
+        current_user.org_id, p["name"], api_key, base_url
+    )
+    return {"summary": summary}
+
+
+@router.post("/evolution/combine")
+async def combine_personalities_route(
+    request: CombineRequest, current_user: User = Depends(get_current_admin_user)
+):
+    """Combine multiple personalities into a new one."""
+    try:
+        api_key, base_url = get_org_api_config(current_user.org_id)
+        
+        new_personality = await combine_personalities(
+            current_user.org_id,
+            request.parent_ids,
+            request.name_suggestion,
+            api_key,
+            base_url
+        )
+        return new_personality
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error combining personalities: {e}")
+        raise HTTPException(status_code=500, detail="Failed to combine personalities")
+
+
+@router.post("/evolution/deactivate/{personality_id}")
+async def deactivate_personality(
+    personality_id: str, current_user: User = Depends(get_current_admin_user)
+):
+    """Deactivate (disable) a personality."""
+    personalities_dir = get_org_personalities_dir(current_user.org_id)
+    file_path = os.path.join(personalities_dir, f"{personality_id}.yaml")
+    
+    # Check if custom exists
+    if os.path.exists(file_path):
+        data = _load_yaml(file_path)
+        data["enabled"] = False
+        _save_yaml(file_path, data)
+        return {"status": "success", "message": f"Personality {personality_id} deactivated"}
+        
+    # If it's a System Personality, we must Shadow it to disable it?
+    # Or we use the 'disabled_system_personalities' list in org config.
+    # Implementation Plan says "Deactivate (sets enabled: false)".
+    # If it's a system personality, we can't edit the file directly.
+    # We should create a shadow copy with enabled=False OR update an org-level blacklist.
+    # For simplicity/consistency with "Shadowing", creating a shadow file with enabled=False is easiest logic
+    # because get_active_personalities loads custom files and overwrites system ones.
+    
+    # 1. Load the personality (System or Custom)
+    all_ps = get_all_personalities(current_user.org_id)
+    p = next((x for x in all_ps if x["id"] == personality_id), None)
+    
+    if not p:
+        raise HTTPException(status_code=404, detail="Personality not found")
+        
+    # 2. Save as custom with enabled=False
+    p["enabled"] = False
+    p["source"] = "custom" # Now it's custom
+    p["is_editable"] = True
+    
+    # Ensure dir exists
+    os.makedirs(personalities_dir, exist_ok=True)
+    _save_yaml(file_path, p)
+    
+    return {"status": "success", "message": f"Personality {personality_id} deactivated"}
+
 
 @router.get("/defaults/personalities", response_model=list[Personality])
 async def list_default_personalities(current_user: User = Depends(get_current_instance_admin)):

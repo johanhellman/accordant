@@ -503,4 +503,53 @@ export const api = {
     if (!response.ok) throw new Error("Failed to delete default personality");
     return response.json();
   },
+
+  // --- League Table & Evolution API ---
+
+  async getLeagueTable() {
+    const response = await fetch(`${API_BASE}/api/league-table`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to get league table");
+    return response.json();
+  },
+
+  async getInstanceLeagueTable() {
+    const response = await fetch(`${API_BASE}/api/instance-league-table`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to get instance league table");
+    return response.json();
+  },
+
+  async getPersonalityFeedback(id) {
+    const response = await fetch(`${API_BASE}/api/personalities/${id}/feedback`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to get personality feedback");
+    return response.json();
+  },
+
+  async combinePersonalities(data) {
+    const response = await fetch(`${API_BASE}/api/evolution/combine`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || "Failed to combine personalities");
+    }
+    return response.json();
+  },
+
+  async deactivatePersonality(id) {
+    const response = await fetch(`${API_BASE}/api/evolution/deactivate`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ personality_id: id }),
+    });
+    if (!response.ok) throw new Error("Failed to deactivate personality");
+    return response.json();
+  },
 };

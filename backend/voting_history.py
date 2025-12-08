@@ -65,6 +65,7 @@ def record_votes(
         conversation_title: Title of the conversation
         turn_number: The turn number of this voting session
         user_id: The ID of the user who owns the conversation
+        org_id: The ID of the organization
     """
     logger.info(f"Recording votes for conversation {conversation_id} (Turn {turn_number})")
 
@@ -74,6 +75,8 @@ def record_votes(
         voter_model = result["model"]
         voter_personality = result.get("personality_name", voter_model)
         parsed_ranking = result.get("parsed_ranking", [])
+        # Save the full text reasoning if available, but ensure privacy downstream
+        reasoning_text = result.get("ranking", "")
 
         # Convert ranked labels to model names
         ranked_candidates = []
@@ -90,6 +93,7 @@ def record_votes(
                     "voter_model": voter_model,
                     "voter_personality": voter_personality,
                     "rankings": ranked_candidates,
+                    "reasoning": reasoning_text,  # Store the qualitative feedback
                 }
             )
 

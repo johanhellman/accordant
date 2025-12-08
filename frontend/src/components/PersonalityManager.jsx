@@ -1,430 +1,290 @@
-import { useState, useEffect } from "react";
-import { api } from "../api";
-import PersonalityPromptEditor from "./PersonalityPromptEditor";
-import "./PersonalityManager.css";
+import React, { useState, useEffect } from 'react';
+import { api } from '../api';
+import './PersonalityManager.css';
+import PersonalityEditor from './PersonalityEditor';
+import SystemPromptsEditor from './SystemPromptsEditor';
+import LeagueTable from './LeagueTable';
+import EvolutionPanel from './EvolutionPanel';
 
-import "./PersonalityManager.css";
-
-const ScopeSelector = ({ scope, onChange }) => (
-  <div className="scope-selector">
-    <label>Editing Scope:</label>
-    <div className="scope-buttons">
-      <button
-        className={scope === 'org' ? 'active' : ''}
-        onClick={() => onChange('org')}
-      >
-        🏢 Organization
-      </button>
-      <button
-        className={scope === 'global' ? 'active' : ''}
-        onClick={() => onChange('global')}
-      >
-        🌍 Global Defaults
-      </button>
-    </div>
-  </div>
-);
-
-function PersonalityManager() {
+const PersonalityManager = () => {
   const [personalities, setPersonalities] = useState([]);
-  const [models, setModels] = useState([]);
-  const [systemPrompts, setSystemPrompts] = useState({});
-  const [selectedPersonality, setSelectedPersonality] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('profiles'); // profiles, league, evolution, system-prompts
+  const [activePersonality, setActivePersonality] = useState(null);
+  const [isInstanceAdmin, setIsInstanceAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Model filtering
-  const [providerFilter, setProviderFilter] = useState("all");
-
-  const [scope, setScope] = useState("org"); // 'org' or 'global'
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    checkAdmin();
-  }, []);
-
-  const checkAdmin = async () => {
-    try {
-      const user = await api.getCurrentUser();
-      setIsAdmin(user.is_instance_admin);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // New Personality State
+  const [isCreating, setIsCreating] = useState(false);
+  const [newPersonality, setNewPersonality] = useState({
+    name: '',
+    description: '',
+    model: '',
+    temperature: 0.7,
+    personality_prompt: ''
+  });
 
   useEffect(() => {
     loadData();
-  }, [scope]); // Reload when scope changes
+    checkUserRole();
+  }, []);
+
+  const checkUserRole = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setIsInstanceAdmin(user.is_instance_admin);
+    } catch (e) {
+      console.error("Failed to check user role", e);
+    }
+  };
 
   const loadData = async () => {
-    setIsLoading(true);
     try {
-      const isGlobal = scope === 'global';
-      const [pList, mList, sPrompts] = await Promise.all([
-        isGlobal ? api.listDefaultPersonalities() : api.listPersonalities(),
-        api.listModels(),
-        isGlobal ? api.getDefaultSystemPrompts() : api.getSystemPrompts(),
-      ]);
-      setPersonalities(pList);
-      setModels(mList);
-      setSystemPrompts(sPrompts);
-    } catch (error) {
-      console.error("Failed to load data:", error);
+      setLoading(true);
+      const data = await api.listPersonalities();
+      setPersonalities(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load personalities');
+      console.error(err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleEdit = (p) => {
-    // Ensure prompt is a dict for editor, even if backend sends string legacy
-    // (Though backend should handle migration, let's be safe for UI state)
-    let safePrompt = p.personality_prompt;
-    if (typeof safePrompt === "string") {
-      safePrompt = { "IDENTITY & ROLE": safePrompt };
-    } else if (!safePrompt) {
-      safePrompt = {};
-    }
+  const handleCreate = async () => {
+    try {
+      if (!newPersonality.name || !newPersonality.model) {
+        alert("Name and Model are required.");
+        return;
+      }
 
-    setSelectedPersonality({
-      ...p,
-      personality_prompt: safePrompt,
-      // Remove UI legacy fallback injection if we want to stop using it
-    });
-    setIsEditing(true);
-  };
+      const id = newPersonality.name.toLowerCase().replace(/\s+/g, '-');
+      if (personalities.some(p => p.id === id)) {
+        alert("A personality with this name (ID) already exists.");
+        return;
+      }
 
-  const handleCreate = () => {
-    setSelectedPersonality({
-      id: "",
-      name: "",
-      description: "",
-      model: "",
-      temperature: 0.7,
-      enabled: true,
-      personality_prompt: {},
-      // UI dict is kept minimal or effectively empty for now as requested
-      ui: {},
-    });
-    setIsEditing(true);
-  };
-
-  const validateForm = (p) => {
-    const errors = [];
-    if (!p.id) errors.push("ID is required");
-    if (!p.name) errors.push("Name is required");
-    if (!p.description) errors.push("Description is required");
-    if (!p.model) errors.push("Model is required");
-
-    // Strict prompt validation
-    if (!p.personality_prompt || Object.keys(p.personality_prompt).length === 0) {
-      errors.push("Personality Prompt is required");
-    } else {
-      const requiredSections = [
-        { key: "identity_and_role", label: "Identity & Role" },
-        { key: "interpretation_of_questions", label: "Interpretation" },
-        { key: "problem_decomposition", label: "Decomposition" },
-        { key: "analysis_and_reasoning", label: "Reasoning" },
-        { key: "differentiation_and_bias", label: "Differentiation" },
-        { key: "tone", label: "Tone" }
-      ];
-
-      requiredSections.forEach(section => {
-        if (!p.personality_prompt[section.key] || !p.personality_prompt[section.key].trim()) {
-          errors.push(`Prompt Section '${section.label}' is required`);
-        }
+      await api.createPersonality({
+        ...newPersonality,
+        id,
+        personality_prompt: typeof newPersonality.personality_prompt === 'string'
+          ? newPersonality.personality_prompt
+          : {}
       });
-    }
 
-    if (p.temperature === undefined || p.temperature === null || p.temperature === "")
-      errors.push("Temperature is required");
-    return errors;
-  };
-
-  const handleSave = async () => {
-    // Ensure UI object structure
-    const pToSave = {
-      ...selectedPersonality,
-      temperature: parseFloat(selectedPersonality.temperature),
-      // No UI processing needed anymore
-    };
-
-    const errors = validateForm(pToSave);
-    if (errors.length > 0) {
-      alert("Please fix the following errors:\n- " + errors.join("\n- "));
-      return;
-    }
-
-    try {
-      if (scope === 'global') {
-        const exists = personalities.some((p) => p.id === pToSave.id);
-        if (exists && personalities.find(p => p.id === pToSave.id) === selectedPersonality) {
-          // We are editing an existing ITEM (selectedPersonality ref match)
-          await api.updateDefaultPersonality(pToSave.id, pToSave);
-        } else if (exists) {
-          // ID matches someone else? (Backend would catch but safe to check)
-          await api.updateDefaultPersonality(pToSave.id, pToSave);
-        } else {
-          await api.createDefaultPersonality(pToSave);
-        }
-      } else {
-        // Org Mode
-        if (personalities.find((p) => p.id === pToSave.id && p !== selectedPersonality)) {
-          // Update existing
-          await api.updatePersonality(pToSave.id, pToSave);
-        } else {
-          // Create new (check if ID exists first in list to determine if it's an update or create logic)
-          const exists = personalities.some((p) => p.id === pToSave.id);
-          if (exists) {
-            await api.updatePersonality(pToSave.id, pToSave);
-          } else {
-            await api.createPersonality(pToSave);
-          }
-        }
-      }
-      setIsEditing(false);
+      setIsCreating(false);
+      setNewPersonality({ name: '', description: '', model: '', temperature: 0.7, personality_prompt: '' });
       loadData();
-    } catch (error) {
-      alert("Failed to save personality: " + error.message);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  const handleToggleEnabled = async (p, e) => {
-    e.stopPropagation(); // Prevent card click
-    const updated = { ...p, enabled: !p.enabled };
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this personality?')) return;
     try {
-      // Optimistic update
-      setPersonalities(personalities.map((item) => (item.id === p.id ? updated : item)));
-      await api.updatePersonality(p.id, updated);
-    } catch (error) {
-      console.error("Failed to toggle:", error);
-      // Revert on error
+      await api.deletePersonality(id);
       loadData();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  const handleDelete = async (id, e) => {
-    e.stopPropagation();
-
-    const p = personalities.find(item => item.id === id);
-    if (scope === 'org' && p && p.source === 'system') {
-      alert("You cannot delete a System Personality. You can only disable it.");
-      return;
-    }
-
-    if (!window.confirm("Are you sure you want to delete this personality?")) return;
-    try {
-      if (scope === 'global') {
-        await api.deleteDefaultPersonality(id);
-      } else {
-        await api.deletePersonality(id);
-      }
-      loadData();
-    } catch (error) {
-      console.error("Failed to delete:", error);
-    }
+  const handleUseTemplate = (template) => {
+    setNewPersonality({
+      ...newPersonality,
+      name: template.name,
+      description: template.description,
+      personality_prompt: template.prompt
+    });
   };
 
-  const providers = ["all", ...new Set(models.map((m) => m.provider))];
-  const filteredModels = (
-    providerFilter === "all" ? models : models.filter((m) => m.provider === providerFilter)
-  ).sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+  const openEditor = (personality) => {
+    setActivePersonality(personality);
+    setIsEditing(true);
+  };
 
-  if (isLoading) return <div className="loading">Loading personalities...</div>;
+  const closeEditor = () => {
+    setIsEditing(false);
+    setActivePersonality(null);
+    loadData();
+  };
 
-  if (isEditing) {
+  if (loading && !isEditing) return <div className="loading">Loading Personalities...</div>;
+
+  // Render Editor Mode
+  if (isEditing && activePersonality) {
     return (
-      <div className="personality-editor-container">
-        <div className="personality-editor">
-          <div className="editor-header">
-            <h2>
-              {scope === 'global'
-                ? (selectedPersonality.id ? "Edit Global Default" : "New Global Default")
-                : (selectedPersonality.id ? (selectedPersonality.source === 'system' ? `Customize ${selectedPersonality.name}` : "Edit Personality") : "New Personality")
-              }
-            </h2>
-            <button className="close-btn" onClick={() => setIsEditing(false)}>
-              ×
-            </button>
-          </div>
-          {scope === 'global' && (
-            <div className="system-notice warning">
-              ⚠️ You are editing a Global Default. This will affect ALL organizations.
-            </div>
-          )}
-          {scope === 'org' && selectedPersonality.source === 'system' && (
-            <div className="system-notice">
-              ℹ️ You are about to customize a System Personality. This will create a local copy that overrides the global default.
-            </div>
-          )}
-
-          <div className="editor-content">
-            <div className="form-row">
-              <div className="form-group">
-                <label>ID (Unique) *</label>
-                <input
-                  value={selectedPersonality.id}
-                  onChange={(e) =>
-                    setSelectedPersonality({ ...selectedPersonality, id: e.target.value })
-                  }
-                  disabled={scope === 'org' && (personalities.some((p) => p.id === selectedPersonality.id) || selectedPersonality.source === 'system')} // Keep ID locked for system override too
-                  placeholder="e.g., gpt_expert"
-                />
-              </div>
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  value={selectedPersonality.name}
-                  onChange={(e) =>
-                    setSelectedPersonality({ ...selectedPersonality, name: e.target.value })
-                  }
-                  placeholder="Display Name"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Description *</label>
-              <input
-                value={selectedPersonality.description}
-                onChange={(e) =>
-                  setSelectedPersonality({ ...selectedPersonality, description: e.target.value })
-                }
-                placeholder="Short description of role"
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Model *</label>
-                <div className="model-selector">
-                  <select
-                    value={providerFilter}
-                    onChange={(e) => setProviderFilter(e.target.value)}
-                    className="provider-select"
-                  >
-                    {providers.map((p) => (
-                      <option key={p} value={p}>
-                        {p.toUpperCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedPersonality.model}
-                    onChange={(e) =>
-                      setSelectedPersonality({ ...selectedPersonality, model: e.target.value })
-                    }
-                    className="model-select"
-                  >
-                    <option value="">Select a model...</option>
-                    {filteredModels.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.id})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Temperature *</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={selectedPersonality.temperature}
-                  onChange={(e) =>
-                    setSelectedPersonality({ ...selectedPersonality, temperature: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="form-group prompt-editor-wrapper">
-              <PersonalityPromptEditor
-                promptData={selectedPersonality.personality_prompt}
-                systemPrompts={systemPrompts}
-                onChange={(newData) =>
-                  setSelectedPersonality({
-                    ...selectedPersonality,
-                    personality_prompt: newData,
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="editor-actions">
-            <button onClick={() => setIsEditing(false)} className="secondary">
-              Cancel
-            </button>
-            <button onClick={handleSave} className="primary">
-              {selectedPersonality.source === 'system' ? "Save as Custom Override" : "Save Changes"}
-            </button>
-          </div>
-        </div>
+      <div className="manager-container">
+        <button className="back-btn" onClick={closeEditor}>← Back to List</button>
+        <PersonalityEditor
+          personalityId={activePersonality.id}
+          onSave={closeEditor}
+          onCancel={closeEditor}
+        />
       </div>
     );
   }
 
+  // Render Tabbed View
   return (
-    <div className="personality-manager">
-      <div className="header">
-        <div>
-          <h2>Personalities</h2>
-          <p className="subtitle">Manage the council members and their behaviors.</p>
-        </div>
-        <div className="header-actions">
-          {isAdmin && <ScopeSelector scope={scope} onChange={setScope} />}
-          <button onClick={handleCreate} className="primary">
+    <div className="manager-container">
+      <div className="manager-header">
+        <h2>Council Personalities</h2>
+        {activeTab === 'profiles' && (
+          <button className="create-btn" onClick={() => setIsCreating(true)}>
             + Add Personality
           </button>
-        </div>
+        )}
       </div>
 
-      <div className="personality-grid">
-        {personalities.map((p) => (
-          <div
-            key={p.id}
-            className={`personality-card ${!p.enabled ? "disabled" : ""}`}
-            onClick={() => handleEdit(p)}
-          >
-            <div className="card-top">
-              <div className="card-header">
-                <h3>{p.name}</h3>
-                <div
-                  className="toggle-switch"
-                  onClick={(e) => handleToggleEnabled(p, e)}
-                  title={p.enabled ? "Disable" : "Enable"}
-                >
-                  <input type="checkbox" checked={p.enabled} readOnly />
-                  <span className="slider"></span>
+      <div className="manager-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'profiles' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profiles')}
+        >
+          Profiles
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'league' ? 'active' : ''}`}
+          onClick={() => setActiveTab('league')}
+        >
+          League Table
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
+          onClick={() => setActiveTab('evolution')}
+        >
+          Evolution
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'system-prompts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('system-prompts')}
+        >
+          System Prompts
+        </button>
+      </div>
+
+      {error && <div className="error-banner">{error}</div>}
+
+      <div className="tab-content">
+        {activeTab === 'profiles' && (
+          <div className="profiles-grid">
+            {personalities.map(p => (
+              <div key={p.id} className="personality-card">
+                <div className="card-header">
+                  <div className="card-icon" style={{ backgroundColor: p.ui?.color || '#666' }}>
+                    {p.ui?.icon || '👤'}
+                  </div>
+                  <div className="card-meta">
+                    <h3>{p.name}</h3>
+                    <span className="model-badge">{p.model}</span>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <p>{p.description}</p>
+                  <div className="tags">
+                    {p.source === 'system' && <span className="tag system">System</span>}
+                    {p.source === 'custom' && <span className="tag custom">Custom</span>}
+                    {!p.enabled && <span className="tag disabled">Disabled</span>}
+                  </div>
+                </div>
+                <div className="card-actions">
+                  <button onClick={() => openEditor(p)}>
+                    {p.source === 'system' ? 'View / Shadow' : 'Edit'}
+                  </button>
+                  {p.source !== 'system' && (
+                    <button className="p-delete-btn" onClick={() => handleDelete(p.id)}>Delete</button>
+                  )}
                 </div>
               </div>
-              <span className="model-badge">{p.model}</span>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'league' && (
+          <LeagueTable isInstanceAdmin={isInstanceAdmin} />
+        )}
+
+        {activeTab === 'evolution' && (
+          <EvolutionPanel
+            personalities={personalities}
+            onRefresh={loadData}
+          />
+        )}
+
+        {activeTab === 'system-prompts' && (
+          <SystemPromptsEditor />
+        )}
+      </div>
+
+      {/* Create Modal */}
+      {isCreating && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add New Personality</h3>
+
+            <div className="template-selector">
+              <small>Quick Start Templates:</small>
+              <div className="template-buttons">
+                <button onClick={() => handleUseTemplate({
+                  name: "The Skeptic",
+                  description: "Questions assumptions and looks for edge cases.",
+                  prompt: "You are The Skeptic. Your goal is to identify potential flaws..."
+                })}>Skeptic</button>
+                <button onClick={() => handleUseTemplate({
+                  name: "The Optimist",
+                  description: "Focuses on potential benefits and positive outcomes.",
+                  prompt: "You are The Optimist. Your goal is to highlight opportunities..."
+                })}>Optimist</button>
+              </div>
             </div>
 
-            <p className="description">{p.description}</p>
-
-            <div className="card-footer">
-              <div className="badge-group">
-                <span className="id-badge">{p.id}</span>
-                {p.source === 'system' && <span className="source-badge system" title="System Default">🔒 System</span>}
-                {p.source === 'custom' && <span className="source-badge custom" title="Custom Override">✏️ Custom</span>}
-              </div>
-              <button
-                className="icon-btn delete-btn"
-                onClick={(e) => handleDelete(p.id, e)}
-                title={p.source === 'system' ? "Cannot delete System Personality" : "Delete"}
-                disabled={p.source === 'system'}
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                value={newPersonality.name}
+                onChange={e => setNewPersonality({ ...newPersonality, name: e.target.value })}
+                placeholder="e.g. The Analyst"
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={newPersonality.description}
+                onChange={e => setNewPersonality({ ...newPersonality, description: e.target.value })}
+                placeholder="Brief description of their role..."
+              />
+            </div>
+            <div className="form-group">
+              <label>Model</label>
+              <select
+                value={newPersonality.model}
+                onChange={e => setNewPersonality({ ...newPersonality, model: e.target.value })}
               >
-                🗑️
-              </button>
+                <option value="">Select a Model...</option>
+                <option value="gemini/gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini/gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gpt-4o">GPT-4o</option>
+                <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+              </select>
+            </div>
+
+            <div className="form-note">
+              You can configure the full personality profile (Identity, Tone, etc.) after creation.
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={() => setIsCreating(false)}>Cancel</button>
+              <button className="primary" onClick={handleCreate}>Create Personality</button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default PersonalityManager;
