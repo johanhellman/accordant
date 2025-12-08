@@ -117,6 +117,7 @@ function PromptEditor({
               backgroundColor: "#f5f5f5",
               minHeight: `${rows * 1.5}em`,
               flexGrow: 1,
+              width: "100%", // Force full width
             }}
             className="rich-editor"
             textareaClassName="focus:outline-none"

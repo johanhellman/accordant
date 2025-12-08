@@ -105,6 +105,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 30px;
   border: 1px solid #eaeaea;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-header {
@@ -165,6 +167,16 @@ button.primary:disabled {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+}
+
+.form-group select,
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 label {
@@ -184,7 +196,12 @@ label {
   line-height: 1.5;
   border: 1px solid #e1e4e8;
   font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  overflow-x: auto;
+  max-width: 100%;
+  white-space: pre-wrap;
+  /* Preserve whitespace but wrap lines if possible */
+  word-break: break-all;
+  /* Break long words if necessary */
 }
 
 /* Inheritance Toggle */

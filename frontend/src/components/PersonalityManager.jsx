@@ -3,6 +3,28 @@ import { api } from "../api";
 import PersonalityPromptEditor from "./PersonalityPromptEditor";
 import "./PersonalityManager.css";
 
+import "./PersonalityManager.css";
+
+const ScopeSelector = ({ scope, onChange }) => (
+  <div className="scope-selector">
+    <label>Editing Scope:</label>
+    <div className="scope-buttons">
+      <button
+        className={scope === 'org' ? 'active' : ''}
+        onClick={() => onChange('org')}
+      >
+        🏢 Organization
+      </button>
+      <button
+        className={scope === 'global' ? 'active' : ''}
+        onClick={() => onChange('global')}
+      >
+        🌍 Global Defaults
+      </button>
+    </div>
+  </div>
+);
+
 function PersonalityManager() {
   const [personalities, setPersonalities] = useState([]);
   const [models, setModels] = useState([]);
@@ -14,17 +36,34 @@ function PersonalityManager() {
   // Model filtering
   const [providerFilter, setProviderFilter] = useState("all");
 
+  const [scope, setScope] = useState("org"); // 'org' or 'global'
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdmin();
+  }, []);
+
+  const checkAdmin = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setIsAdmin(user.is_instance_admin);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [scope]); // Reload when scope changes
 
   const loadData = async () => {
     setIsLoading(true);
     try {
+      const isGlobal = scope === 'global';
       const [pList, mList, sPrompts] = await Promise.all([
-        api.listPersonalities(),
+        isGlobal ? api.listDefaultPersonalities() : api.listPersonalities(),
         api.listModels(),
-        api.getSystemPrompts(),
+        isGlobal ? api.getDefaultSystemPrompts() : api.getSystemPrompts(),
       ]);
       setPersonalities(pList);
       setModels(mList);
@@ -116,16 +155,30 @@ function PersonalityManager() {
     }
 
     try {
-      if (personalities.find((p) => p.id === pToSave.id && p !== selectedPersonality)) {
-        // Update existing
-        await api.updatePersonality(pToSave.id, pToSave);
-      } else {
-        // Create new (check if ID exists first in list to determine if it's an update or create logic)
+      if (scope === 'global') {
         const exists = personalities.some((p) => p.id === pToSave.id);
-        if (exists) {
+        if (exists && personalities.find(p => p.id === pToSave.id) === selectedPersonality) {
+          // We are editing an existing ITEM (selectedPersonality ref match)
+          await api.updateDefaultPersonality(pToSave.id, pToSave);
+        } else if (exists) {
+          // ID matches someone else? (Backend would catch but safe to check)
+          await api.updateDefaultPersonality(pToSave.id, pToSave);
+        } else {
+          await api.createDefaultPersonality(pToSave);
+        }
+      } else {
+        // Org Mode
+        if (personalities.find((p) => p.id === pToSave.id && p !== selectedPersonality)) {
+          // Update existing
           await api.updatePersonality(pToSave.id, pToSave);
         } else {
-          await api.createPersonality(pToSave);
+          // Create new (check if ID exists first in list to determine if it's an update or create logic)
+          const exists = personalities.some((p) => p.id === pToSave.id);
+          if (exists) {
+            await api.updatePersonality(pToSave.id, pToSave);
+          } else {
+            await api.createPersonality(pToSave);
+          }
         }
       }
       setIsEditing(false);
@@ -153,14 +206,18 @@ function PersonalityManager() {
     e.stopPropagation();
 
     const p = personalities.find(item => item.id === id);
-    if (p && p.source === 'system') {
+    if (scope === 'org' && p && p.source === 'system') {
       alert("You cannot delete a System Personality. You can only disable it.");
       return;
     }
 
     if (!window.confirm("Are you sure you want to delete this personality?")) return;
     try {
-      await api.deletePersonality(id);
+      if (scope === 'global') {
+        await api.deleteDefaultPersonality(id);
+      } else {
+        await api.deletePersonality(id);
+      }
       loadData();
     } catch (error) {
       console.error("Failed to delete:", error);
@@ -180,13 +237,21 @@ function PersonalityManager() {
         <div className="personality-editor">
           <div className="editor-header">
             <h2>
-              {selectedPersonality.id ? (selectedPersonality.source === 'system' ? `Customize ${selectedPersonality.name}` : "Edit Personality") : "New Personality"}
+              {scope === 'global'
+                ? (selectedPersonality.id ? "Edit Global Default" : "New Global Default")
+                : (selectedPersonality.id ? (selectedPersonality.source === 'system' ? `Customize ${selectedPersonality.name}` : "Edit Personality") : "New Personality")
+              }
             </h2>
             <button className="close-btn" onClick={() => setIsEditing(false)}>
               ×
             </button>
           </div>
-          {selectedPersonality.source === 'system' && (
+          {scope === 'global' && (
+            <div className="system-notice warning">
+              ⚠️ You are editing a Global Default. This will affect ALL organizations.
+            </div>
+          )}
+          {scope === 'org' && selectedPersonality.source === 'system' && (
             <div className="system-notice">
               ℹ️ You are about to customize a System Personality. This will create a local copy that overrides the global default.
             </div>
@@ -201,7 +266,7 @@ function PersonalityManager() {
                   onChange={(e) =>
                     setSelectedPersonality({ ...selectedPersonality, id: e.target.value })
                   }
-                  disabled={personalities.some((p) => p.id === selectedPersonality.id) || selectedPersonality.source === 'system'} // Keep ID locked for system override too
+                  disabled={scope === 'org' && (personalities.some((p) => p.id === selectedPersonality.id) || selectedPersonality.source === 'system')} // Keep ID locked for system override too
                   placeholder="e.g., gpt_expert"
                 />
               </div>
@@ -308,9 +373,12 @@ function PersonalityManager() {
           <h2>Personalities</h2>
           <p className="subtitle">Manage the council members and their behaviors.</p>
         </div>
-        <button onClick={handleCreate} className="primary">
-          + Add Personality
-        </button>
+        <div className="header-actions">
+          {isAdmin && <ScopeSelector scope={scope} onChange={setScope} />}
+          <button onClick={handleCreate} className="primary">
+            + Add Personality
+          </button>
+        </div>
       </div>
 
       <div className="personality-grid">

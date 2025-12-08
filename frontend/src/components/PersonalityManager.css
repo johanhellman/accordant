@@ -12,6 +12,62 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 30px;
+  margin-bottom: 30px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.scope-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.scope-selector label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.scope-buttons {
+  display: flex;
+  gap: 0;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid var(--border-color);
+}
+
+.scope-buttons button {
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.scope-buttons button.active {
+  background: white;
+  color: var(--primary-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+.system-notice.warning {
+  background-color: #fff3e0;
+  color: #e65100;
+  border-bottom: 1px solid #ffe0b2;
 }
 
 .header h2 {

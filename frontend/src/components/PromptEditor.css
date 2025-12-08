@@ -323,9 +323,11 @@
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: #f5f5f5;
-  overflow: auto;
+  overflow: hidden;
+  /* Changed from auto to hidden to let inner content handle scroll if needed, or prevent double scrollbars */
   max-height: 600px;
-  /* Ensure rounded corners clip content */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .line-numbers {
@@ -386,9 +388,7 @@
   background: transparent;
 }
 
-.section-editor .prompt-editor-header {
-  /* Optional: adjustments if header looks redundant */
-}
+
 
 .section-editor .editor-wrapper {
   max-height: none;

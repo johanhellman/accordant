@@ -346,16 +346,20 @@ def load_org_models_config(org_id: str) -> dict[str, str]:
     return models
 
 
-def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
+def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
     """
-    Get active personalities for an organization, merging Defaults + Custom.
+    Get all personalities for an organization, merging Defaults + Custom.
+    Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
     """
     org_personalities_dir = get_org_personalities_dir(org_id)
     defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
     
     # Load Org Config to check for disabled system personalities
-    org_config = _load_org_config_file(org_id) or {}
-    disabled_ids = org_config.get("disabled_system_personalities", [])
+    # (Note: For the 'all' list, we might want to return them but marked as disabled? 
+    #  But the current requirement is to show everything. 
+    #  If a system personality is disabled in org config, it should still appear in the list so it can be re-enabled.
+    #  The 'disabled_system_personalities' config might be a legacy/alternative way to 'delete' them from view,
+    #  but typically 'enabled: false' is the way. Let's assume we want to show everything.)
     
     registry = {}
     
@@ -368,13 +372,10 @@ def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
                     with open(filepath) as f:
                         p = yaml.safe_load(f)
                         if p and "id" in p:
-                            p_id = p["id"]
-                            if p_id in disabled_ids:
-                                continue # Skip disabled system personalities
-                            
                             p["source"] = "system"
-                            p["is_editable"] = False # System personalities are read-only until shadowed
-                            registry[p_id] = p
+                            # System personalities are not editable directly in the Org view (must be shadowed)
+                            p["is_editable"] = False 
+                            registry[p["id"]] = p
                 except Exception as e:
                     logger.error(f"Error loading default personality {filename}: {e}")
 
@@ -388,12 +389,31 @@ def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
                     with open(filepath) as f:
                         p = yaml.safe_load(f)
                         if p and "id" in p:
-                            # Org personalities are always enabled if they exist as files (unless 'enabled' flag is false)
-                            if p.get("enabled", True):
-                                p["source"] = "custom"
-                                p["is_editable"] = True
-                                registry[p["id"]] = p # Overwrites system version
+                            p["source"] = "custom"
+                            p["is_editable"] = True
+                            registry[p["id"]] = p # Overwrites system version
                 except Exception as e:
                     logger.error(f"Error loading org personality {filename} for org {org_id}: {e}")
 
     return list(registry.values())
+
+
+def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
+    """
+    Get active personalities for an organization.
+    Wraps get_all_personalities and filters for enabled=True.
+    """
+    all_personalities = get_all_personalities(org_id)
+    
+    # We also need to respect the 'disabled_system_personalities' from org config if used
+    org_config = _load_org_config_file(org_id) or {}
+    disabled_ids = org_config.get("disabled_system_personalities", [])
+    
+    active = []
+    for p in all_personalities:
+        if p.get("id") in disabled_ids:
+            continue
+        if p.get("enabled", True):
+            active.append(p)
+            
+    return active

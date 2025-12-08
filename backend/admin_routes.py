@@ -15,8 +15,12 @@ from .config.personalities import (
     DEFAULT_RANKING_MODEL,
     DEFAULT_RANKING_PROMPT,
     DEFAULT_TITLE_GENERATION_PROMPT,
+    DEFAULT_RANKING_PROMPT,
+    DEFAULT_TITLE_GENERATION_PROMPT,
     get_org_personalities_dir,
+    get_all_personalities,
     _load_defaults,
+    DEFAULTS_DIR,
 )
 from .llm_service import get_available_models
 from .organizations import get_org, get_org_api_config, update_org
@@ -132,15 +136,8 @@ async def list_models(current_user: User = Depends(get_current_admin_user)):
 async def list_personalities(current_user: User = Depends(get_current_admin_user)):
     """List all personalities."""
     # Reload from disk to ensure freshness
-    personalities_dir = get_org_personalities_dir(current_user.org_id)
-    personalities = []
-    if os.path.exists(personalities_dir):
-        for filename in os.listdir(personalities_dir):
-            if filename.endswith(".yaml") and filename != "system-prompts.yaml":
-                p = _load_yaml(os.path.join(personalities_dir, filename))
-                if p and "id" in p:
-                    personalities.append(p)
-    return personalities
+    # Use get_all_personalities to include system defaults
+    return get_all_personalities(current_user.org_id)
 
 
 @router.post("/personalities", response_model=Personality)
@@ -166,15 +163,12 @@ async def get_personality(
     personality_id: str, current_user: User = Depends(get_current_admin_user)
 ):
     """Get a specific personality."""
-    personalities_dir = get_org_personalities_dir(current_user.org_id)
-    file_path = os.path.join(personalities_dir, f"{personality_id}.yaml")
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Personality not found")
-
-    p = _load_yaml(file_path)
+    # Search in combined list (to support system personalities retrieval)
+    all_ps = get_all_personalities(current_user.org_id)
+    p = next((x for x in all_ps if x["id"] == personality_id), None)
+    
     if not p:
-        # Should have been caught by exists check, but safe fallback
-        raise HTTPException(status_code=500, detail="Failed to read personality")
+        raise HTTPException(status_code=404, detail="Personality not found")
     return p
 
 
@@ -485,3 +479,79 @@ async def update_org_settings(
         raise HTTPException(status_code=500, detail="Failed to update organization")
 
     return {"status": "success", "message": "Settings updated"}
+
+
+# --- Instance Admin Defaults Routes ---
+
+@router.get("/defaults/personalities", response_model=list[Personality])
+async def list_default_personalities(current_user: User = Depends(get_current_instance_admin)):
+    """List GLOBAL DEFAULT personalities (Instance Admin only)."""
+    defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+    personalities = []
+    if os.path.exists(defaults_personalities_dir):
+        for filename in os.listdir(defaults_personalities_dir):
+            if filename.endswith(".yaml"):
+                p = _load_yaml(os.path.join(defaults_personalities_dir, filename))
+                if p and "id" in p:
+                    p["source"] = "system" # Explicitly mark as system source 
+                    personalities.append(p)
+    return personalities
+
+
+@router.post("/defaults/personalities", response_model=Personality)
+async def create_default_personality(
+    personality: Personality, current_user: User = Depends(get_current_instance_admin)
+):
+    """Create a new GLOBAL DEFAULT personality."""
+    defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+    os.makedirs(defaults_personalities_dir, exist_ok=True)
+
+    file_path = os.path.join(defaults_personalities_dir, f"{personality.id}.yaml")
+    if os.path.exists(file_path):
+        raise HTTPException(
+            status_code=400, detail=f"Default Personality with ID {personality.id} already exists"
+        )
+    
+    # Ensure it's marked as enabled by default usually, but we accept payload
+    _save_yaml(file_path, personality.dict(exclude_none=True))
+    return personality
+
+
+@router.put("/defaults/personalities/{personality_id}", response_model=Personality)
+async def update_default_personality(
+    personality_id: str,
+    personality: Personality,
+    current_user: User = Depends(get_current_instance_admin),
+):
+    """Update a GLOBAL DEFAULT personality."""
+    if personality_id != personality.id:
+        raise HTTPException(status_code=400, detail="ID mismatch")
+
+    defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+    file_path = os.path.join(defaults_personalities_dir, f"{personality_id}.yaml")
+
+    # For update, it should exist? Or we allow upsert? Let's strictly force existence for PUT logic usually
+    # But files might be missing if manually messed with.
+    # Let's save.
+    os.makedirs(defaults_personalities_dir, exist_ok=True)
+    _save_yaml(file_path, personality.dict(exclude_none=True))
+    return personality
+
+
+@router.delete("/defaults/personalities/{personality_id}")
+async def delete_default_personality(
+    personality_id: str, current_user: User = Depends(get_current_instance_admin)
+):
+    """Delete a GLOBAL DEFAULT personality."""
+    defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+    file_path = os.path.join(defaults_personalities_dir, f"{personality_id}.yaml")
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Default Personality not found")
+
+    try:
+        os.remove(file_path)
+        return {"status": "success", "message": f"Default Personality {personality_id} deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting default personality: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete default personality") from e

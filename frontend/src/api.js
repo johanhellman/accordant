@@ -465,4 +465,42 @@ export const api = {
     }
     return response.json();
   },
+  // --- Instance Admin API (Defaults) ---
+
+  async listDefaultPersonalities() {
+    const response = await fetch(`${API_BASE}/api/defaults/personalities`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to list default personalities");
+    return response.json();
+  },
+
+  async createDefaultPersonality(personality) {
+    const response = await fetch(`${API_BASE}/api/defaults/personalities`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(personality),
+    });
+    if (!response.ok) throw new Error("Failed to create default personality");
+    return response.json();
+  },
+
+  async updateDefaultPersonality(id, personality) {
+    const response = await fetch(`${API_BASE}/api/defaults/personalities/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(personality),
+    });
+    if (!response.ok) throw new Error("Failed to update default personality");
+    return response.json();
+  },
+
+  async deleteDefaultPersonality(id) {
+    const response = await fetch(`${API_BASE}/api/defaults/personalities/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to delete default personality");
+    return response.json();
+  },
 };
