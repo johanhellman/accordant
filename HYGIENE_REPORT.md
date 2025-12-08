@@ -423,12 +423,21 @@
    - **Action**: Added comprehensive implementation tests in `tests/test_council_implementation.py`
    - **Effort**: Medium (2-4 hours)
    - **Status**: ✅ **COMPLETED** - Added direct tests for:
-     - `_stage1_personality_mode`: success, partial failure, exception handling
-     - `_stage2_personality_mode`: success, excludes self, partial failure
+     - `_stage1_personality_mode`: success, partial failure, exception handling, empty content, missing content key
+     - `_stage2_personality_mode`: success, excludes self, partial failure, empty stage1_results, empty content, missing content key
      - `stage1_collect_responses`: with/without personalities, with history
-     - `stage2_collect_rankings`: with/without personalities
-     - `stage3_synthesize_final`: success, failure, voting details inclusion
-     - `run_full_council`: success, all Stage 1 failures
+     - `stage2_collect_rankings`: with/without personalities, missing personality fields
+     - `stage3_synthesize_final`: success, failure, voting details inclusion, empty stage1/stage2 results, empty parsed_ranking, missing keys
+     - `run_full_council`: success, all Stage 1 failures, partial Stage 2 failures, Stage 3 failures after successful stages
+   - **Additional Edge Cases Added (2025-12-08)**:
+     - Empty content handling in all stages
+     - Missing content keys in responses
+     - Empty stage1_results and stage2_results handling
+     - Missing personality_id and personality_name fields
+     - Empty parsed_ranking arrays
+     - Missing parsed_ranking keys
+     - Partial failures in Stage 2 and Stage 3
+     - **Total**: 15+ new edge case test scenarios added
 
 2. **`backend/admin_routes.py`** - 34% coverage → **Targeting 70%+**
    - **Action**: Add tests for admin endpoints (personality management, system prompts)
@@ -552,6 +561,7 @@
   - `security.py` edge cases (invalid keys, unicode, special chars)
   - `config/paths.py` edge cases (Windows paths, traversal prevention)
 - 📊 **New Test Files Added**: 5 comprehensive test files with 50+ new test cases
+- 📊 **Edge Case Tests Added (2025-12-08)**: 15+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, and error handling paths
 
 ---
 
