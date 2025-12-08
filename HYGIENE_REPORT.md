@@ -11,7 +11,7 @@
 - ✅ **Documentation**: Excellent - Comprehensive README, ADRs (14), API docs, developer guides
 - ✅ **Code Quality**: Excellent - Minimal duplication, manageable complexity
 - ✅ **Security**: Excellent - Encryption, path validation, all CVEs resolved (urllib3 upgraded to 2.6.1)
-- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 35 comprehensive test files exist
+- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 37 comprehensive test files exist
 - ⚠️ **CI/CD**: Intentionally deferred - No automated pipelines (per policy), pre-commit hooks configured
 - ✅ **DevEx**: Excellent - Ruff, Prettier, ESLint configured, Makefile commands, pre-commit hooks
 
@@ -243,7 +243,7 @@
 - ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
-- ✅ **Test Discovery**: 35 test files in `tests/` directory (verified 2025-12-08)
+- ✅ **Test Discovery**: 37 test files in `tests/` directory (verified 2025-12-08)
 - ✅ **Test Organization**: All tests consolidated to `tests/` directory (legacy `backend/tests/` files moved)
 
 **Frontend:**
@@ -390,6 +390,7 @@
 - ✅ `tests/test_voting_history.py` - Voting history tests
 - ✅ `tests/test_openrouter.py` - OpenRouter API tests
 - ✅ `tests/test_openrouter_edge_cases.py` - **NEW** - Edge case tests for openrouter.py (retry logic, timeouts)
+- ✅ `tests/test_openrouter_additional_edge_cases.py` - **NEW** - Additional edge case tests for openrouter.py (response parsing, parameter edge cases)
 - ✅ `tests/test_llm_service.py` - LLM service tests
 - ✅ `tests/test_llm_service_edge_cases.py` - **NEW** - Edge case tests for llm_service.py (cache, error handling)
 - ✅ `tests/test_admin_routes.py` - Admin routes tests
@@ -404,6 +405,7 @@
 - ✅ `tests/test_config_validation.py` - Config validation tests
 - ✅ `tests/test_paths_edge_cases.py` - **NEW** - Edge case tests for config/paths.py
 - ✅ `tests/test_council_helpers_edge_cases.py` - **NEW** - Comprehensive edge case tests for council_helpers.py (30+ test cases)
+- ✅ `tests/test_council_edge_cases.py` - **NEW** - Additional edge case tests for council.py (20+ test cases)
 - ✅ `tests/test_config.py` - **UPDATED** - Added comprehensive tests for personalities.py:
   - `_get_nested_config_value`: 5 test cases covering all edge cases
   - `load_org_models_config`: 5 test cases covering nested config, defaults, partial config
@@ -443,6 +445,13 @@
      - Missing parsed_ranking keys
      - Partial failures in Stage 2 and Stage 3
      - **Total**: 15+ new edge case test scenarios added
+   - **Additional Tests Added (2025-12-08)**:
+     - Comprehensive edge case tests in `tests/test_council_edge_cases.py` (20+ test cases):
+       - `_stage2_personality_mode`: all responses filtered out, empty filtered_responses, query exceptions, many stage1_results, missing personality_id matches
+       - `_stage1_personality_mode`: no temperature field, all queries fail, mixed temperature values
+       - `stage3_synthesize_final`: empty voting details, missing labels in label_to_model, missing model field
+       - `generate_conversation_title`: whitespace stripping, newline-only, single quotes, mixed quotes, very long titles
+     - **Total**: 20+ additional edge case test scenarios added
 
 2. **`backend/admin_routes.py`** - 34% coverage → **Targeting 70%+**
    - **Action**: Add tests for admin endpoints (personality management, system prompts)
@@ -492,6 +501,13 @@
      - Reasoning details extraction
      - Parallel querying with mixed results
      - Semaphore creation and reuse
+   - **Additional Tests Added (2025-12-08)**:
+     - Additional edge case tests in `tests/test_openrouter_additional_edge_cases.py` (15+ test cases):
+       - Response parsing: empty choices array, missing keys (choices, message, content), JSON parse errors, None content
+       - Parameter edge cases: custom timeout, temperature edge cases (0.0, 1.0)
+       - Parallel querying: empty models list, single model, many models (50+)
+       - Semaphore management: reuse, initialization
+     - **Total**: 15+ additional edge case test scenarios added
 
 5. **`backend/llm_service.py`** - 21% coverage → **Targeting 60%+**
    - **Action**: Add edge case tests for error handling, cache behavior
@@ -582,9 +598,9 @@
   - `llm_service.py` edge cases (cache, error handling)
   - `security.py` edge cases (invalid keys, unicode, special chars)
   - `config/paths.py` edge cases (Windows paths, traversal prevention)
-- 📊 **New Test Files Added**: 8 comprehensive test files with 115+ new test cases
+- 📊 **New Test Files Added**: 10 comprehensive test files with 150+ new test cases
 - 📊 **Edge Case Tests Added (2025-12-08)**:
-  - 15+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, and error handling paths
+  - 35+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, filtering edge cases, temperature handling, and error handling paths
   - 35+ new test cases for `admin_routes.py` covering instance admin endpoints and `update_system_prompts` edge cases
   - 30+ new edge case tests for `council_helpers.py` covering parsing, history building, message chains, and ranking calculations
 
