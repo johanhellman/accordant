@@ -71,6 +71,7 @@ class SystemPromptsConfig(BaseModel):
     ranking: ComponentConfig
     chairman: ComponentConfig
     title_generation: ComponentConfig
+    evolution_prompt: ConfigValue[str]
     ranking_enforced_context: str | None = None
     ranking_enforced_format: str | None = None
     stage1_response_structure: ConfigValue[str] | None = None
@@ -235,7 +236,7 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
         "base_system_prompt": to_cv("base_system_prompt"),
         "ranking": {
             "prompt": to_cv("ranking_prompt"),
-            "model": models_config["ranking_model"], # Model inheritance logic is separate, kept simple for now
+            "model": models_config["ranking_model"], 
             "effective_model": models_config["ranking_model"],
         },
         "ranking_enforced_context": ENFORCED_CONTEXT,
@@ -250,6 +251,7 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
             "model": models_config["title_model"],
             "effective_model": models_config["title_model"],
         },
+        "evolution_prompt": to_cv("evolution_prompt"),
         "stage1_response_structure": to_cv("stage1_response_structure"),
         "stage1_meta_structure": to_cv("stage1_meta_structure"),
     }
@@ -268,6 +270,7 @@ async def get_default_system_prompts(current_user: User = Depends(get_current_in
     chairman_prompt = defaults.get("chairman", {}).get("prompt", "") if isinstance(defaults.get("chairman"), dict) else ""
     title_prompt = defaults.get("title_generation", {}).get("prompt", "") if isinstance(defaults.get("title_generation"), dict) else ""
     ranking_prompt = defaults.get("ranking_prompt", "")
+    evolution_prompt = defaults.get("evolution_prompt", "")
 
     return {
         "base_system_prompt": to_cv(defaults.get("base_system_prompt", "")),
@@ -288,6 +291,7 @@ async def get_default_system_prompts(current_user: User = Depends(get_current_in
             "model": DEFAULT_RANKING_MODEL,
             "effective_model": DEFAULT_RANKING_MODEL,
         },
+        "evolution_prompt": to_cv(evolution_prompt),
         "stage1_response_structure": to_cv(defaults.get("stage1_response_structure", "")),
         "stage1_meta_structure": to_cv(defaults.get("stage1_meta_structure", "")),
     }
@@ -320,6 +324,9 @@ async def update_default_system_prompts(
         current_defaults["stage1_response_structure"] = get_val(config["stage1_response_structure"])
     if "stage1_meta_structure" in config:
         current_defaults["stage1_meta_structure"] = get_val(config["stage1_meta_structure"])
+    if "evolution_prompt" in config:
+        current_defaults["evolution_prompt"] = get_val(config["evolution_prompt"])
+
     if config.get("ranking") and isinstance(config["ranking"], dict):
          current_defaults["ranking_prompt"] = get_val(config["ranking"].get("prompt"))
     
@@ -373,6 +380,7 @@ async def update_system_prompts(
     update_field(current_config, "base_system_prompt", config.get("base_system_prompt"))
     update_field(current_config, "stage1_response_structure", config.get("stage1_response_structure"))
     update_field(current_config, "stage1_meta_structure", config.get("stage1_meta_structure"))
+    update_field(current_config, "evolution_prompt", config.get("evolution_prompt"))
     
     # Handle nested components
     # Chairman

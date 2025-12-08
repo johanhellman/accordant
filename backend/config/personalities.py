@@ -145,10 +145,37 @@ The title should be concise and descriptive. Do not use quotes or punctuation in
 
 Question: {user_query}
 
-Title:"""
+# Default Evolution Prompt
+DEFAULT_EVOLUTION_PROMPT = """You are an expert AI Personality Architect. 
+Your task is to COMBINE the traits of {parent_count} existing "Parent" personalities into a new, superior "Offspring" personality.
+
+NAME OF NEW PERSONALITY: {offspring_name}
+
+GOAL:
+- Create a coherent, integrated personality, not just a concatenation.
+- PRESERVE the STRENGTHS identified in the peer feedback for each parent.
+- MITIGATE the WEAKNESSES identified in the peer feedback.
+- The new personality should feel like a natural evolution.
+
+SOURCE MATERIAL:
+{parent_data}
+
+OUTPUT FORMAT:
+You must output a valid YAML object for the 'personality_prompt' section.
+It must have EXACTLY these keys:
+- identity_and_role
+- interpretation_of_questions
+- problem_decomposition
+- analysis_and_reasoning
+- differentiation_and_bias
+- tone
+
+Do not include markdown code fence. Just the raw YAML.
+
+YAML:"""
 
 # Default models for special components
-DEFAULT_RANKING_MODEL = "gemini/gemini-2.5-pro"
+DEFAULT_RANKING_MODEL = "openai/gpt-4o"
 
 
 # --- Dynamic Configuration Loading ---
@@ -179,12 +206,12 @@ def _load_defaults() -> dict[str, Any]:
 def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
     """
     Load the system-prompts.yaml configuration file for an organization.
-
+    
     Args:
         org_id: Organization ID
-
+        
     Returns:
-        Parsed YAML config dict, or None if file doesn't exist or parsing fails
+        Parsed YAML config dict, or None if file does not exist or parsing fails.
     """
     config_dir = get_org_config_dir(org_id)
     system_prompts_file = os.path.join(config_dir, "system-prompts.yaml")
@@ -275,6 +302,7 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
     default_ranking = defaults.get("ranking_prompt", "")
     default_chairman = _get_nested_config_value(defaults, "chairman", "prompt", "")
     default_title = _get_nested_config_value(defaults, "title_generation", "prompt", "")
+    default_evolution = defaults.get("evolution_prompt", DEFAULT_EVOLUTION_PROMPT)
     default_struct_resp = defaults.get("stage1_response_structure", "")
     default_struct_meta = defaults.get("stage1_meta_structure", "")
 
@@ -284,6 +312,7 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
     result["base_system_prompt"] = _create_entry("base_system_prompt", default_base, None)
     result["chairman_prompt"] = _create_entry("prompt", default_chairman, None, section="chairman")
     result["title_prompt"] = _create_entry("prompt", default_title, None, section="title_generation")
+    result["evolution_prompt"] = _create_entry("evolution_prompt", default_evolution, None)
     result["stage1_response_structure"] = _create_entry("stage1_response_structure", default_struct_resp, None)
     result["stage1_meta_structure"] = _create_entry("stage1_meta_structure", default_struct_meta, None)
     
@@ -309,10 +338,8 @@ def load_org_system_prompts_config(org_id: str) -> dict[str, dict[str, Any]]:
 
 
 def load_org_models_config(org_id: str) -> dict[str, str]:
-    """
-    Load model configuration for an organization.
-    Returns a dict with keys: chairman_model, title_model, ranking_model
-    """
+    # Load model configuration for an organization.
+    # Returns a dict with keys: chairman_model, title_model, ranking_model
     defaults = _load_defaults()
     
     default_chairman_model = _get_nested_config_value(defaults, "chairman", "model", "gemini/gemini-2.5-pro")
@@ -347,10 +374,8 @@ def load_org_models_config(org_id: str) -> dict[str, str]:
 
 
 def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
-    """
-    Get all personalities for an organization, merging Defaults + Custom.
-    Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
-    """
+    # Get all personalities for an organization, merging Defaults + Custom.
+    # Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
     org_personalities_dir = get_org_personalities_dir(org_id)
     defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
     
@@ -399,10 +424,8 @@ def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
 
 
 def get_active_personalities(org_id: str) -> list[dict[str, Any]]:
-    """
-    Get active personalities for an organization.
-    Wraps get_all_personalities and filters for enabled=True.
-    """
+    # Get active personalities for an organization.
+    # Wraps get_all_personalities and filters for enabled=True.
     all_personalities = get_all_personalities(org_id)
     
     # We also need to respect the 'disabled_system_personalities' from org config if used

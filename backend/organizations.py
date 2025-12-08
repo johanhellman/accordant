@@ -133,28 +133,43 @@ def update_org(org_id: str, updates: dict[str, Any]) -> OrganizationInDB | None:
 def get_org_api_config(org_id: str) -> tuple[str, str]:
     """
     Get the API key and base URL for an organization.
-    Raises ValueError if not configured.
+    Prioritizes organization settings, falls back to environment variables.
+    Allows mixing (e.g., Global Key + Custom URL).
     """
-    from .config import OPENROUTER_API_KEY
+    from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL
     from .security import decrypt_value
 
     org = get_org(org_id)
     if not org:
         raise ValueError("Organization not found")
 
-    api_config = org.api_config
-    if not api_config or not api_config.get("api_key"):
-        # Fallback to global key if available (for migration/default org)
-        if OPENROUTER_API_KEY:
-            return OPENROUTER_API_KEY, "https://openrouter.ai/api/v1/chat/completions"
+    api_config = org.api_config or {}
+    
+    # 1. Determine API Key
+    api_key = None
+    if api_config.get("api_key"):
+        try:
+            api_key = decrypt_value(api_config["api_key"])
+        except Exception:
+            # If decryption fails (e.g. key rotation), log invalid but continue to fallback?
+            # Or raise? If stored key is bad, we probably shouldn't fallback to global silently 
+            # unless we explicitly decide to. But for robustness let's try fallback if decryption fails?
+            # No, standard security practice: if configured key fails, fail hard. 
+            # However, here we have a known issue with temp keys on restart.
+            # If we raise, the user is stuck. If we fallback, they might use global key.
+            # Given the dev environment context, failing hard is safer to alert user.
+            raise ValueError("Failed to decrypt organization API key. Please update settings.")
+            
+    if not api_key:
+        api_key = OPENROUTER_API_KEY
 
-        raise ValueError(
-            "LLM API Key not configured for this organization. Please ask an admin to configure it in Settings."
+    if not api_key:
+         raise ValueError(
+            "LLM API Key not configured. Please set 'api_key' in Organization Settings or 'LLM_API_KEY' in environment."
         )
 
-    try:
-        api_key = decrypt_value(api_config["api_key"])
-        base_url = api_config.get("base_url", "https://openrouter.ai/api/v1/chat/completions")
-        return api_key, base_url
-    except Exception as e:
-        raise ValueError("Failed to decrypt API key") from e
+    # 2. Determine Base URL
+    # Use Org URL if present, else Global URL (env var), else Default
+    base_url = api_config.get("base_url") or OPENROUTER_API_URL
+    
+    return api_key, base_url

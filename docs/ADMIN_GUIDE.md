@@ -19,6 +19,7 @@ You do **not** need to define the output format (e.g., "Start with Analysis...")
 In the "System Prompts" configuration, you can define:
 *   **Enforced Response Structure**: The headings and organization every personality must use.
 *   **Enforced Meta**: The metadata block (e.g., Confidence Score) that every personality must append.
+*   **Evolution Prompt**: The instructions used when combining personalities. You can customize how parents are merged and what traits are prioritized.
 
 Changing these in System Prompts will instantly update *all* personalities.
 

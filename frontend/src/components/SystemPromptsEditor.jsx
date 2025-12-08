@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../api";
 import PromptEditor from "./PromptEditor";
 import ModelSelector from "./ModelSelector";
-import { FileText, Vote, Gavel, PenTool } from "lucide-react";
+import { FileText, Vote, Gavel, PenTool, GitMerge } from "lucide-react";
 import "./SystemPromptsEditor.css";
 
 const SECTIONS = [
@@ -10,6 +10,7 @@ const SECTIONS = [
   { id: "enforced", label: "Enforced Structure (Stage 1)", icon: FileText },
   { id: "ranking", label: "Voting Instructions (Stage 2)", icon: Vote },
   { id: "chairman", label: "Chairman Configuration (Stage 3)", icon: Gavel },
+  { id: "evolution", label: "Evolution (Combining)", icon: GitMerge },
   { id: "title", label: "Title Generation (Utility)", icon: PenTool },
 ];
 
@@ -430,6 +431,52 @@ function SystemPromptsEditor() {
                   rows={4}
                   requiredVariables={["{user_query}"]}
                   disabled={scope === 'org' && config.title_generation.prompt.is_default}
+                />
+              </div>
+            </div>
+            <div className="actions">
+              <button onClick={handleSave} className="primary" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Configuration"}
+              </button>
+            </div>
+          </div>
+        );
+      case "evolution":
+        return (
+          <div className="section-content fade-in">
+            <div className="section-header">
+              <h3>Evolution Instructions</h3>
+              <p className="section-desc">
+                Instructions for the architect model on how to combine personalities.
+              </p>
+            </div>
+
+            <div className="config-group">
+              <div className="form-group">
+                {scope === 'org' && (
+                  <InheritanceToggle
+                    label="Evolution Prompt"
+                    configValue={config.evolution_prompt}
+                    onToggle={(newIsDefault) => {
+                      setConfig({
+                        ...config,
+                        evolution_prompt: { ...config.evolution_prompt, is_default: newIsDefault }
+                      });
+                    }}
+                  />
+                )}
+                <PromptEditor
+                  label="Evolution Prompt"
+                  value={config.evolution_prompt.value}
+                  onChange={(val) =>
+                    setConfig({
+                      ...config,
+                      evolution_prompt: { ...config.evolution_prompt, value: val, is_default: false },
+                    })
+                  }
+                  rows={16}
+                  requiredVariables={["{parent_count}", "{offspring_name}", "{parent_data}"]}
+                  disabled={scope === 'org' && config.evolution_prompt.is_default}
                 />
               </div>
             </div>

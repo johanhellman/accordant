@@ -70,34 +70,27 @@ async def combine_personalities(
         parent_data.append(parent_info)
 
     # 3. Construct Synthesis Prompt
-    prompt = f"""
-    You are an expert AI Personality Architect. 
-    Your task is to COMBINE the traits of {len(parents)} existing "Parent" personalities into a new, superior "Offspring" personality.
+    from .config.personalities import load_org_system_prompts
+    prompts = load_org_system_prompts(org_id)
+    evolution_prompt_template = prompts.get("evolution_prompt", "")
     
-    NAME OF NEW PERSONALITY: {name_suggestion}
-    
-    GOAL:
-    - Create a coherent, integrated personality, not just a concatenation.
-    - PRESERVE the STRENGTHS identified in the peer feedback for each parent.
-    - MITIGATE the WEAKNESSES identified in the peer feedback.
-    - The new personality should feel like a natural evolution.
-    
-    SOURCE MATERIAL:
-    {"".join(parent_data)}
-    
-    OUTPUT FORMAT:
-    You must output a valid YAML object for the 'personality_prompt' section.
-    It must have EXACTLY these keys:
-    - {", ".join(PERSONALITY_SECTIONS)}
-    
-    Do not include markdown code fence. Just the raw YAML.
-    
-    YAML:
-    """
+    if not evolution_prompt_template:
+        # Fallback if somehow missing
+        from .config.personalities import DEFAULT_EVOLUTION_PROMPT
+        evolution_prompt_template = DEFAULT_EVOLUTION_PROMPT
+        
+    prompt = evolution_prompt_template.format(
+        parent_count=len(parents),
+        offspring_name=name_suggestion,
+        parent_data="".join(parent_data)
+    )
     
     # 4. Call LLM
-    # Use a smart model for this architectural task
-    model = "gemini/gemini-2.5-pro" # TODO config
+    # Use the 'chairman_model' (synthesizer) for this architectural task
+    from .config.personalities import load_org_models_config
+    models_config = load_org_models_config(org_id)
+    model = models_config.get("chairman_model", "openai/gpt-4o") # Fallback if missing
+     
     messages = [{"role": "user", "content": prompt}]
     
     response = await query_model(model, messages, api_key=api_key, base_url=base_url)
