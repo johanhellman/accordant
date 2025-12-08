@@ -31,6 +31,7 @@ Each ADR follows this structure:
 | [ADR-011](ADR-011-client-side-voting-statistics.md) | Client-Side Voting Statistics Aggregation | Accepted | 2025-12-04 |
 | [ADR-012](012-multi-tenancy-architecture.md) | Multi-Tenancy Architecture | Accepted | 2025-12-04 |
 | [ADR-013](013-secrets-management.md) | Secrets Management | Accepted | 2025-12-04 |
+| [ADR-014](ADR-014-structured-personality-prompts.md) | Structured Personality Prompts | Accepted | 2025-12-08 |
 
 ## Decision Timeline
 
@@ -49,6 +50,7 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 11. **ADR-011**: Performance - client-side voting statistics aggregation
 12. **ADR-012**: Architecture - multi-tenancy architecture with data isolation
 13. **ADR-013**: Security - secrets management with encryption at rest
+14. **ADR-014**: Configuration - structured personality prompts with editable sections
 
 ## Related Documentation
 
