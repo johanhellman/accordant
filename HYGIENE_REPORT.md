@@ -144,7 +144,7 @@
 
 **Python Dependencies:**
 - ✅ **Lockfile**: `uv.lock` present and tracked
-- ✅ **pip-audit**: **0 vulnerabilities found** (verified 2025-12-08 at 16:30 UTC)
+- ✅ **pip-audit**: **0 vulnerabilities found** (verified 2025-12-08 - fresh audit)
   - **Status**: urllib3 upgraded to 2.6.1, fixing 2 CVEs
   - **Vulnerabilities Fixed**:
     - ✅ **CVE-2025-66418**: Fixed by upgrading urllib3 from 2.5.0 to 2.6.1
@@ -175,7 +175,7 @@
 ### Static Security Analysis
 
 **Python Security Linting:**
-- ✅ **Bandit**: **All Medium/High severity issues addressed** (verified 2025-12-08 at 15:55 UTC)
+- ✅ **Bandit**: **All Medium/High severity issues addressed** (verified 2025-12-08 - fresh audit)
   - **Configuration**: Present in `pyproject.toml` with exclusions for tests
   - **Remaining findings**: No issues identified (0 Low, 0 Medium, 0 High)
   - **Status**: Security scans functional and passing
