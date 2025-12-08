@@ -11,7 +11,7 @@
 - ✅ **Documentation**: Excellent - Comprehensive README, ADRs (14), API docs, developer guides
 - ✅ **Code Quality**: Excellent - Minimal duplication, manageable complexity
 - ✅ **Security**: Excellent - Encryption, path validation, all CVEs resolved (urllib3 upgraded to 2.6.1)
-- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 34 comprehensive test files exist
+- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 35 comprehensive test files exist
 - ⚠️ **CI/CD**: Intentionally deferred - No automated pipelines (per policy), pre-commit hooks configured
 - ✅ **DevEx**: Excellent - Ruff, Prettier, ESLint configured, Makefile commands, pre-commit hooks
 
@@ -243,7 +243,7 @@
 - ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
-- ✅ **Test Discovery**: 34 test files in `tests/` directory (verified 2025-12-08)
+- ✅ **Test Discovery**: 35 test files in `tests/` directory (verified 2025-12-08)
 - ✅ **Test Organization**: All tests consolidated to `tests/` directory (legacy `backend/tests/` files moved)
 
 **Frontend:**
@@ -403,6 +403,7 @@
 - ✅ `tests/test_security_hardening.py` - Security hardening tests
 - ✅ `tests/test_config_validation.py` - Config validation tests
 - ✅ `tests/test_paths_edge_cases.py` - **NEW** - Edge case tests for config/paths.py
+- ✅ `tests/test_council_helpers_edge_cases.py` - **NEW** - Comprehensive edge case tests for council_helpers.py (30+ test cases)
 - ✅ `tests/test_config.py` - **UPDATED** - Added comprehensive tests for personalities.py:
   - `_get_nested_config_value`: 5 test cases covering all edge cases
   - `load_org_models_config`: 5 test cases covering nested config, defaults, partial config
@@ -468,6 +469,15 @@
    - **Status**: ✅ **COMPLETED** - Added comprehensive edge case tests for:
      - `calculate_aggregate_rankings`: empty parsed rankings, unparseable rankings, duplicate labels, no matching labels, rounding precision
      - Additional coverage for error paths and edge cases
+   - **Additional Tests Added (2025-12-08)**:
+     - Comprehensive edge case tests in `tests/test_council_helpers_edge_cases.py` (30+ test cases):
+       - `parse_ranking_from_text`: FINAL_RANKING_MARKER edge cases, numbered matches with spacing, fallback patterns, multiple markers, whitespace handling
+       - `build_llm_history`: PART 2 parsing variations, missing stage3, empty dicts, max_turns edge cases, role filtering
+       - `prepare_history_context`: single/multiple user messages, empty lists
+       - `build_message_chain`: empty prompts/queries, history exclusion
+       - `build_ranking_prompt`: empty inputs, custom templates
+       - `calculate_aggregate_rankings`: empty inputs, missing keys, non-string rankings, single positions
+     - **Total**: 30+ new edge case test scenarios added
 
 4. **`backend/openrouter.py`** - 49% coverage → **Targeting 70%+**
    - **Action**: Add edge case tests for retry logic, timeout handling, semaphore behavior
@@ -572,10 +582,11 @@
   - `llm_service.py` edge cases (cache, error handling)
   - `security.py` edge cases (invalid keys, unicode, special chars)
   - `config/paths.py` edge cases (Windows paths, traversal prevention)
-- 📊 **New Test Files Added**: 7 comprehensive test files with 85+ new test cases
+- 📊 **New Test Files Added**: 8 comprehensive test files with 115+ new test cases
 - 📊 **Edge Case Tests Added (2025-12-08)**:
   - 15+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, and error handling paths
   - 35+ new test cases for `admin_routes.py` covering instance admin endpoints and `update_system_prompts` edge cases
+  - 30+ new edge case tests for `council_helpers.py` covering parsing, history building, message chains, and ranking calculations
 
 ---
 
