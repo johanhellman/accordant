@@ -171,11 +171,11 @@
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: var(--success-color);
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 
@@ -196,21 +196,25 @@ input:checked + .slider:before {
 
 .personality-editor {
   background: var(--bg-secondary);
-  width: 800px;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 1000px;
+  max-width: 95vw;
+  height: 90vh;
+  /* Fixed height to prevent jumping */
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-md);
+  overflow: hidden;
+  /* Prevent outer scrollbars */
 }
 
 .editor-header {
-  padding: 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .editor-header h2 {
@@ -226,9 +230,26 @@ input:checked + .slider:before {
 }
 
 .editor-content {
-  padding: 20px;
+  padding: 24px;
+  /* Increased padding */
   overflow-y: auto;
+  /* Allow scrolling if main content overflows, though PromptEditor handles its own */
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-height: 0;
+  /* Important for flex child scrolling */
+}
+
+/* Prompt Editor Wrapper to fill space */
+.prompt-editor-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  /* Minimum height for the editor area */
+  margin-bottom: 0;
+  /* Override default form-group margin */
 }
 
 .form-row {
@@ -238,17 +259,18 @@ input:checked + .slider:before {
 
 .form-row .form-group {
   flex: 1;
+  min-width: 0;
+  /* Prevent flex item overflow */
 }
 
 .editor-actions {
-  padding: 20px;
+  padding: 20px 24px;
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
   background: var(--bg-tertiary);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  flex-shrink: 0;
 }
 
 .form-group {
@@ -257,7 +279,7 @@ input:checked + .slider:before {
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: 500;
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -267,13 +289,15 @@ input:checked + .slider:before {
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+  /* Proper box sizing */
 }
 
 .form-group input:focus,
@@ -286,11 +310,12 @@ input:checked + .slider:before {
 
 .model-selector {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .provider-select {
-  width: 150px !important;
+  width: 140px !important;
+  flex-shrink: 0;
 }
 
 .model-select {
@@ -300,6 +325,12 @@ input:checked + .slider:before {
 button.primary {
   background: var(--primary-color);
   color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 button.primary:hover {
@@ -310,6 +341,11 @@ button.secondary {
   background: white;
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 button.secondary:hover {

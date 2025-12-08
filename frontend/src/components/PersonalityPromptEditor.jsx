@@ -1,13 +1,14 @@
-import React from "react";
-import "./PromptEditor.css"; // Reuse existing styles or create new ones? Let's reuse for consistency.
+import React, { useState } from "react";
+import PromptEditor from "./PromptEditor";
+import "./PromptEditor.css";
 
 const SECTIONS = [
-    { id: "identity_and_role", label: "IDENTITY & ROLE" },
-    { id: "interpretation_of_questions", label: "INTERPRETATION OF QUESTIONS" },
-    { id: "problem_decomposition", label: "PROBLEM DECOMPOSITION" },
-    { id: "analysis_and_reasoning", label: "ANALYSIS & REASONING" },
-    { id: "differentiation_and_bias", label: "DIFFERENTIATION & BIAS" },
-    { id: "tone", label: "TONE" },
+    { id: "identity_and_role", label: "Identity & Role" },
+    { id: "interpretation_of_questions", label: "Interpretation" },
+    { id: "problem_decomposition", label: "Decomposition" },
+    { id: "analysis_and_reasoning", label: "Reasoning" },
+    { id: "differentiation_and_bias", label: "Differentiation" },
+    { id: "tone", label: "Tone" },
 ];
 
 const ENFORCED_SECTIONS = [
@@ -16,8 +17,7 @@ const ENFORCED_SECTIONS = [
 ];
 
 function PersonalityPromptEditor({ promptData, systemPrompts = {}, onChange, readOnly = false }) {
-    // If promptData is string (legacy), we might want to handle it, but for now assume strict dict from parent logic
-    // Parent should handle conversion if needed.
+    const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
 
     const handleChange = (section, value) => {
         onChange({
@@ -25,6 +25,9 @@ function PersonalityPromptEditor({ promptData, systemPrompts = {}, onChange, rea
             [section]: value,
         });
     };
+
+    const isEnforcedTab = activeSection === "system_enforced";
+    const currentSectionDef = SECTIONS.find(s => s.id === activeSection);
 
     return (
         <div className="personality-prompt-editor">
@@ -35,44 +38,53 @@ function PersonalityPromptEditor({ promptData, systemPrompts = {}, onChange, rea
                 </p>
             </div>
 
-            <div className="sections-container">
-                {SECTIONS.map((section, index) => (
-                    <div key={section.id} className="prompt-section">
-                        <div className="section-header">
-                            <span className="section-number">{index + 1}</span>
-                            <h4>{section.label}</h4>
-                        </div>
-                        <textarea
-                            className="section-input"
-                            value={promptData[section.id] || ""}
-                            onChange={(e) => handleChange(section.id, e.target.value)}
-                            disabled={readOnly}
-                            placeholder={`Define ${section.label.toLowerCase()}...`}
-                            rows={4}
+            <div className="prompt-tabs">
+                {SECTIONS.map((section) => (
+                    <button
+                        key={section.id}
+                        className={`prompt-tab-btn ${activeSection === section.id ? "active" : ""}`}
+                        onClick={() => setActiveSection(section.id)}
+                    >
+                        {section.label}
+                    </button>
+                ))}
+                <button
+                    className={`prompt-tab-btn system-tab ${activeSection === "system_enforced" ? "active" : ""}`}
+                    onClick={() => setActiveSection("system_enforced")}
+                >
+                    🔒 System Enforced
+                </button>
+            </div>
+
+            <div className="prompt-editor-area">
+                {!isEnforcedTab ? (
+                    <div className="section-editor">
+                        <PromptEditor
+                            label={currentSectionDef?.label.toUpperCase()}
+                            value={promptData[activeSection] || ""}
+                            onChange={(val) => handleChange(activeSection, val)}
+                            rows={15}
+                            description={`Define ${currentSectionDef?.label.toLowerCase()} settings for this personality.`}
                         />
                     </div>
-                ))}
-
-                {/* Enforced Sections Display */}
-                <div className="enforced-sections-divider">
-                    <span>System Enforced Sections (Appended Automatically)</span>
-                </div>
-
-                {ENFORCED_SECTIONS.map((item, index) => (
-                    <div key={item.title} className="prompt-section enforced">
-                        <div className="section-header">
-                            <span className="section-number">{SECTIONS.length + index + 1}</span>
-                            <h4>{item.title}</h4>
-                            <span className="badge">System</span>
+                ) : (
+                    <div className="system-enforced-view">
+                        <div className="section-header-row">
+                            <h4>SYSTEM ENFORCED PROMPTS</h4>
                         </div>
-                        <div className="enforced-description">
-                            {item.description}
-                        </div>
-                        <div className="enforced-content-preview">
-                            <pre>{systemPrompts[item.key] || "No content defined in System Prompts."}</pre>
+                        <div className="enforced-scroll-container">
+                            {ENFORCED_SECTIONS.map((item) => (
+                                <div key={item.key} className="enforced-item">
+                                    <h5>{item.title}</h5>
+                                    <p className="enforced-desc">{item.description}</p>
+                                    <pre className="enforced-code">
+                                        {systemPrompts[item.key] || "No content defined."}
+                                    </pre>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );

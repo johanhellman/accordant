@@ -75,12 +75,27 @@ function PersonalityManager() {
     if (!p.name) errors.push("Name is required");
     if (!p.description) errors.push("Description is required");
     if (!p.model) errors.push("Model is required");
-    if (!p.personality_prompt) errors.push("Personality Prompt is required");
-    // Simple check if dict is empty
-    if (typeof p.personality_prompt === 'object' && Object.keys(p.personality_prompt).length === 0) {
-      // Technically can be valid if user wants empty, but let's encourage at least Identity
-      // Let's not strict enforce Identity for now, but general 'required' check on backend might fail
+
+    // Strict prompt validation
+    if (!p.personality_prompt || Object.keys(p.personality_prompt).length === 0) {
+      errors.push("Personality Prompt is required");
+    } else {
+      const requiredSections = [
+        { key: "identity_and_role", label: "Identity & Role" },
+        { key: "interpretation_of_questions", label: "Interpretation" },
+        { key: "problem_decomposition", label: "Decomposition" },
+        { key: "analysis_and_reasoning", label: "Reasoning" },
+        { key: "differentiation_and_bias", label: "Differentiation" },
+        { key: "tone", label: "Tone" }
+      ];
+
+      requiredSections.forEach(section => {
+        if (!p.personality_prompt[section.key] || !p.personality_prompt[section.key].trim()) {
+          errors.push(`Prompt Section '${section.label}' is required`);
+        }
+      });
     }
+
     if (p.temperature === undefined || p.temperature === null || p.temperature === "")
       errors.push("Temperature is required");
     return errors;
@@ -245,9 +260,7 @@ function PersonalityManager() {
               </div>
             </div>
 
-            {/* Removed UI Fields (Avatar, Color, Group, Tags) */}
-
-            <div className="form-group">
+            <div className="form-group prompt-editor-wrapper">
               <PersonalityPromptEditor
                 promptData={selectedPersonality.personality_prompt}
                 systemPrompts={systemPrompts}
