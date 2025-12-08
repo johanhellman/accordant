@@ -96,13 +96,7 @@ function SystemPromptsEditor() {
             <div className="form-group">
               <label>Enforced Context (Prepend)</label>
               <pre className="enforced-text">
-                {`You are evaluating different responses to the following question:
-
-Question: {user_query}
-
-Here are the responses from {peer_text}:
-
-{responses_text}`}
+                {config.ranking_enforced_context}
               </pre>
             </div>
 
@@ -124,24 +118,7 @@ Here are the responses from {peer_text}:
             <div className="form-group">
               <label>Enforced Output Format (Append)</label>
               <pre className="enforced-text">
-                {`IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
-- Start with the line "FINAL RANKING:" (all caps, with colon)
-- Then list the responses from best to worst as a numbered list
-- Each line should be: number, period, space, then ONLY the response label (e.g., "1. Response A")
-- Do not add any other text or explanations in the ranking section
-
-Example of the correct format for your ENTIRE response:
-
-Response A provides good detail on X but misses Y...
-Response B is accurate but lacks depth on Z...
-Response C offers the most comprehensive answer...
-
-FINAL RANKING:
-1. Response C
-2. Response A
-3. Response B
-
-Now provide your evaluation and ranking:`}
+                {config.ranking_enforced_format}
               </pre>
             </div>
           </div>

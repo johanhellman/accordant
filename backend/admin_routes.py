@@ -21,6 +21,7 @@ from .llm_service import get_available_models
 from .organizations import get_org, get_org_api_config, update_org
 from .security import encrypt_value
 from .users import User
+from .council_helpers import ENFORCED_CONTEXT, ENFORCED_OUTPUT_FORMAT
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,8 @@ class SystemPromptsConfig(BaseModel):
     ranking: ComponentConfig
     chairman: ComponentConfig
     title_generation: ComponentConfig
+    ranking_enforced_context: str | None = None
+    ranking_enforced_format: str | None = None
 
 
 def validate_prompt_tags(prompt: str, required_tags: list[str], prompt_name: str):
@@ -250,6 +253,8 @@ async def get_system_prompts(current_user: User = Depends(get_current_admin_user
             "model": ranking_conf.get("model", DEFAULT_RANKING_MODEL),
             "effective_model": models_config["ranking_model"],
         },
+        "ranking_enforced_context": ENFORCED_CONTEXT,
+        "ranking_enforced_format": ENFORCED_OUTPUT_FORMAT.replace("{FINAL_RANKING_MARKER}", "FINAL RANKING:").replace("{RESPONSE_LABEL_PREFIX}", "Response "),
         "chairman": {
             "prompt": chairman_conf.get("prompt", DEFAULT_CHAIRMAN_PROMPT),
             "model": chairman_conf.get("model", "gemini/gemini-2.5-pro"),
