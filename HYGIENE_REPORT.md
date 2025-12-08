@@ -11,7 +11,7 @@
 - ✅ **Documentation**: Excellent - Comprehensive README, ADRs (14), API docs, developer guides
 - ✅ **Code Quality**: Excellent - Minimal duplication, manageable complexity
 - ✅ **Security**: Excellent - Encryption, path validation, all CVEs resolved (urllib3 upgraded to 2.6.1)
-- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 32 comprehensive test files exist
+- ⚠️ **Tests**: Good infrastructure - 61.8% coverage (below 80% target), 34 comprehensive test files exist
 - ⚠️ **CI/CD**: Intentionally deferred - No automated pipelines (per policy), pre-commit hooks configured
 - ✅ **DevEx**: Excellent - Ruff, Prettier, ESLint configured, Makefile commands, pre-commit hooks
 
@@ -243,7 +243,7 @@
 - ✅ **Test Command**: `uv run pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run pytest --cov=backend --cov-report=html`
 - ✅ **Coverage Configuration**: Configured in `pyproject.toml` with HTML and terminal reports
-- ✅ **Test Discovery**: 32 test files in `tests/` directory (verified 2025-12-08)
+- ✅ **Test Discovery**: 34 test files in `tests/` directory (verified 2025-12-08)
 - ✅ **Test Organization**: All tests consolidated to `tests/` directory (legacy `backend/tests/` files moved)
 
 **Frontend:**
@@ -393,6 +393,10 @@
 - ✅ `tests/test_llm_service.py` - LLM service tests
 - ✅ `tests/test_llm_service_edge_cases.py` - **NEW** - Edge case tests for llm_service.py (cache, error handling)
 - ✅ `tests/test_admin_routes.py` - Admin routes tests
+- ✅ `tests/test_admin_routes_edge_cases.py` - Edge case tests for admin_routes.py
+- ✅ `tests/test_admin_routes_errors.py` - Error handling tests for admin_routes.py
+- ✅ `tests/test_admin_routes_instance_admin.py` - **NEW** - Instance admin endpoint tests (get_default_system_prompts, update_default_system_prompts)
+- ✅ `tests/test_admin_routes_update_system_prompts.py` - **NEW** - Comprehensive edge case tests for update_system_prompts
 - ✅ `tests/test_org_routes.py` - Organization routes tests
 - ✅ `tests/test_invitations.py` - Invitation tests
 - ✅ `tests/test_users_functions.py` - User management tests
@@ -449,6 +453,14 @@
      - Settings operations with various scenarios
      - Voting history edge cases
      - System prompts legacy format support
+   - **Additional Tests Added (2025-12-08)**:
+     - Instance admin endpoints: `get_default_system_prompts` and `update_default_system_prompts` (15+ test cases)
+     - Comprehensive edge case tests for `update_system_prompts` (20+ test cases):
+       - `is_default` toggle logic (reverting to inheritance)
+       - Nested component updates (chairman, title_generation, ranking)
+       - Model updates within nested components
+       - Edge cases: empty config, non-dict values, non-string models, multiple fields
+     - **Total**: 35+ new test cases added for admin_routes.py
 
 3. **`backend/council_helpers.py`** - 26% coverage → **Targeting 60%+**
    - **Action**: Add tests for helper functions (prompt building, ranking parsing)
@@ -560,8 +572,10 @@
   - `llm_service.py` edge cases (cache, error handling)
   - `security.py` edge cases (invalid keys, unicode, special chars)
   - `config/paths.py` edge cases (Windows paths, traversal prevention)
-- 📊 **New Test Files Added**: 5 comprehensive test files with 50+ new test cases
-- 📊 **Edge Case Tests Added (2025-12-08)**: 15+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, and error handling paths
+- 📊 **New Test Files Added**: 7 comprehensive test files with 85+ new test cases
+- 📊 **Edge Case Tests Added (2025-12-08)**:
+  - 15+ additional edge case scenarios for `council.py` covering empty results, missing keys, partial failures, and error handling paths
+  - 35+ new test cases for `admin_routes.py` covering instance admin endpoints and `update_system_prompts` edge cases
 
 ---
 
