@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/', // Ensure assets are served from root path
+  build: {
+    assetsDir: 'assets',
+    outDir: 'dist',
+  },
   test: {
     globals: true,
     environment: 'jsdom',

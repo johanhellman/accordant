@@ -233,29 +233,33 @@ if os.path.isdir(static_dir):
     logger.info(f"Serving static files from {static_dir}")
     app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
     
-    # Catch-all for SPA (must be last route)
+    # Root route for SPA - must be defined before catch-all
+    @app.get("/")
+    async def root():
+        """Serve the index page for the SPA."""
+        return FileResponse(os.path.join(static_dir, "index.html"))
+    
+    # Catch-all for SPA routes (must be last route)
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Don't intercept API routes (they should have matched above, but just in case of 404s)
         if full_path.startswith("api/"):
              raise HTTPException(status_code=404, detail="API endpoint not found")
         
-        # Check if file exists in root of dist (e.g. favicon.ico)
+        # Check if file exists in root of dist (e.g. favicon.ico, vite.svg)
         file_path = os.path.join(static_dir, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
             
-        # Otherwise serve index.html
+        # Otherwise serve index.html for SPA routing
         return FileResponse(os.path.join(static_dir, "index.html"))
 else:
     logger.warning(f"Static directory {static_dir} not found. Running in API-only mode.")
-
-@app.get("/")
-async def root():
-    """Retrieve the index page or health info if static not served."""
-    if os.path.isdir(static_dir):
-         return FileResponse(os.path.join(static_dir, "index.html"))
-    return {"status": "ok", "service": "Accordant API (Dev Mode)"}
+    
+    @app.get("/")
+    async def root():
+        """Retrieve health info if static not served."""
+        return {"status": "ok", "service": "Accordant API (Dev Mode)"}
 
 
 # --- Auth Routes ---
