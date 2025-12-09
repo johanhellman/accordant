@@ -162,10 +162,99 @@ if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") and (
     )
 
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# ... (Auth Routes and others) ...
+
+@app.get("/api/health")
+async def health_check():
+    """
+    Health check endpoint for Docker/Kubernetes.
+    Checks backend responsiveness and storage writability.
+    """
+    import time
+    from pathlib import Path
+
+    start_time = time.time()
+    
+    # Check storage
+    storage_status = "ok"
+    writable = False
+    data_dir = os.path.join(os.getcwd(), "data")
+    try:
+        # Try to write a temp file to data dir
+        test_file = os.path.join(data_dir, ".healthcheck")
+        with open(test_file, "w") as f:
+            f.write("ok")
+        os.remove(test_file)
+        writable = True
+    except Exception as e:
+        storage_status = f"error: {str(e)}"
+        logger.error(f"Health check storage error: {e}")
+
+    # Response time
+    process_time = (time.time() - start_time) * 1000
+
+    status_overall = "healthy" if writable else "unhealthy"
+    
+    # Service Unavailable if unhealthy
+    if status_overall == "unhealthy":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service unhealthy"
+        )
+
+    return {
+        "status": status_overall,
+        "service": "Accordant API",
+        "version": "0.2.1",  # Should ideally match config
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "checks": {
+            "backend": {
+                "status": "ok",
+                "response_time_ms": round(process_time, 2)
+            },
+            "storage": {
+                "status": storage_status,
+                "writable": writable,
+                "data_dir": data_dir
+            }
+        },
+        "response_time_ms": round(process_time, 2)
+    }
+
+
+# Mount Static Files (Frontend)
+# Only if the build directory exists (i.e. inside Docker or after manual build)
+static_dir = os.getenv("STATIC_DIR", "frontend/dist")
+if os.path.isdir(static_dir):
+    logger.info(f"Serving static files from {static_dir}")
+    app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
+    
+    # Catch-all for SPA (must be last route)
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Don't intercept API routes (they should have matched above, but just in case of 404s)
+        if full_path.startswith("api/"):
+             raise HTTPException(status_code=404, detail="API endpoint not found")
+        
+        # Check if file exists in root of dist (e.g. favicon.ico)
+        file_path = os.path.join(static_dir, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
+        # Otherwise serve index.html
+        return FileResponse(os.path.join(static_dir, "index.html"))
+else:
+    logger.warning(f"Static directory {static_dir} not found. Running in API-only mode.")
+
 @app.get("/")
 async def root():
-    """Health check endpoint."""
-    return {"status": "ok", "service": "Accordant API"}
+    """Retrieve the index page or health info if static not served."""
+    if os.path.isdir(static_dir):
+         return FileResponse(os.path.join(static_dir, "index.html"))
+    return {"status": "ok", "service": "Accordant API (Dev Mode)"}
 
 
 # --- Auth Routes ---

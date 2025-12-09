@@ -39,7 +39,13 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 # Add the output to .env as: ENCRYPTION_KEY=...
 
 # 4. Start the application
+# Standard Mode
 ./start.sh
+
+# Docker Mode (Recommended)
+docker compose up -d
+# App available at http://localhost:8000
+# Health check: http://localhost:8000/api/health
 ```
 
 Then open http://localhost:5173 in your browser.

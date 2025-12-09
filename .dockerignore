@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.venv
+venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Env
+.env
+
+# Data (Don't copy local data into image, rely on volumes mostly)
+# specific data folders that might contain local state
+data/organizations/
+data/users.json
+data/voting_history.json
+# BUT we DO want defaults to be copied so we don't ignore data/defaults usually, but here we can be specific
+# We will explicitly copy data/defaults in Dockerfile, so we don't need to ignore it here unless we do COPY . . which we usually do.
+# Let's keep data/defaults in context.

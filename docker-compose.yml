@@ -1,0 +1,24 @@
+name: accordant-stack
+
+services:
+  accordant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: accordant:latest
+    container_name: accordant
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist data to local ./data directory
+      - ./data:/app/data
+    environment:
+      - LOG_LEVEL=INFO
+      # Add other necessary env vars here or use env_file
+    networks:
+      - accordant-net
+
+networks:
+  accordant-net:
+    driver: bridge
