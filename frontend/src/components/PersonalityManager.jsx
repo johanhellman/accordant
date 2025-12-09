@@ -240,6 +240,12 @@ const PersonalityManager = () => {
 
       {error && <div className="error-banner">{error}</div>}
 
+      {scope === 'global' && (
+        <div className="global-scope-banner">
+          ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit these settings.
+        </div>
+      )}
+
       <div className="tab-content">
         {activeTab === 'personalities' && (
           <div className="personalities-grid">
@@ -319,7 +325,9 @@ const PersonalityManager = () => {
         )}
 
         {activeTab === 'system-prompts' && (
-          <SystemPromptsEditor />
+          <SystemPromptsEditor
+            scope={scope}
+          />
         )}
 
         {activeTab === 'voting-history' && (

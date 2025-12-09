@@ -70,6 +70,20 @@
   border-bottom: 1px solid #ffe0b2;
 }
 
+.global-scope-banner {
+  background-color: var(--bg-warning-light, #fff3cd);
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(133, 100, 4, 0.1);
+}
+
 .header h2 {
   margin: 0;
   font-size: 1.8rem;

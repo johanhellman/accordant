@@ -2,7 +2,8 @@
   display: flex;
   min-height: calc(100vh - 60px);
   width: 100%;
-  /* Ensure full width */
+  max-width: 100%;
+  /* Enforce full width */
   background: #f9f9f9;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -70,6 +71,9 @@
 .editor-content {
   flex-grow: 1;
   padding: 40px;
+  width: calc(100% - 260px);
+  /* Subtract sidebar width */
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
@@ -79,19 +83,7 @@
   /* Very light orange background */
 }
 
-.global-scope-banner {
-  background-color: var(--color-bg-secondary);
-  color: #856404;
-  border: 1px solid #ffeeba;
-  padding: 12px 20px;
-  margin-bottom: 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 2px 4px rgba(133, 100, 4, 0.1);
-}
+
 
 .editor-content.global-scope .section-content {
   border-top: 4px solid #f6ad55;
@@ -269,54 +261,4 @@ label {
   }
 }
 
-/* Scope Selector */
-.scope-selector {
-  margin-top: 10px;
-}
-
-.scope-selector label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  color: #888;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.scope-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #f0f0f0;
-  padding: 4px;
-  border-radius: 6px;
-}
-
-.scope-buttons button {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 6px 4px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  color: #555;
-  font-weight: 500;
-  transition: all 0.2s;
-  display: flex;
-  /* Flex for icons */
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-}
-
-.scope-buttons button:hover {
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--color-text-primary);
-}
-
-.scope-buttons button.active {
-  background: white;
-  color: #1a1a1a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
-}
+/* Editor Content */

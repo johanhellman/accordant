@@ -53,14 +53,14 @@ const ScopeSelector = ({ scope, onChange }) => (
   </div>
 );
 
-function SystemPromptsEditor() {
+function SystemPromptsEditor({ scope }) {
   const [config, setConfig] = useState(null);
   const [models, setModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("base");
 
-  const [scope, setScope] = useState("org"); // 'org' or 'global'
+  // Removed internal scope state
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -497,7 +497,7 @@ function SystemPromptsEditor() {
       <div className="sidebar">
         <div className="sidebar-header">
           <h2>Configuration</h2>
-          {isAdmin && <ScopeSelector scope={scope} onChange={setScope} />}
+          {/* Removed internal scope selector */}
         </div>
         <nav className="sidebar-nav">
           {SECTIONS.map((section) => {
@@ -516,11 +516,6 @@ function SystemPromptsEditor() {
         </nav>
       </div>
       <div className={`editor-content ${scope === 'global' ? 'global-scope' : ''}`}>
-        {scope === 'global' && (
-          <div className="global-scope-banner">
-            ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit these settings.
-          </div>
-        )}
         {renderContent()}
       </div>
     </div>
