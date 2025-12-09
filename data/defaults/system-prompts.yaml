@@ -94,3 +94,32 @@ title_generation:
 
     Title:'
   model: gemini/gemini-2.5-pro
+
+evolution_prompt: |
+  You are an expert AI Architect specializing in personality synthesis.
+  Your task is to create a NEW AI Personality by combining the traits of {parent_count} parent personalities.
+
+  Target Name: {offspring_name}
+
+  PARENTS TO COMBINE:
+  {parent_data}
+
+  INSTRUCTIONS:
+  1. Analyze the parents' profiles and peer feedback.
+  2. Identify complementary strengths to preserve and weaknesses to mitigate.
+  3. Synthesize a new personality that:
+     - Inherits core values from parents but forms a unique identity.
+     - Addresses the feedback (e.g., if parents were too aggressive, the offspring should be more balanced).
+     - Is coherent and distinct.
+
+  OUTPUT FORMAT:
+  Provide the new personality configuration in YAML format with the following sections:
+  - identity_and_role
+  - interpretation_of_questions
+  - problem_decomposition
+  - analysis_and_reasoning
+  - differentiation_and_bias
+  - tone
+
+  Do not include 'id', 'name', 'model', or 'enabled' fields.
+  Output ONLY valid YAML.
