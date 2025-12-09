@@ -68,9 +68,10 @@
 }
 
 /* Main Content Styles */
-.editor-content {
+/* Main Content Styles */
+.system-prompts-content {
   flex-grow: 1;
-  padding: 40px;
+  padding: 20px;
   width: calc(100% - 260px);
   /* Subtract sidebar width */
   box-sizing: border-box;
@@ -78,14 +79,14 @@
 }
 
 /* Global Scope Theme */
-.editor-content.global-scope {
+.system-prompts-content.global-scope {
   background-color: var(--color-bg-secondary);
   /* Very light orange background */
 }
 
 
 
-.editor-content.global-scope .section-content {
+.system-prompts-content.global-scope .section-content {
   border-top: 4px solid #f6ad55;
   /* Orange top border */
 }

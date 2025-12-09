@@ -52,18 +52,18 @@
   font-weight: var(--font-weight-bold);
 }
 
-.form-group {
+.login-card .form-group {
   margin-bottom: var(--spacing-4);
 }
 
-.form-group label {
+.login-card .form-group label {
   display: block;
   margin-bottom: var(--spacing-2);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
 
-.form-group input {
+.login-card .form-group input {
   width: 100%;
   padding: var(--spacing-3);
   border: 1px solid var(--color-border);
@@ -73,7 +73,7 @@
   color: var(--color-text-primary);
 }
 
-.form-group input:focus {
+.login-card .form-group input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-light);

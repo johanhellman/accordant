@@ -515,7 +515,7 @@ function SystemPromptsEditor({ scope }) {
           })}
         </nav>
       </div>
-      <div className={`editor-content ${scope === 'global' ? 'global-scope' : ''}`}>
+      <div className={`system-prompts-content ${scope === 'global' ? 'global-scope' : ''}`}>
         {renderContent()}
       </div>
     </div>
