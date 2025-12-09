@@ -306,6 +306,7 @@ if os.path.isdir(static_dir):
         # Check if file exists in root of dist (e.g. favicon.ico, vite.svg)
         file_path = os.path.join(static_dir, full_path)
         if os.path.isfile(file_path):
+            logger.debug(f"Serving static file: {full_path}")
             return FileResponse(file_path)
             
         # Otherwise serve index.html for SPA routing
