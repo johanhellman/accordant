@@ -21,11 +21,13 @@ For a minimal setup, see the [Quick Start section in README.md](../README.md#qui
 The project uses [uv](https://docs.astral.sh/uv/) for Python project management.
 
 **Backend:**
+
 ```bash
 uv sync
 ```
 
 **Frontend:**
+
 ```bash
 cd frontend
 npm install
@@ -73,15 +75,19 @@ To rotate the encryption key (e.g., if compromised or for compliance):
 
 1. **Stop the application** to ensure no new data is written during rotation.
 2. **Generate a new key**:
+
    ```bash
    NEW_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
    echo "New Key: $NEW_KEY"
    ```
+
 3. **Run the rotation script**:
+
    ```bash
    # Usage: python -m backend.scripts.rotate_keys <OLD_KEY> <NEW_KEY>
    uv run python -m backend.scripts.rotate_keys $ENCRYPTION_KEY $NEW_KEY
    ```
+
 4. **Update Configuration**:
    - Update your `.env` file (or deployment secrets) with `ENCRYPTION_KEY=$NEW_KEY`.
 5. **Restart the application**.
@@ -157,6 +163,7 @@ CORS_ORIGINS='["http://localhost:5173","http://localhost:3000"]'
 ## Running the Application
 
 **Option 1: Use the start script**
+
 ```bash
 ./start.sh
 ```
@@ -164,17 +171,19 @@ CORS_ORIGINS='["http://localhost:5173","http://localhost:3000"]'
 **Option 2: Run manually**
 
 Terminal 1 (Backend):
+
 ```bash
 uv run python -m backend.main
 ```
 
 Terminal 2 (Frontend):
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open <http://localhost:5173> in your browser.
 
 ## Environment Variables Reference
 
@@ -186,30 +195,36 @@ Then open http://localhost:5173 in your browser.
 ### Optional Variables
 
 #### API Configuration
+
 - `CHAIRMAN_MODEL` - Model for synthesizing final responses (overrides UI setting)
 - `TITLE_GENERATION_MODEL` - Model for generating conversation titles (overrides UI setting)
 
 #### Personalities
+
 - `COUNCIL_PERSONALITIES_DIR` - Directory containing personality YAML files (default: `data/personalities`)
 - `COUNCIL_PERSONALITIES_ACTIVE` - JSON array or comma-separated list of active personality IDs
 
 #### Performance
+
 - `MAX_CONCURRENT_REQUESTS` - Maximum concurrent API requests (default: `4`)
 - `LLM_REQUEST_TIMEOUT` - Timeout for API requests in seconds (default: `180.0`)
 - `LLM_MAX_RETRIES` - Number of retries for failed requests (default: `3`)
 
 #### Logging
+
 - `LOG_LEVEL` - Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (default: `INFO`)
 - `LOG_DIR` - Directory for log files (default: `logs`)
 - `LOG_FILE` - Path to log file (default: `logs/llm_council.log`)
 
 #### CORS
+
 - `CORS_ORIGINS` - Comma-separated origins or JSON array (default: `http://localhost:5173,http://localhost:3000`)
 - `CORS_METHODS` - Allowed HTTP methods (default: `*`)
 - `CORS_HEADERS` - Allowed headers (default: `*`)
 - `CORS_CREDENTIALS` - Allow credentials (default: `true`)
 
 #### Server
+
 - `PORT` - Backend server port (default: `8001`)
 
 ## Next Steps
@@ -218,4 +233,3 @@ Then open http://localhost:5173 in your browser.
 - See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for multi-user and admin features
 - See [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for development setup
 - See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment
-

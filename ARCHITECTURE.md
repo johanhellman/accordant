@@ -13,13 +13,12 @@ For full architectural details, start here:
 
 Contributors looking for deeper implementation notes should also see `docs/DEVELOPER_GUIDE.md`.
 
-
 ## Federated Architecture & Privacy
 
 Accordant uses a **Federated Aggregation** model to balance organization privacy with global system improvement.
 
--   **Data Residency**: All sensitive data (conversations, reasoning text) resides strictly within the Tenant/Organization boundary.
--   **Privacy Firewall**: The "Instance Admin" (System Operator) can see aggregated metrics (Win Rates) but **cannot** access raw conversation logs or qualitative reasoning text.
--   **On-Demand Retrieval**: Qualitative feedback summaries are generated on-demand by fetching data from secure storage only when requested by an authorized Organization Admin.
+- **Data Residency**: All sensitive data (conversations, reasoning text) resides strictly within the Tenant/Organization boundary.
+- **Privacy Firewall**: The "Instance Admin" (System Operator) can see aggregated metrics (Win Rates) but **cannot** access raw conversation logs or qualitative reasoning text.
+- **On-Demand Retrieval**: Qualitative feedback summaries are generated on-demand by fetching data from secure storage only when requested by an authorized Organization Admin.
 
 For implementation details, see [ADR-015: Federated Voting Privacy](docs/adr/ADR-015-federated-voting-privacy.md).

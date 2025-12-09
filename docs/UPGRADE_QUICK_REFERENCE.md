@@ -45,6 +45,7 @@ make check-outdated
 ```
 
 This will:
+
 - Check Python packages for updates
 - Check JavaScript packages for updates
 - Run security audits
@@ -53,6 +54,7 @@ This will:
 ### 2. Review Reports
 
 Check the generated reports:
+
 - `reports/python-outdated.txt` - Outdated Python packages
 - `reports/python-security-audit.txt` - Python security issues
 - `reports/js-outdated.txt` - Outdated JavaScript packages
@@ -61,6 +63,7 @@ Check the generated reports:
 ### 3. Prioritize Updates
 
 **Priority Order:**
+
 1. 🔴 **Security vulnerabilities** - Update immediately
 2. 🟢 **Patch updates** (x.y.Z) - Low risk, safe to update
 3. 🟡 **Minor updates** (x.Y.z) - Test thoroughly
@@ -242,8 +245,8 @@ When upgrading dependencies, these files may change:
 ## Resources
 
 - **Full Upgrade Plan**: `docs/UPGRADE_PLAN.md`
-- **Python Packages**: https://pypi.org/
-- **JavaScript Packages**: https://www.npmjs.com/
+- **Python Packages**: <https://pypi.org/>
+- **JavaScript Packages**: <https://www.npmjs.com/>
 - **Security**: Run `make security-audit` regularly
 
 ## Automation
@@ -264,4 +267,3 @@ Consider setting up:
 5. ✅ **Commit lock files** - Ensures reproducible builds
 6. ✅ **Use branches** - Test updates in separate branches
 7. ✅ **Document breaking changes** - If any code changes are needed
-

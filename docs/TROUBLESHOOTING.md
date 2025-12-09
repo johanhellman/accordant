@@ -9,6 +9,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `OPENROUTER_API_KEY or LLM_API_KEY environment variable is required`
 
 **Solution:**
+
 - Ensure your `.env` file exists in the project root and contains `OPENROUTER_API_KEY=sk-or-v1-...`
 - Verify: Check that `.env` is in the same directory as `pyproject.toml`
 - Check file permissions: Ensure the `.env` file is readable
@@ -18,6 +19,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `ModuleNotFoundError: No module named 'backend'`
 
 **Solution:**
+
 - Run `uv sync` to install dependencies
 - Use `uv run python -m backend.main` to start the backend (from project root)
 - Alternative: Activate the virtual environment with `source .venv/bin/activate` (or `.venv\Scripts\activate` on Windows)
@@ -27,15 +29,20 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `Address already in use` when starting backend
 
 **Solution:**
+
 - Either stop the process using port 8001:
+
   ```bash
   # Find process using port 8001
   lsof -ti:8001 | xargs kill -9
   ```
+
 - Or set a different port via environment variable:
+
   ```bash
   PORT=8002 uv run python -m backend.main
   ```
+
 - Don't forget to update the frontend API URL if you change the port
 
 ### Rate Limiting
@@ -43,6 +50,7 @@ Common issues and solutions for Accordant LLM Council.
 **Symptom:** Requests fail with timeout or rate limit errors
 
 **Solution:**
+
 - Reduce `MAX_CONCURRENT_REQUESTS` in `.env` (try 2 or 1)
 - Increase `LLM_REQUEST_TIMEOUT` if models are slow
 - Check your OpenRouter account for rate limits and credits
@@ -53,6 +61,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `Invalid token` or encryption-related errors
 
 **Solution:**
+
 - Ensure `ENCRYPTION_KEY` is set in `.env`
 - Verify the key is valid Fernet format (32 url-safe base64-encoded bytes)
 - If you've lost the key, you'll need to rotate it (see [SETUP.md](SETUP.md#key-rotation))
@@ -64,11 +73,14 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** Vite dev server can't start because port 5173 is in use
 
 **Solution:**
+
 - Vite will automatically try the next available port, or specify one:
+
   ```bash
   cd frontend
   npm run dev -- --port 5174
   ```
+
 - Update `CORS_ORIGINS` in `.env` if you use a different port
 
 ### Dependencies Not Installing
@@ -76,13 +88,16 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `npm install` fails
 
 **Solution:**
+
 - Ensure you have Node.js v18+ installed: `node --version`
 - Try clearing cache:
+
   ```bash
   cd frontend
   rm -rf node_modules package-lock.json
   npm install
   ```
+
 - Check npm version: `npm --version` (should be compatible with Node.js version)
 
 ### CORS Errors
@@ -90,6 +105,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `CORS policy: No 'Access-Control-Allow-Origin' header`
 
 **Solution:**
+
 - Check your `CORS_ORIGINS` environment variable in `.env`
 - Default is `http://localhost:5173,http://localhost:3000`
 - If using a different frontend port, add it to `CORS_ORIGINS`
@@ -100,6 +116,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** Frontend build fails or has TypeScript/ESLint errors
 
 **Solution:**
+
 - Run linting to see specific issues: `cd frontend && npm run lint`
 - Auto-fix where possible: `cd frontend && npm run lint:fix`
 - Check Node.js version compatibility
@@ -112,6 +129,7 @@ Common issues and solutions for Accordant LLM Council.
 **Symptom:** Conversations disappear after restart
 
 **Solution:**
+
 - Check that `data/conversations/` directory exists and is writable
 - Verify file permissions: `ls -la data/conversations/`
 - Check logs for file permission errors: `tail -f logs/llm_council.log`
@@ -122,6 +140,7 @@ Common issues and solutions for Accordant LLM Council.
 **Symptom:** All models fail or timeout
 
 **Solution:**
+
 1. Check your OpenRouter API key has sufficient credits
 2. Verify model names are correct (check [OpenRouter models](https://openrouter.ai/models))
 3. Increase `LLM_REQUEST_TIMEOUT` if models are slow
@@ -133,6 +152,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** "Invalid credentials" or "Unauthorized"
 
 **Solution:**
+
 - Verify you're using the correct username/password
 - Check that the user exists in `data/users.json`
 - Ensure JWT tokens are being sent in requests (check browser Network tab)
@@ -143,6 +163,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** "Organization not found" or "User not in organization"
 
 **Solution:**
+
 - Verify organization exists in `data/organizations.json`
 - Check user's `org_id` matches organization ID
 - Ensure API key is configured for the organization (see [ADMIN_GUIDE.md](ADMIN_GUIDE.md))
@@ -150,11 +171,13 @@ Common issues and solutions for Accordant LLM Council.
 ### Logs Location
 
 **Backend logs:**
+
 - Default location: `logs/llm_council.log`
 - Configure via `LOG_FILE` environment variable
 - Check console output in the terminal where you started the backend
 
 **Frontend logs:**
+
 - Check browser DevTools Console (F12)
 - Check Network tab for API call issues
 - React DevTools extension recommended for component debugging
@@ -232,7 +255,7 @@ If you're still experiencing issues:
 2. Review [Architecture Decision Records](adr/ADR_INDEX.md) for design context
 3. Check [API Documentation](api/API_SURFACE.md) for endpoint details
 4. Review logs for specific error messages
-5. Check OpenRouter status: https://status.openrouter.ai/
+5. Check OpenRouter status: <https://status.openrouter.ai/>
 
 ## Common Error Messages
 
@@ -244,4 +267,3 @@ If you're still experiencing issues:
 | `Invalid token` | Encryption key issue | Check `ENCRYPTION_KEY` in `.env` |
 | `Rate limit exceeded` | Too many requests | Reduce `MAX_CONCURRENT_REQUESTS` |
 | `Timeout` | Model too slow | Increase `LLM_REQUEST_TIMEOUT` |
-

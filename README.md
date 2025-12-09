@@ -48,9 +48,10 @@ docker compose up -d
 # Health check: http://localhost:8000/api/health
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open <http://localhost:5173> in your browser.
 
 **Prerequisites:**
+
 - Python 3.10+ and [uv](https://docs.astral.sh/uv/)
 - Node.js v18+
 - OpenRouter API key ([get one here](https://openrouter.ai/))
@@ -83,17 +84,20 @@ For detailed admin documentation, see [Admin Guide](docs/ADMIN_GUIDE.md).
 ## Documentation
 
 ### For Users
+
 - **[Setup Guide](docs/SETUP.md)** - Complete setup and configuration instructions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Admin Guide](docs/ADMIN_GUIDE.md)** - Multi-user and admin features
 
 ### For Developers
+
 - **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Implementation details, gotchas, and development notes
 - **[Architecture Decision Records](docs/adr/ADR_INDEX.md)** - Key architectural decisions and rationale
 - **[API Documentation](docs/api/API_SURFACE.md)** - Complete API reference
 - **[System Overview](docs/design/SYSTEM_OVERVIEW.md)** - High-level architecture and component overview
 
 ### For Deployment
+
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment, security, and scaling
 
 For more information, see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
@@ -105,5 +109,6 @@ No line of code has been written in the traditional way. It's all been done thro
 ## Acknowledgements
 
 This project was inspired by:
-*   **Andrej Karpathy's [llm-council](https://github.com/karpathy/llm-council)**: The original inspiration for the multi-model council architecture.
-*   **PewDiePie's [AI Council video](https://www.youtube.com/watch?v=qw4fDU18RcU)**: A conceptual exploration of the AI Council idea.
+
+- **Andrej Karpathy's [llm-council](https://github.com/karpathy/llm-council)**: The original inspiration for the multi-model council architecture.
+- **PewDiePie's [AI Council video](https://www.youtube.com/watch?v=qw4fDU18RcU)**: A conceptual exploration of the AI Council idea.

@@ -11,6 +11,7 @@ In Stage 2, models need to evaluate and rank responses from other models. If mod
 ## Decision
 
 We will anonymize responses in Stage 2 by:
+
 1. Labeling responses as "Response A", "Response B", "Response C", etc.
 2. Creating a `label_to_model` mapping that is kept server-side
 3. Only revealing model identities after rankings are collected
@@ -19,16 +20,19 @@ We will anonymize responses in Stage 2 by:
 ## Consequences
 
 ### Positive
+
 - **Reduced Bias**: Models evaluate based on content quality, not model reputation
 - **Fair Evaluation**: All models get equal treatment regardless of provider
 - **Transparency**: Users can see the anonymized evaluations and the final de-anonymized results
 
 ### Negative
+
 - **Additional Complexity**: Need to maintain label-to-model mappings
 - **Parsing Requirements**: Must parse rankings from natural language responses
 - **Edge Cases**: Models may not follow the ranking format exactly
 
 ### Neutral
+
 - Frontend displays model names in bold for readability, but clearly indicates these are for display only
 - The original evaluations used anonymous labels
 
@@ -38,4 +42,3 @@ We will anonymize responses in Stage 2 by:
 - Ranking prompt includes strict formatting requirements: "FINAL RANKING:" followed by numbered list
 - Fallback parsing extracts any "Response X" patterns if strict format fails
 - See `parse_ranking_from_text()` in `backend/council.py`
-

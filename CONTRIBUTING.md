@@ -6,6 +6,7 @@
 
 1. Follow the setup instructions in [README.md](README.md)
 2. Install development dependencies:
+
    ```bash
    uv sync --dev
    cd frontend && npm install
@@ -39,6 +40,7 @@ The project includes automated formatters and linters that are **non-blocking** 
 **Formatter & Linter**: [Ruff](https://docs.astral.sh/ruff/) (configured in `pyproject.toml`)
 
 **Commands** (using Makefile):
+
 ```bash
 make format-py          # Format Python code
 make lint-py            # Check linting (no fixes)
@@ -48,6 +50,7 @@ make lint-check-py      # Check linting without changes
 ```
 
 **Or using uv directly**:
+
 ```bash
 uv run ruff format backend/ tests/           # Format code
 uv run ruff check backend/ tests/             # Check linting
@@ -60,6 +63,7 @@ uv run ruff check --fix backend/ tests/      # Auto-fix linting issues
 **Linter**: [ESLint](https://eslint.org/) (configured in `frontend/eslint.config.js`)
 
 **Commands** (using npm):
+
 ```bash
 cd frontend
 npm run format          # Format JavaScript/JSX code
@@ -69,6 +73,7 @@ npm run lint:fix        # Lint and auto-fix issues
 ```
 
 **Or using Makefile**:
+
 ```bash
 make format-js          # Format JavaScript/JSX code
 make lint-js           # Check linting (no fixes)
@@ -79,12 +84,14 @@ make format-check-js   # Check formatting without changes
 ### Combined Commands
 
 **Format all code** (Python + JavaScript):
+
 ```bash
 make format-all        # Format everything
 make format-check-all  # Check formatting for everything
 ```
 
 **Lint all code** (Python + JavaScript):
+
 ```bash
 make lint-all         # Lint everything
 make lint-check-all   # Check linting for everything
@@ -95,6 +102,7 @@ make lint-check-all   # Check linting for everything
 Pre-commit hooks are available but **optional and non-blocking**. They will auto-format code but won't prevent commits.
 
 **Installation** (optional):
+
 ```bash
 make install-pre-commit
 # OR
@@ -102,6 +110,7 @@ uv run pre-commit install
 ```
 
 **Usage**:
+
 - Hooks run automatically on `git commit`
 - To skip hooks: `git commit --no-verify`
 - To run manually: `make run-pre-commit`
@@ -110,20 +119,23 @@ uv run pre-commit install
 **Note**: Pre-commit hooks are completely optional. You can always skip them with `--no-verify` if needed.
 
 ## Testing
- 
+
 Test infrastructure is set up for both backend and frontend. When contributing:
- 
+
 **Test Organization:**
+
 - **Backend Tests**: Place all backend tests in the `tests/` directory (project root)
   - Tests should import from `backend.*` modules (e.g., `from backend.main import app`)
   - Configured in `pyproject.toml` with `testpaths = ["tests"]`
 - **Frontend Tests**: Place frontend tests in `frontend/src/` (e.g., `frontend/src/api.test.js`)
 
 **Running Tests:**
+
 1. **Backend**: Run tests with `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage)
 2. **Frontend**: Run tests with `cd frontend && npm test` (or `npm run test:coverage` for coverage)
 
 **When Adding Tests:**
+
 1. Add tests for new functionality in the appropriate location (`tests/` for backend, `frontend/src/` for frontend)
 2. Ensure existing tests pass
 3. Aim for test coverage of critical functions
@@ -140,11 +152,13 @@ Test infrastructure is set up for both backend and frontend. When contributing:
 ## Commit Messages
 
 Use clear, descriptive commit messages. Include:
+
 - What changed
 - Why it changed (if not obvious)
 - Reference related issues or ADRs if applicable
 
 Example:
+
 ```
 feat(council): add personality mode support
 
@@ -176,4 +190,3 @@ We are staying away from automated CI/CD pipelines for now, but developers are e
 ## Questions?
 
 If you have questions about contributing, please open an issue or contact the repository maintainer.
-

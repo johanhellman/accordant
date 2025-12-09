@@ -79,4 +79,3 @@ Security updates will be released as needed. Check the repository for the latest
 ## Contact
 
 For security concerns, please use GitHub's private vulnerability reporting feature or contact the repository maintainer directly.
-

@@ -24,6 +24,7 @@ LLM Council is a 3-stage deliberation system where multiple LLMs collaboratively
 The project currently uses minimal development tooling by design (see CONTRIBUTING.md). However, for development you may want:
 
 **Backend:**
+
 - **Runtime dependencies:** Installed via `uv sync` (FastAPI, httpx, pydantic, etc.)
 - **Test framework:** pytest 9.0.1 (installed as dev dependency via `uv sync --dev`)
   - Run tests: `uv run pytest`
@@ -35,6 +36,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
   - Auto-fix: `make lint-py-fix` or `uv run ruff check --fix backend/ tests/`
 
 **Frontend:**
+
 - **Runtime dependencies:** Installed via `npm install` (React, Vite, etc.)
 - **Linting:** ESLint 9.39.1 configured and installed
   - Run linting: `cd frontend && npm run lint`
@@ -45,6 +47,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
 - **Testing:** Vitest 2.1.8 configured with React Testing Library (test infrastructure ready)
 
 **Combined Commands (via Makefile):**
+
 - Format all: `make format-all`
 - Lint all: `make lint-all`
 - See all commands: `make help`
@@ -52,6 +55,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
 ### Running in Development Mode
 
 **Backend:**
+
 ```bash
 # Install dependencies
 uv sync
@@ -64,6 +68,7 @@ uv run python -m backend.main
 ```
 
 **Frontend:**
+
 ```bash
 cd frontend
 npm install
@@ -97,6 +102,7 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 - **Current Status**: Backend tests are implemented and passing; frontend Vitest tests are configured (see `HYGIENE_REPORT.md` for coverage details).
 
 **Test Organization:**
+
 - **Backend Tests**: All backend tests should be located in the `tests/` directory (project root)
   - Configured in `pyproject.toml` with `testpaths = ["tests"]`
   - Tests import from `backend.*` modules (e.g., `from backend.main import app`)
@@ -105,10 +111,12 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
   - Configured in `frontend/vite.config.js` for Vitest
 
 **Running Tests:**
+
 - **Backend**: `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage reports)
 - **Frontend**: `cd frontend && npm test` (or `npm run test:coverage` for coverage)
 
 **Why Tests Are in Project Root:**
+
 - Tests are separate from source code, making it clear they're not part of the application
 - Tests import from `backend.*`, making it explicit they're testing the backend package
 - Aligns with pytest configuration (`testpaths = ["tests"]`)
@@ -117,16 +125,19 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 ### Debugging
 
 **Backend Logging:**
+
 - Logs are configured in `backend/logging_config.py`
 - Default log file: `logs/llm_council.log`
 - Set `LOG_LEVEL=DEBUG` in `.env` for verbose output
 
 **Frontend Debugging:**
+
 - Use browser DevTools (F12)
 - React DevTools extension recommended
 - Check Network tab for API call issues
 
 **Common Debugging Steps:**
+
 1. Check backend logs: `tail -f logs/llm_council.log`
 2. Check browser console for frontend errors
 3. Verify API key is set: `echo $OPENROUTER_API_KEY` (or check `.env`)
@@ -158,6 +169,7 @@ accordant/
 ### Contributing
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including:
+
 - Code style preferences
 - Testing approach
 - CI/CD status (intentionally deferred)
@@ -167,11 +179,11 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including
 
 The system uses a "Shared Database, Separate Schema" approach (logically), adapted for file-based storage.
 
--   **Organizations**: Top-level entity. All users and data belong to an Organization.
--   **Data Isolation**:
-    -   **Global**: `users.json`, `organizations.json` (Registry).
-    -   **Org-Specific**: `data/organizations/{org_id}/` contains conversations, personalities, and config.
--   **Secrets**: API keys are encrypted at rest using Fernet (symmetric encryption).
+- **Organizations**: Top-level entity. All users and data belong to an Organization.
+- **Data Isolation**:
+  - **Global**: `users.json`, `organizations.json` (Registry).
+  - **Org-Specific**: `data/organizations/{org_id}/` contains conversations, personalities, and config.
+- **Secrets**: API keys are encrypted at rest using Fernet (symmetric encryption).
 
 See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secrets-management.md) for details.
 
@@ -189,22 +201,26 @@ See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secre
 - Backend runs on **port 8001** (NOT 8000 - user had another app on 8000)
 
 **`auth.py` & `users.py`**
+
 - **Authentication**: JWT-based auth using OAuth2PasswordBearer.
 - **User Management**: `users.py` handles JSON-based user storage (`data/users.json`).
 - **Roles**: Supports `is_admin` flag. First registered user is auto-admin.
 - **Security**: `UserResponse` model ensures password hashes are never returned in API responses.
 
 **`admin_routes.py` & `admin_users_routes.py`**
+
 - **Admin API**: Endpoints for managing personalities, system prompts, and users.
 - **Voting History**: Admin route to fetch global voting history with user attribution.
 
 **`openrouter.py`**
+
 - `query_model()`: Single async model query
 - `query_models_parallel()`: Parallel queries using `asyncio.gather()`
 - Returns dict with 'content' and optional 'reasoning_details'
 - Graceful degradation: returns None on failure, continues with successful responses
 
 **`council.py`** - The Core Logic
+
 - `stage1_collect_responses()`: Parallel queries to all council models
 - `stage2_collect_rankings()`:
   - Anonymizes responses as "Response A, B, C, etc."
@@ -217,17 +233,20 @@ See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secre
 - `calculate_aggregate_rankings()`: Computes average rank position across all peer evaluations
 
 **`storage.py`**
+
 - JSON-based conversation storage in `data/conversations/`
 - Each conversation: `{id, created_at, messages[]}`
 - Assistant messages contain: `{role, stage1, stage2, stage3}`
 - Note: metadata (label_to_model, aggregate_rankings) is NOT persisted to storage, only returned via API
 
 **`main.py`**
+
 - FastAPI app with CORS enabled for localhost:5173 and localhost:3000
 - POST `/api/conversations/{id}/message` returns metadata in addition to stages
 - Metadata includes: label_to_model mapping and aggregate_rankings
 
 **`organizations.py` & `invitations.py`**
+
 - **Organization Model**: `{id, name, owner_id, api_config (encrypted)}`
 - **Invitation Model**: `{code, org_id, expires_at, is_active}`
 - **Org Routes**: Public endpoints for creating orgs and joining via invite code.
@@ -239,9 +258,9 @@ The system supports a modular "Personalities" architecture:
 - **Directory**: `data/personalities/` contains individual YAML files for each personality.
 - **Structure**: Each YAML file defines `id`, `name`, `model`, `personality_prompt`, `ui` metadata, and an `enabled` flag.
 - **System Prompts**: `data/personalities/system-prompts.yaml` contains global prompts:
-    - `base_system_prompt`: Shared by all personalities.
-    - `chairman_prompt`: Used by the chairman in Stage 3.
-    - `title_generation_prompt`: Used for generating conversation titles.
+  - `base_system_prompt`: Shared by all personalities.
+  - `chairman_prompt`: Used by the chairman in Stage 3.
+  - `title_generation_prompt`: Used for generating conversation titles.
 - **Loading**: `config.py` scans the directory, loads enabled personalities into `PERSONALITY_REGISTRY`, and loads system prompts.
 - **Activation**: `COUNCIL_PERSONALITIES_ACTIVE` env var controls which personalities participate in the council.
 
@@ -251,34 +270,39 @@ The system supports a modular "Personalities" architecture:
 
 The system uses a hierarchical configuration for system prompts:
 
-1.  **Defaults**: `data/defaults/system-prompts.yaml` contains the baseline prompts.
-2.  **Overrides**: `data/organizations/{org_id}/config/system-prompts.yaml` contains organization-specific overrides.
+1. **Defaults**: `data/defaults/system-prompts.yaml` contains the baseline prompts.
+2. **Overrides**: `data/organizations/{org_id}/config/system-prompts.yaml` contains organization-specific overrides.
 
 **Prompt Assembly (Stage 2)**:
 To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled dynamically** from three parts:
-1.  **Enforced Context**: Prepend user query and peer responses (handled by backend).
-2.  **Instructions**: The configurable part (from YAML) where admins define *how* to evaluate.
-3.  **Enforced Format**: Append strict output formatting rules (handled by backend).
+
+1. **Enforced Context**: Prepend user query and peer responses (handled by backend).
+2. **Instructions**: The configurable part (from YAML) where admins define *how* to evaluate.
+3. **Enforced Format**: Append strict output formatting rules (handled by backend).
 
 **Important**: When editing `ranking_prompt` in YAML or the UI, you should **ONLY** provide the evaluation instructions (e.g., "Evaluate for creativity"). Do not include placeholders like `{user_query}` or formatting rules, as these are enforced by the system.
 
 ### Frontend Structure (`frontend/src/`)
 
 **`App.jsx`**
+
 - Main orchestration: manages conversations list and current conversation
 - Handles message sending and metadata storage
 - Important: metadata is stored in the UI state for display but not persisted to backend JSON
 
 **`components/ChatInterface.jsx`**
+
 - Multiline textarea (3 rows, resizable)
 - Enter to send, Shift+Enter for new line
 - User messages wrapped in markdown-content class for padding
 
 **`components/Stage1.jsx`**
+
 - Tab view of individual model responses
 - ReactMarkdown rendering with markdown-content wrapper
 
 **`components/Stage2.jsx`**
+
 - **Critical Feature**: Tab view showing RAW evaluation text from each model
 - De-anonymization happens CLIENT-SIDE for display (models receive anonymous labels)
 - Shows "Extracted Ranking" below each evaluation so users can validate parsing
@@ -286,10 +310,12 @@ To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled
 - Explanatory text clarifies that boldface model names are for readability only
 
 **`components/Stage3.jsx`**
+
 - Final synthesized answer from chairman
 - Green-tinted background (#f0fff0) to highlight conclusion
 
 **Styling (`*.css`)**
+
 - Light mode theme (not dark mode)
 - Primary color: #4a90e2 (blue)
 - Global markdown styling in `index.css` with `.markdown-content` class
@@ -300,7 +326,9 @@ To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled
 > **Architectural Decisions**: For detailed design decisions and rationale, see [Architecture Decision Records](adr/ADR_INDEX.md).
 
 ### Stage 2 Prompt Format
+
 The Stage 2 prompt is very specific to ensure parseable output:
+
 ```
 1. Evaluate each response individually first
 2. Provide "FINAL RANKING:" header
@@ -311,6 +339,7 @@ The Stage 2 prompt is very specific to ensure parseable output:
 This strict format allows reliable parsing while still getting thoughtful evaluations. See [ADR-002](adr/ADR-002-anonymized-peer-review.md) for the design rationale.
 
 ### De-anonymization Strategy
+
 - Models receive: "Response A", "Response B", etc.
 - Backend creates mapping: `{"Response A": "openai/gpt-5.1", ...}`
 - Frontend displays model names in **bold** for readability
@@ -318,11 +347,13 @@ This strict format allows reliable parsing while still getting thoughtful evalua
 - This prevents bias while maintaining transparency
 
 ### Error Handling Philosophy
+
 - Continue with successful responses if some models fail (graceful degradation)
 - Never fail the entire request due to single model failure
 - Log errors but don't expose to user unless all models fail
 
 ### UI/UX Transparency
+
 - All raw outputs are inspectable via tabs
 - Parsed rankings shown below raw text for validation
 - Users can verify system's interpretation of model outputs
@@ -331,17 +362,21 @@ This strict format allows reliable parsing while still getting thoughtful evalua
 ## Important Implementation Details
 
 ### Relative Imports
+
 All backend modules use relative imports (e.g., `from .config import ...`) not absolute imports. This is critical for Python's module system to work correctly when running as `python -m backend.main`.
 
 ### Port Configuration
+
 - Backend: 8001 (changed from 8000 to avoid conflict)
 - Frontend: 5173 (Vite default)
 - Update both `backend/main.py` and `frontend/src/api.js` if changing
 
 ### Markdown Rendering
+
 All ReactMarkdown components must be wrapped in `<div className="markdown-content">` for proper spacing. This class is defined globally in `index.css`.
 
 ### Model Configuration
+
 Models are hardcoded in `backend/config.py`. Chairman can be same or different from council members. The current default is Gemini as chairman per user preference.
 
 ## Common Gotchas
@@ -373,4 +408,3 @@ Use `test_openrouter.py` to verify API connectivity and test different model ide
 ## Data Flow
 
 See [System Overview](design/SYSTEM_OVERVIEW.md) for detailed data flow diagrams and component interactions.
-

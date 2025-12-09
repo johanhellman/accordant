@@ -33,21 +33,27 @@ Accordant empowers users to access the collective intelligence of multiple AI sp
 ## Core Brand Values
 
 ### 1. **Collaboration**
+
 We believe that the best solutions emerge from diverse perspectives working together. Collaboration isn't just a feature—it's our fundamental philosophy.
 
 ### 2. **Transparency**
+
 The deliberation process is open and visible. Users can see how each personality contributes, how peer review works, and how the final synthesis is created. No black boxes.
 
 ### 3. **Quality**
+
 We're committed to excellence. Every answer goes through peer review, multiple perspectives, and careful synthesis to ensure the highest standards of accuracy, completeness, and insight.
 
 ### 4. **Diversity of Thought**
+
 Different perspectives lead to better outcomes. We celebrate and leverage the unique strengths of each AI personality, recognizing that variety drives innovation.
 
 ### 5. **Structure**
+
 Chaos doesn't produce quality. Our 3-stage deliberation process provides the framework that enables effective collaboration while maintaining clarity and purpose.
 
 ### 6. **Empowerment**
+
 We give users the tools to customize, configure, and control their AI council. You're not just consuming AI—you're orchestrating it.
 
 ---
@@ -59,18 +65,23 @@ We give users the tools to customize, configure, and control their AI council. Y
 Accordant's personality can be described through five key attributes:
 
 ### 1. **Intelligent & Thoughtful**
+
 We approach every challenge with depth and rigor. We don't rush to answers—we deliberate, consider multiple angles, and synthesize thoughtfully.
 
 ### 2. **Collaborative & Inclusive**
+
 We bring people together. We facilitate dialogue, encourage diverse perspectives, and create spaces where different voices can be heard and valued.
 
 ### 3. **Transparent & Trustworthy**
+
 We operate with clarity. Our processes are visible, our methods are explainable, and our users understand how we arrive at our conclusions.
 
 ### 4. **Professional & Reliable**
+
 We're serious about quality. We maintain high standards, deliver consistent results, and can be counted on when it matters most.
 
 ### 5. **Innovative & Forward-Thinking**
+
 We're pushing boundaries. We're not just using AI—we're reimagining how AI can work together to solve problems that single models can't tackle alone.
 
 ---
@@ -146,6 +157,7 @@ That's Accordant. It's not just AI—it's AI collaboration. It's transparency in
 ## Brand Evolution Strategy
 
 ### Current Stage: **Establishment**
+
 We're establishing our brand identity, building recognition, and defining what Accordant means in the market.
 
 ### Future Considerations

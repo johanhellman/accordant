@@ -5,6 +5,7 @@ This document outlines the strategy for identifying outdated dependencies and up
 ## Overview
 
 This project uses two package managers:
+
 - **Python**: `uv` (manages dependencies via `pyproject.toml`)
 - **JavaScript/Node.js**: `npm` (manages dependencies via `frontend/package.json`)
 
@@ -13,6 +14,7 @@ This project uses two package managers:
 ### Python Dependencies
 
 #### Method 1: Using `uv` (Recommended)
+
 ```bash
 # Check for outdated packages
 uv pip list --outdated
@@ -22,12 +24,14 @@ uv pip list --outdated | grep -E "(fastapi|pydantic|httpx)"
 ```
 
 #### Method 2: Manual Check via PyPI
+
 ```bash
 # For each package, check latest version
 uv pip index versions <package-name>
 ```
 
 #### Method 3: Using `pip-audit` (Security-focused)
+
 ```bash
 # Check for security vulnerabilities (already in dev dependencies)
 uv run pip-audit
@@ -36,17 +40,20 @@ uv run pip-audit
 ### JavaScript Dependencies
 
 #### Method 1: Using `npm outdated` (Recommended)
+
 ```bash
 cd frontend
 npm outdated
 ```
 
 This shows:
+
 - **Current**: Installed version
 - **Wanted**: Version matching semver range in package.json
 - **Latest**: Latest version available
 
 #### Method 2: Using `npm-check-updates` (ncu)
+
 ```bash
 cd frontend
 npx npm-check-updates
@@ -56,6 +63,7 @@ npx npm-check-updates --target patch  # Only patch updates
 ```
 
 #### Method 3: Manual Check
+
 Visit [npmjs.com](https://www.npmjs.com) and check each package's latest version.
 
 ### Automated Check Script
@@ -143,6 +151,7 @@ cd ..
 ### Phase 1: Assessment (Week 1)
 
 1. **Run outdated checks**
+
    ```bash
    # Python
    uv pip list --outdated > reports/python-outdated.txt
@@ -179,6 +188,7 @@ npm audit fix  # Auto-fix where possible
 ```
 
 **Process:**
+
 1. Run security audits
 2. Update vulnerable packages
 3. Test critical paths
@@ -200,6 +210,7 @@ npm update  # Updates within semver ranges
 ```
 
 **Process:**
+
 1. Update patch versions
 2. Run test suite
 3. Quick smoke test
@@ -212,6 +223,7 @@ npm update  # Updates within semver ranges
 Update minor versions (e.g., 1.2.3 → 1.3.0):
 
 **Python:**
+
 ```bash
 # Update specific packages
 uv sync --upgrade-package fastapi --upgrade-package httpx
@@ -221,6 +233,7 @@ uv sync --upgrade
 ```
 
 **JavaScript:**
+
 ```bash
 cd frontend
 # Update specific packages
@@ -232,6 +245,7 @@ npm install
 ```
 
 **Process:**
+
 1. Update one package at a time (or related packages together)
 2. Review changelog for breaking changes
 3. Run full test suite
@@ -245,6 +259,7 @@ npm install
 Major version updates require careful planning:
 
 **Process:**
+
 1. **Research Phase**
    - Read migration guides
    - Review breaking changes
@@ -279,6 +294,7 @@ Major version updates require careful planning:
 ### After Each Update
 
 1. **Automated Tests**
+
    ```bash
    # Python tests
    uv run pytest
@@ -288,11 +304,13 @@ Major version updates require careful planning:
    ```
 
 2. **Linting**
+
    ```bash
    make lint-all
    ```
 
 3. **Security Checks**
+
    ```bash
    # Python
    uv run pip-audit
@@ -314,6 +332,7 @@ Major version updates require careful planning:
 ### Regression Testing
 
 After major updates, test:
+
 - [ ] User authentication
 - [ ] Multi-user isolation
 - [ ] Organization management
@@ -381,6 +400,7 @@ npm install react@19.2.0 react-dom@19.2.0
 ### CI/CD Integration
 
 Add to CI pipeline:
+
 ```yaml
 # Example GitHub Actions
 - name: Check for outdated dependencies
@@ -392,6 +412,7 @@ Add to CI pipeline:
 ### Scheduled Checks
 
 Create a weekly job to:
+
 1. Check for outdated packages
 2. Check for security vulnerabilities
 3. Create issue/PR with update recommendations
@@ -399,6 +420,7 @@ Create a weekly job to:
 ### Dependency Update Bots
 
 Consider using:
+
 - **Dependabot** (GitHub): Automated dependency updates
 - **Renovate**: More configurable than Dependabot
 - **pyup.io**: Python-specific updates
@@ -499,4 +521,3 @@ git commit -m "chore(deps): upgrade fastapi to 0.116.0
 - Document any breaking changes and migration steps
 - Consider the impact on production before major updates
 - Monitor error logs after deployment
-

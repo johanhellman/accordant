@@ -34,6 +34,7 @@ CORS_CREDENTIALS=true
 ```
 
 **Security Best Practices:**
+
 - **Never use `*` for `CORS_ORIGINS` in production** - Always specify exact domain(s)
 - Use HTTPS in production - CORS with credentials requires HTTPS
 - Restrict `CORS_METHODS` to only what your frontend needs
@@ -42,17 +43,20 @@ CORS_CREDENTIALS=true
 ### File System Security
 
 **Path Validation:**
+
 - The application validates file paths to prevent directory traversal attacks
 - Environment variables for file paths (`LOG_DIR`, `LOG_FILE`, `PERSONALITIES_FILE`) are validated
 - All paths are resolved to absolute paths and checked against allowed directories
 
 **File Permissions:**
+
 - Ensure `data/conversations/` directory has proper write permissions
 - Log directories should be writable by the application user
 - Consider using a database for production instead of JSON files for better scalability
 - Use a dedicated user account with minimal privileges
 
 **Example permissions:**
+
 ```bash
 # Create dedicated user
 sudo useradd -r -s /bin/false accordant
@@ -70,6 +74,7 @@ chmod 700 /opt/accordant/data
 **Never commit secrets to version control!**
 
 **Recommended approaches:**
+
 - Use environment variables from your deployment platform
 - Use secret management systems:
   - AWS Secrets Manager
@@ -79,6 +84,7 @@ chmod 700 /opt/accordant/data
 - Use `.env` files only for local development (ensure `.env` is in `.gitignore`)
 
 **Critical secrets:**
+
 - `OPENROUTER_API_KEY` - Your LLM API key
 - `ENCRYPTION_KEY` - Fernet key for encrypting stored credentials
 - Database credentials (if using a database)
@@ -336,6 +342,7 @@ LOG_FILE=/var/log/accordant/accordant.log
 ### Monitoring
 
 Consider monitoring:
+
 - API response times
 - Error rates
 - Rate limit hits
@@ -344,6 +351,7 @@ Consider monitoring:
 - CPU usage
 
 **Recommended tools:**
+
 - Prometheus + Grafana
 - Datadog
 - New Relic
@@ -360,6 +368,7 @@ curl http://localhost:8001/
 ```
 
 Use this for:
+
 - Load balancer health checks
 - Container orchestration health checks
 - Monitoring system checks
@@ -369,12 +378,14 @@ Use this for:
 ### Data Backup
 
 **Critical data to backup:**
+
 - `data/conversations/` - User conversations
 - `data/users.json` - User accounts
 - `data/organizations.json` - Organization data
 - `.env` or secrets - API keys and encryption keys
 
 **Backup strategy:**
+
 - Regular automated backups (daily recommended)
 - Store backups in separate location
 - Test restore procedures regularly
@@ -451,4 +462,3 @@ See [ADR-003](../adr/ADR-003-json-file-storage.md) for current storage architect
 - Review [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for admin features
 - Review [SECURITY.md](../SECURITY.md) for security best practices
 - Test deployment in staging environment first
-

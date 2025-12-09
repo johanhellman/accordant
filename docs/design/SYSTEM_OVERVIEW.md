@@ -29,11 +29,13 @@ The entire flow is async/parallel where possible to minimize latency.
 ### 2. Backend (FastAPI)
 
 The backend exposes a REST API for:
+
 - **Chat**: Handling user queries and orchestrating the 3-stage process.
 - **Admin**: Managing personalities, system prompts, and configuration.
 - **History**: Retrieving past conversations.
 
 Key modules:
+
 - `main.py`: FastAPI application entry point and route registration.
 - `council.py`: Core logic for the 3-stage deliberation process.
 - `admin_routes.py`: Endpoints for managing personalities and system prompts.
@@ -46,6 +48,7 @@ Key modules:
 A single-page application (SPA) built with React and Vite.
 
 Key components:
+
 - **ChatInterface**: The main view for interacting with the council.
 - **PersonalityManager**: UI for creating and managing LLM personalities.
 - **SystemPromptsEditor**: UI for configuring global prompts and council roles.
@@ -82,6 +85,7 @@ Key components:
 ## Data Models
 
 ### Conversation Structure
+
 ```json
 {
   "id": "uuid",
@@ -102,6 +106,7 @@ Key components:
 ```
 
 ### Metadata (Ephemeral, not persisted)
+
 - `label_to_model`: Mapping from anonymous labels to model identifiers
 - `aggregate_rankings`: Calculated average rankings across all peer evaluations
 
@@ -110,22 +115,23 @@ Key components:
 The system employs a **Runtime Inheritance Model** for prompts and personalities to facilitate easy maintenance across multiple organizations.
 
 ### Prompt Inheritance
-*   **Sources**:
-    *   **Defaults**: `data/defaults/system-prompts.yaml` (Global)
-    *   **Overrides**: `data/organizations/{id}/config/system-prompts.yaml` (Org-Specific)
-*   **Merge Logic**:
+
+- **Sources**:
+  - **Defaults**: `data/defaults/system-prompts.yaml` (Global)
+  - **Overrides**: `data/organizations/{id}/config/system-prompts.yaml` (Org-Specific)
+- **Merge Logic**:
     At runtime, the system loads defaults first. Then, it checks the Org config. If a key is present in the Org config, it overrides the default. If not, the default is used.
-*   **UI Indication**: The Admin UI requests metadata from the backend to determine if a value is "Inherited" (from Default) or "Custom" (Override).
+- **UI Indication**: The Admin UI requests metadata from the backend to determine if a value is "Inherited" (from Default) or "Custom" (Override).
 
 ### Personality Shadowing
-*   **System Personalities**: Loaded from `data/defaults/personalities/`. Read-only by default.
-*   **Shadowing**: To customize a system personality, an organization creates a copy in `data/organizations/{id}/personalities/` with the same ID.
-*   **Resolution**: The system loads the Organization's copy in place of the System copy (Shadowing).
-*   **Disabling**: Organizations can disable system personalities by adding their ID to a `disabled_system_personalities` list in their config, preventing them from appearing in the registry.
+
+- **System Personalities**: Loaded from `data/defaults/personalities/`. Read-only by default.
+- **Shadowing**: To customize a system personality, an organization creates a copy in `data/organizations/{id}/personalities/` with the same ID.
+- **Resolution**: The system loads the Organization's copy in place of the System copy (Shadowing).
+- **Disabling**: Organizations can disable system personalities by adding their ID to a `disabled_system_personalities` list in their config, preventing them from appearing in the registry.
 
 ## Related Documentation
 
 - [Architecture Decision Records](../adr/ADR_INDEX.md) - Detailed architectural decisions
 - [API Documentation](../api/API_SURFACE.md) - Complete API reference
 - [Developer Guide](../DEVELOPER_GUIDE.md) - Implementation notes and developer guide
-

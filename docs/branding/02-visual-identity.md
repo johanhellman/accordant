@@ -13,11 +13,13 @@ Accordant's visual identity reflects our core values: collaboration, transparenc
 The Accordant logo combines the **Sparkles icon** (✨) with the wordmark "Accordant" to represent the collaborative spark of multiple AI personalities coming together.
 
 **Logo Components:**
+
 - **Icon**: Sparkles symbol (Lucide React icon)
 - **Wordmark**: "Accordant" in bold, modern typography
 - **Layout**: Horizontal arrangement with icon on the left
 
 **Usage:**
+
 - Primary logo should be used in headers, navigation, and main brand touchpoints
 - Maintain clear space equal to the height of the icon around all sides
 - Minimum size: 32px height for icon, 24px for wordmark
@@ -25,24 +27,30 @@ The Accordant logo combines the **Sparkles icon** (✨) with the wordmark "Accor
 ### Logo Variations
 
 #### Horizontal Logo (Primary)
+
 ```
 [✨] Accordant
 ```
+
 - Use in headers, navigation bars, and most standard contexts
 - Icon and wordmark aligned horizontally with 12px gap
 
 #### Icon-Only Logo
+
 ```
 [✨]
 ```
+
 - Use when space is constrained (favicons, app icons, social avatars)
 - Minimum size: 16px × 16px
 - Ensure sufficient contrast against background
 
 #### Wordmark-Only
+
 ```
 Accordant
 ```
+
 - Use when icon is displayed separately or in text-heavy contexts
 - Maintain brand typography (Inter, Bold, 700 weight)
 
@@ -69,6 +77,7 @@ Maintain clear space around the logo equal to **1x the height of the icon** on a
 ### Logo Usage Guidelines
 
 #### ✅ Do's
+
 - Use the primary logo in headers and navigation
 - Maintain clear space around the logo
 - Use appropriate logo variation for context
@@ -76,6 +85,7 @@ Maintain clear space around the logo equal to **1x the height of the icon** on a
 - Scale proportionally
 
 #### ❌ Don'ts
+
 - Don't stretch or distort the logo
 - Don't rotate the logo
 - Don't change logo colors (except for monochrome contexts)
@@ -85,12 +95,14 @@ Maintain clear space around the logo equal to **1x the height of the icon** on a
 ### App Icons & Favicons
 
 #### Favicon
+
 - **Format**: SVG (preferred) or PNG
 - **Size**: 32px × 32px (standard), 16px × 16px (fallback)
 - **Design**: Sparkles icon on brand gradient background
 - **File**: `favicon.svg` or `favicon.ico`
 
 #### App Icons (iOS/Android)
+
 - **iOS**: 1024px × 1024px PNG
   - Rounded corners handled by iOS
   - Safe area: 20% padding from edges
@@ -99,6 +111,7 @@ Maintain clear space around the logo equal to **1x the height of the icon** on a
   - Safe area: 20% padding from edges
 
 #### Social Media Avatars
+
 - **Twitter/X**: 400px × 400px
 - **LinkedIn**: 300px × 300px
 - **GitHub**: 512px × 512px
@@ -115,6 +128,7 @@ Accordant's color palette reflects collaboration and innovation. Our primary gra
 ### Primary Palette
 
 #### Primary Gradient
+
 The signature Accordant gradient represents the synthesis of multiple perspectives into a unified answer.
 
 ```css
@@ -123,23 +137,27 @@ background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 ```
 
 **Color Breakdown:**
+
 - **Start**: Blue (`#2563eb`) - Trust, reliability, intelligence
 - **End**: Purple (`#7c3aed`) - Innovation, creativity, synthesis
 - **Direction**: 135deg (diagonal, dynamic)
 
 **Usage:**
+
 - Primary CTAs and buttons
 - Hero backgrounds
 - Key brand elements
 - Logo backgrounds (when needed)
 
 #### Primary Color (Solid)
+
 ```css
 --primary-color: #2563eb; /* Blue */
 --primary-hover: #1d4ed8;  /* Darker blue for hover states */
 ```
 
 **Usage:**
+
 - Links and interactive elements
 - Icons and accents
 - Focus states
@@ -148,6 +166,7 @@ background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 ### Secondary Palette
 
 #### Accent Colors
+
 These colors represent the diversity of perspectives in the council:
 
 ```css
@@ -157,6 +176,7 @@ These colors represent the diversity of perspectives in the council:
 ```
 
 **Usage:**
+
 - Visual variety in UI elements
 - Personality avatars
 - Decorative elements
@@ -165,36 +185,44 @@ These colors represent the diversity of perspectives in the council:
 ### Functional Colors
 
 #### Success
+
 ```css
 --success-color: #10b981; /* Green */
 ```
+
 - Confirmation messages
 - Success states
 - Positive indicators
 - Checkmarks and validation
 
 #### Warning
+
 ```css
 --warning-color: #f59e0b; /* Amber/Orange */
 ```
+
 - Warning messages
 - Caution states
 - Important notices
 
 #### Error/Danger
+
 ```css
 --danger-color: #ef4444; /* Red */
 --danger-hover: #dc2626;  /* Darker red */
 ```
+
 - Error messages
 - Destructive actions
 - Critical alerts
 - Validation errors
 
 #### Info
+
 ```css
 --info-color: #3b82f6; /* Blue */
 ```
+
 - Informational messages
 - Tooltips
 - Help text
@@ -203,6 +231,7 @@ These colors represent the diversity of perspectives in the council:
 ### Neutral Palette
 
 #### Background Colors
+
 ```css
 --bg-primary: #f8f9fa;    /* Light gray - Main background */
 --bg-secondary: #ffffff;  /* White - Card/surface background */
@@ -210,6 +239,7 @@ These colors represent the diversity of perspectives in the council:
 ```
 
 #### Text Colors
+
 ```css
 --text-primary: #1f2937;   /* Dark gray - Primary text */
 --text-secondary: #4b5563; /* Medium gray - Secondary text */
@@ -217,6 +247,7 @@ These colors represent the diversity of perspectives in the council:
 ```
 
 #### Border Colors
+
 ```css
 --border-color: #e5e7eb; /* Light gray - Borders and dividers */
 ```
@@ -224,6 +255,7 @@ These colors represent the diversity of perspectives in the council:
 ### Color Accessibility
 
 #### Contrast Ratios
+
 All color combinations meet WCAG AA standards:
 
 - **Normal Text**: Minimum 4.5:1 contrast ratio
@@ -235,6 +267,7 @@ All color combinations meet WCAG AA standards:
   - All combinations meet this standard
 
 #### Color Blindness Considerations
+
 - Never rely on color alone to convey information
 - Use icons, labels, or patterns in addition to color
 - Test with color blindness simulators
@@ -243,6 +276,7 @@ All color combinations meet WCAG AA standards:
 ### Color Usage Guidelines
 
 #### ✅ Do's
+
 - Use primary gradient for key brand elements
 - Maintain sufficient contrast for accessibility
 - Use functional colors consistently (success = green, error = red)
@@ -250,6 +284,7 @@ All color combinations meet WCAG AA standards:
 - Test color combinations for accessibility
 
 #### ❌ Don'ts
+
 - Don't use colors that aren't in the palette
 - Don't create new gradients without brand approval
 - Don't use low-contrast combinations
@@ -263,17 +298,20 @@ All color combinations meet WCAG AA standards:
 ### Font Family
 
 #### Primary Font: Inter
+
 ```css
 font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 ```
 
 **Why Inter:**
+
 - Excellent readability at all sizes
 - Modern, professional appearance
 - Strong support for UI elements
 - Optimized for screens
 
 **Fallback Stack:**
+
 1. Inter (primary)
 2. system-ui (OS default)
 3. Avenir (macOS fallback)
@@ -284,75 +322,89 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 ### Type Scale
 
 #### Display (Marketing Only)
+
 ```css
 font-size: clamp(2.5rem, 5vw, 4rem); /* 40px - 64px */
 font-weight: 800;
 line-height: 1.1;
 letter-spacing: -0.02em;
 ```
+
 - Hero headlines
 - Landing page titles
 - Large marketing messages
 
 #### H1 - Primary Heading
+
 ```css
 font-size: clamp(2rem, 4vw, 3rem); /* 32px - 48px */
 font-weight: 800;
 line-height: 1.1;
 letter-spacing: -0.02em;
 ```
+
 - Page titles
 - Section headers
 - Major content headings
 
 #### H2 - Secondary Heading
+
 ```css
 font-size: clamp(1.5rem, 3vw, 2rem); /* 24px - 32px */
 font-weight: 700;
 line-height: 1.3;
 ```
+
 - Subsection headers
 - Card titles
 - Feature headings
 
 #### H3 - Tertiary Heading
+
 ```css
 font-size: 1.25rem; /* 20px */
 font-weight: 700;
 line-height: 1.4;
 ```
+
 - Component titles
 - List headers
 - Minor section headers
 
 #### Body - Primary Text
+
 ```css
 font-size: 1rem; /* 16px */
 font-weight: 400;
 line-height: 1.7;
 ```
+
 - Paragraphs
 - Main content
 - UI labels
 - Default text size
 
 #### Small - Secondary Text
+
 ```css
 font-size: 0.875rem; /* 14px */
 font-weight: 400;
 line-height: 1.6;
 ```
+
 - Captions
 - Helper text
 - Metadata
 - Secondary information
 
 #### Caption - Smallest Text
+
 ```css
 font-size: 0.75rem; /* 12px */
 font-weight: 400;
 line-height: 1.5;
 ```
+
 - Fine print
 - Timestamps
 - Small labels
@@ -369,6 +421,7 @@ line-height: 1.5;
 ```
 
 **Usage Guidelines:**
+
 - **300 (Light)**: Rarely used, only for special decorative text
 - **400 (Regular)**: Default for body text and most content
 - **500 (Medium)**: Buttons, labels, UI elements that need slight emphasis
@@ -390,6 +443,7 @@ Caption (12px, 400)    → Fine print
 ### Typography Usage Guidelines
 
 #### ✅ Do's
+
 - Use Inter for all UI text
 - Follow the type scale consistently
 - Maintain proper line-height for readability
@@ -397,6 +451,7 @@ Caption (12px, 400)    → Fine print
 - Ensure sufficient contrast for text
 
 #### ❌ Don'ts
+
 - Don't use custom fonts without approval
 - Don't mix font families
 - Don't use font weights outside the scale
@@ -408,6 +463,7 @@ Caption (12px, 400)    → Fine print
 ## Spacing System
 
 ### Base Unit
+
 ```css
 --spacing-unit: 4px; /* Base unit for all spacing */
 ```
@@ -435,11 +491,13 @@ All spacing values are multiples of 4px to ensure visual consistency and alignme
 ### Spacing Usage
 
 #### Component Spacing
+
 - **Padding (internal)**: 16px - 32px for cards, 8px - 16px for buttons
 - **Gap (between elements)**: 8px - 16px for related items, 24px - 32px for sections
 - **Margin (external)**: 24px - 48px for sections, 16px - 24px for components
 
 #### Layout Spacing
+
 - **Container padding**: 24px (mobile), 32px (desktop)
 - **Section padding**: 60px - 100px vertical
 - **Grid gaps**: 32px for card grids, 16px for tight layouts
@@ -447,6 +505,7 @@ All spacing values are multiples of 4px to ensure visual consistency and alignme
 ### Spacing Guidelines
 
 #### ✅ Do's
+
 - Use spacing scale values consistently
 - Maintain rhythm through consistent spacing
 - Use larger spacing for major sections
@@ -454,6 +513,7 @@ All spacing values are multiples of 4px to ensure visual consistency and alignme
 - Align to 4px grid
 
 #### ❌ Don'ts
+
 - Don't use arbitrary spacing values
 - Don't mix spacing systems
 - Don't create inconsistent gaps
@@ -517,6 +577,7 @@ All spacing values are multiples of 4px to ensure visual consistency and alignme
 Accordant uses **Lucide React** icon library for consistent, modern iconography.
 
 **Icon Style:**
+
 - Outline style (not filled)
 - 2px stroke width
 - Rounded line caps and joins
@@ -544,6 +605,7 @@ Accordant uses **Lucide React** icon library for consistent, modern iconography.
 ### Icon Guidelines
 
 #### ✅ Do's
+
 - Use Lucide React icons consistently
 - Maintain consistent sizing within contexts
 - Use appropriate icon sizes for hierarchy
@@ -551,6 +613,7 @@ Accordant uses **Lucide React** icon library for consistent, modern iconography.
 - Align icons with text baseline
 
 #### ❌ Don'ts
+
 - Don't mix icon libraries
 - Don't use custom icons without approval
 - Don't scale icons disproportionately
@@ -593,6 +656,7 @@ Accordant uses **Lucide React** icon library for consistent, modern iconography.
 ### Animation Guidelines
 
 #### ✅ Do's
+
 - Use animations for feedback (hover, focus, loading)
 - Keep animations fast and subtle
 - Use consistent timing across the app
@@ -600,6 +664,7 @@ Accordant uses **Lucide React** icon library for consistent, modern iconography.
 - Animate transforms and opacity (performant)
 
 #### ❌ Don'ts
+
 - Don't animate without purpose
 - Don't use slow or jarring animations
 - Don't ignore accessibility preferences

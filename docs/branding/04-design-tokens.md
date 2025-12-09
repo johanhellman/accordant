@@ -522,15 +522,18 @@ module.exports = {
 ## Token Naming Conventions
 
 ### Color Naming
+
 - Use semantic names: `primary`, `success`, `error`
 - Use descriptive modifiers: `hover`, `light`, `border`
 - Avoid color names: Don't use `blue`, `red` (use `primary`, `error`)
 
 ### Spacing Naming
+
 - Use numeric scale: `1`, `2`, `4`, `8`
 - Based on 4px unit: `spacing-4` = 16px
 
 ### Typography Naming
+
 - Use size names: `xs`, `sm`, `base`, `lg`, `xl`
 - Use weight names: `light`, `regular`, `bold`
 
@@ -539,16 +542,19 @@ module.exports = {
 ## Token Maintenance
 
 ### Version Control
+
 - Store tokens in version control
 - Tag releases with token versions
 - Document breaking changes
 
 ### Documentation
+
 - Keep token documentation up to date
 - Include usage examples
 - Document new tokens as they're added
 
 ### Testing
+
 - Test token usage across platforms
 - Verify accessibility (contrast ratios)
 - Check consistency in implementation
@@ -560,6 +566,7 @@ module.exports = {
 ### From Hardcoded Values to Tokens
 
 **Before:**
+
 ```css
 .button {
   background: #2563eb;
@@ -569,6 +576,7 @@ module.exports = {
 ```
 
 **After:**
+
 ```css
 .button {
   background: var(--color-primary);

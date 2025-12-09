@@ -7,6 +7,7 @@ This document describes the REST API surface for the LLM Council backend.
 ## Overview
 
 The LLM Council API is a FastAPI-based REST API that provides endpoints for:
+
 - Managing conversations
 - Sending messages to the council
 - Streaming responses from the 3-stage deliberation process
@@ -18,6 +19,7 @@ Currently, no authentication is required. The API is designed for local developm
 ## CORS Configuration
 
 CORS is configured to allow requests from:
+
 - `http://localhost:5173` (default Vite dev server)
 - `http://localhost:3000` (alternative frontend port)
 
@@ -32,6 +34,7 @@ This can be configured via environment variables (see `backend/main.py`).
 Check if the API is running.
 
 **Response**:
+
 ```json
 {
   "status": "ok",
@@ -61,6 +64,7 @@ List all conversations (metadata only).
 ```
 
 **Notes**:
+
 - Conversations are sorted by creation time (newest first)
 - Only metadata is returned, not full conversation content
 
@@ -84,6 +88,7 @@ Create a new conversation.
 ```
 
 **Notes**:
+
 - A new UUID is generated for the conversation ID
 - The conversation is persisted to `data/conversations/{id}.json`
 
@@ -94,6 +99,7 @@ Create a new conversation.
 Get a specific conversation with all its messages.
 
 **Path Parameters**:
+
 - `conversation_id` (string): The UUID of the conversation
 
 **Response**: `Conversation`
@@ -122,6 +128,7 @@ Get a specific conversation with all its messages.
 ```
 
 **Error Responses**:
+
 - `404 Not Found`: Conversation does not exist
 
 ---
@@ -131,6 +138,7 @@ Get a specific conversation with all its messages.
 Send a message to the council and run the 3-stage deliberation process.
 
 **Path Parameters**:
+
 - `conversation_id` (string): The UUID of the conversation
 
 **Request Body**: `SendMessageRequest`
@@ -182,6 +190,7 @@ Send a message to the council and run the 3-stage deliberation process.
 ```
 
 **Notes**:
+
 - If this is the first message in the conversation, a title is automatically generated
 - The user message is added to the conversation before processing
 - The assistant response (with all stages) is added to the conversation after processing
@@ -189,6 +198,7 @@ Send a message to the council and run the 3-stage deliberation process.
 - This endpoint waits for all stages to complete before returning
 
 **Error Responses**:
+
 - `404 Not Found`: Conversation does not exist
 
 ---
@@ -198,6 +208,7 @@ Send a message to the council and run the 3-stage deliberation process.
 Send a message and stream the 3-stage council process as Server-Sent Events (SSE).
 
 **Path Parameters**:
+
 - `conversation_id` (string): The UUID of the conversation
 
 **Request Body**: `SendMessageRequest`
@@ -215,11 +226,13 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
 **Event Types**:
 
 1. `stage1_start` - Stage 1 (collecting responses) has started
+
    ```json
    {"type": "stage1_start"}
    ```
 
 2. `stage1_complete` - Stage 1 has completed
+
    ```json
    {
      "type": "stage1_complete",
@@ -235,11 +248,13 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
    ```
 
 3. `stage2_start` - Stage 2 (collecting rankings) has started
+
    ```json
    {"type": "stage2_start"}
    ```
 
 4. `stage2_complete` - Stage 2 has completed
+
    ```json
    {
      "type": "stage2_complete",
@@ -252,11 +267,13 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
    ```
 
 5. `stage3_start` - Stage 3 (synthesizing final answer) has started
+
    ```json
    {"type": "stage3_start"}
    ```
 
 6. `stage3_complete` - Stage 3 has completed
+
    ```json
    {
      "type": "stage3_complete",
@@ -268,6 +285,7 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
    ```
 
 7. `title_complete` - Title generation has completed (only for first message)
+
    ```json
    {
      "type": "title_complete",
@@ -278,11 +296,13 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
    ```
 
 8. `complete` - All processing is complete
+
    ```json
    {"type": "complete"}
    ```
 
 9. `error` - An error occurred
+
    ```json
    {
      "type": "error",
@@ -291,12 +311,14 @@ The response is a stream of Server-Sent Events. Each event has a `type` and opti
    ```
 
 **Notes**:
+
 - Events are sent as they occur, allowing real-time UI updates
 - The conversation is updated in the background as stages complete
 - Title generation runs in parallel with Stage 1 (for first message only)
 - Use EventSource API in JavaScript to consume this stream
 
 **Example JavaScript Usage**:
+
 ```javascript
 const eventSource = new EventSource(
   `/api/conversations/${conversationId}/message/stream`,
@@ -323,6 +345,7 @@ eventSource.onmessage = (event) => {
 ```
 
 **Error Responses**:
+
 - `404 Not Found`: Conversation does not exist
 - Error events are sent in the stream if processing fails
 
@@ -355,6 +378,7 @@ eventSource.onmessage = (event) => {
 ### Message
 
 User message:
+
 ```typescript
 {
   role: "user";
@@ -363,6 +387,7 @@ User message:
 ```
 
 Assistant message:
+
 ```typescript
 {
   role: "assistant";
@@ -524,6 +549,7 @@ Delete a personality.
 Get current system prompts and configuration.
 
 **Response**:
+
 ```json
 {
   "base_system_prompt": "...",
@@ -539,4 +565,3 @@ Get current system prompts and configuration.
 Update system prompts and configuration.
 
 **Request Body**: Same as GET response.
-

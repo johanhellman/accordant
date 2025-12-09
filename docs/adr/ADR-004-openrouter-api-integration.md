@@ -7,11 +7,13 @@
 ## Context
 
 The application needs to query multiple LLM providers. Options included:
+
 - Direct API integration with each provider (OpenAI, Anthropic, Google, etc.)
 - A unified API gateway like OpenRouter or LiteLLM
 - Self-hosted models
 
 We needed a solution that:
+
 - Supports multiple providers with a single API
 - Handles authentication and rate limiting
 - Provides access to cutting-edge models
@@ -21,6 +23,7 @@ We needed a solution that:
 ## Decision
 
 We will use a router-independent abstraction that supports multiple unified API gateways:
+
 - **OpenRouter** (original implementation, default)
 - **LiteLLM** (added support for router independence)
 
@@ -29,6 +32,7 @@ The system abstracts the router implementation, allowing users to configure eith
 ## Consequences
 
 ### Positive
+
 - **Single Integration**: One API client instead of multiple provider clients
 - **Model Variety**: Access to models from OpenAI, Anthropic, Google, xAI, etc.
 - **Simplified Auth**: Single API key instead of managing multiple keys
@@ -38,6 +42,7 @@ The system abstracts the router implementation, allowing users to configure eith
 - **Cost Management**: Unified billing through chosen router service
 
 ### Negative
+
 - **Dependency**: Relies on router service availability
 - **Additional Cost**: Router services may add a markup on top of provider costs
 - **Less Control**: Can't use provider-specific features directly
@@ -45,6 +50,7 @@ The system abstracts the router implementation, allowing users to configure eith
 - **Configuration Complexity**: Users must understand which router they're using
 
 ### Neutral
+
 - API key stored in `.env` file (gitignored)
 - Supports both streaming and non-streaming modes
 - Retry logic with exponential backoff for transient errors
@@ -64,4 +70,3 @@ The system abstracts the router implementation, allowing users to configure eith
 - Retry logic handles 429 (rate limit) and 5xx (server error) responses
 - See `backend/config.py` for configuration options
 - Note: The module is still named `openrouter.py` for historical reasons, but the implementation is router-independent
-

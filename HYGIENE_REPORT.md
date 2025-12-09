@@ -28,6 +28,7 @@
 ### Technology Stack
 
 **Backend:**
+
 - **Language**: Python 3.10+ (3.13.2 recommended)
 - **Framework**: FastAPI 0.115.0+
 - **Package Manager**: uv (modern Python package manager)
@@ -38,6 +39,7 @@
 - **Lockfile**: `uv.lock` (present)
 
 **Frontend:**
+
 - **Language**: JavaScript/JSX (React 19.2.0+)
 - **Build Tool**: Vite 7.2.4+
 - **Package Manager**: npm
@@ -47,6 +49,7 @@
 - **Lockfile**: `package-lock.json` (present)
 
 **Infrastructure:**
+
 - **Storage**: JSON file-based storage (`data/conversations/`)
 - **Authentication**: JWT-based auth with passlib[bcrypt]
 - **Encryption**: Fernet (symmetric encryption) for API keys at rest
@@ -55,6 +58,7 @@
 ### Baseline Files Inventory
 
 **Present:**
+
 - ✅ `README.md` - Comprehensive with setup, troubleshooting, deployment
 - ✅ `CONTRIBUTING.md` - Code style, formatting, linting guidelines
 - ✅ `SECURITY.md` - Security policy, vulnerability reporting, best practices
@@ -66,12 +70,14 @@
 - ✅ `.pre-commit-config.yaml` - Pre-commit hooks configured (optional, non-blocking)
 
 **Absent:**
+
 - ❌ `CODE_OF_CONDUCT.md` - Not present (may be intentional for proprietary project)
 - ❌ `.github/workflows/` - No CI/CD workflows (intentionally deferred per CONTRIBUTING.md)
 
 ### Documentation Structure
 
 **Present:**
+
 - ✅ `docs/adr/` - 14 ADRs documented (ADR-001 through ADR-014)
 - ✅ **ADR Index**: All ADRs indexed including ADR-014 (Structured Personality Prompts)
 - ✅ `docs/design/` - System overview document
@@ -81,6 +87,7 @@
 - ✅ `docs/UPGRADE_QUICK_REFERENCE.md` - Quick reference guide
 
 **ADR Index:**
+
 - ADR-001: 3-Stage Council Deliberation System
 - ADR-002: Anonymized Peer Review
 - ADR-003: JSON-Based File Storage
@@ -100,7 +107,7 @@
 
 ### Code Statistics
 
-- **Python Files**: 69 source files (excluding venv/__pycache__) - verified 2025-12-08
+- **Python Files**: 69 source files (excluding venv/**pycache**) - verified 2025-12-08
 - **JavaScript/JSX Files**: 25 files in `frontend/src` - verified 2025-12-08
 - **Test Files**: 38 test files in `tests/` directory - verified 2025-12-08
 - **Git History**: Active development with recent commits including test coverage improvements
@@ -108,6 +115,7 @@
 ### Secret Patterns Detection
 
 **Findings:**
+
 - ✅ `.env` file is properly gitignored
 - ✅ API keys are encrypted at rest using Fernet (ADR-013)
 - ✅ Secrets are loaded from environment variables
@@ -116,6 +124,7 @@
 - ✅ No cleartext secrets found in tracked files
 
 **Secret Management:**
+
 - Encryption key stored in `ENCRYPTION_KEY` environment variable
 - API keys encrypted before storage in `data/organizations.json`
 - JWT secret stored in `SECRET_KEY` environment variable
@@ -130,6 +139,7 @@
 **Status**: ✅ **PASS** - No cleartext secrets found in tracked files
 
 **Findings:**
+
 - ✅ `.env` file properly gitignored
 - ✅ API keys encrypted at rest using Fernet (symmetric encryption)
 - ✅ Test files use placeholder values (`"key"`, `"test-api-key-123"`) - acceptable
@@ -138,11 +148,13 @@
 - ✅ Encryption key rotation script exists (`backend/scripts/rotate_keys.py`)
 
 **Recommendations:**
+
 - ✅ No action needed - secret management follows best practices (ADR-013)
 
 ### Dependency Audit
 
 **Python Dependencies:**
+
 - ✅ **Lockfile**: `uv.lock` present and tracked
 - ✅ **pip-audit**: **0 vulnerabilities found** (verified 2025-12-08 - fresh audit)
   - **Status**: urllib3 upgraded to 2.6.1, fixing 2 CVEs
@@ -154,16 +166,19 @@
   - **Action Taken**: Added explicit `urllib3>=2.6.0` dependency to pyproject.toml and ran `uv sync`
 
 **JavaScript Dependencies:**
+
 - ✅ **Lockfile**: `package-lock.json` present and tracked
 - ✅ **npm audit**: `npm audit --audit-level=moderate` - **0 vulnerabilities found** (verified 2025-12-08)
 - ✅ **Security plugin**: ESLint security plugin configured (`eslint-plugin-security`)
 
 **Dependency Management:**
+
 - ✅ Dependencies pinned in `pyproject.toml` with minimum versions
 - ✅ Dev dependencies properly separated (`[project.optional-dependencies]` and `[dependency-groups]`)
 - ✅ Makefile includes `security-audit` target for both Python and JavaScript
 
 **Recommendations:**
+
 - ✅ **Quick Win**: Fix venv path issue to enable `pip-audit` runs - **COMPLETED**
 - ✅ **URGENT**: Upgrade urllib3 to 2.6.0+ to fix 2 CVEs (CVE-2025-66418, CVE-2025-66471) - **COMPLETED**
   - **Action**: Added explicit `urllib3>=2.6.0` dependency to pyproject.toml and ran `uv sync`
@@ -175,6 +190,7 @@
 ### Static Security Analysis
 
 **Python Security Linting:**
+
 - ✅ **Bandit**: **All Medium/High severity issues addressed** (verified 2025-12-08 - fresh audit)
   - **Configuration**: Present in `pyproject.toml` with exclusions for tests
   - **Remaining findings**: No issues identified (0 Low, 0 Medium, 0 High)
@@ -183,10 +199,12 @@
   - **Code scanned**: 2959 lines of code
 
 **JavaScript Security Linting:**
+
 - ✅ **ESLint Security Plugin**: Configured (`eslint-plugin-security`)
 - ✅ **Security rules**: Enabled in `frontend/eslint.config.js`
 
 **Code Review Findings:**
+
 - ✅ **Path Validation**: `backend/config/paths.py` implements directory traversal protection
   - Uses `os.path.commonpath()` to prevent path escapes
   - Validates against base directory
@@ -196,6 +214,7 @@
 - ✅ **Encryption**: Fernet encryption for sensitive data at rest
 
 **Recommendations:**
+
 - ✅ **Quick Win**: Fix venv to enable Bandit security scans - **COMPLETED**
 - ✅ **Near-term**: Run Bandit scan and address any findings - **COMPLETED**
   - Fixed B104 (hardcoded_bind_all_interfaces): Made host configurable via HOST env var
@@ -206,6 +225,7 @@
 ### Risky Defaults
 
 **CORS Configuration:**
+
 - ⚠️ **Default**: Permissive defaults for development (`*` for methods/headers, localhost origins)
 - ✅ **Production Warning**: Code includes warning if `ENVIRONMENT=production` and CORS allows `*`
 - ✅ **Documentation**: README.md includes production CORS configuration guide
@@ -214,6 +234,7 @@
 - **Recommendation**: ✅ No action needed - properly documented and configurable
 
 **Debug/Development Settings:**
+
 - ⚠️ **LOG_LEVEL**: Defaults to INFO, can be set to DEBUG
 - ✅ **SECRET_KEY**: Development fallback includes warning message
 - ✅ **ENCRYPTION_KEY**: Production requires key, development generates temporary key with warning
@@ -221,12 +242,14 @@
 - **Recommendation**: ✅ No action needed - appropriate defaults with warnings
 
 **HTTPS/SSL:**
+
 - ⚠️ **Not Enforced**: No HTTPS enforcement in code (relies on deployment)
 - ✅ **Documentation**: README.md mentions HTTPS requirement for production CORS with credentials
 - **Risk**: Low (deployment concern, not code issue)
 - **Recommendation**: 📋 **Near-term**: Add HTTPS enforcement middleware for production (optional)
 
 **Summary:**
+
 - ✅ **Category**: Security & Supply Chain
 - ✅ **Severity**: Low (all CVEs resolved)
 - 🔧 **Effort**: Low (dependency update completed)
@@ -239,6 +262,7 @@
 ### Test Infrastructure
 
 **Backend:**
+
 - ✅ **Test Framework**: pytest 9.0.2 with pytest-asyncio, pytest-cov, pytest-mock
 - ✅ **Test Command**: `uv run python -m pytest` (configured in `pyproject.toml`)
 - ✅ **Coverage Command**: `uv run python -m pytest --cov=backend --cov-report=json --cov-report=html`
@@ -247,6 +271,7 @@
 - ✅ **Test Organization**: All tests consolidated to `tests/` directory (legacy `backend/tests/` files moved)
 
 **Frontend:**
+
 - ✅ **Test Framework**: Vitest 4.0.15+ with React Testing Library
 - ✅ **Test Command**: `cd frontend && npm test`
 - ✅ **Coverage Command**: `cd frontend && npm run test:coverage`
@@ -255,6 +280,7 @@
 ### Coverage Analysis
 
 **Overall Coverage**: **87.5%** (verified 2025-12-08 - fresh test run) - ✅ **Above 80% target**
+
 - **Covered Lines**: 1,510 / 1,726 statements
 - **Test Results**: 462 passed, 60 failed, 1 skipped (523 total tests)
 
@@ -346,6 +372,7 @@
 ### Test Organization
 
 **Current State:**
+
 - ✅ **Primary Location**: `tests/` directory (project root) - **38 test files** (verified 2025-12-08)
   - Configured in `pyproject.toml` with `testpaths = ["tests"]`
   - This is the **intended location** for all backend tests
@@ -358,12 +385,14 @@
   - Directory may be removed if no longer needed
 
 **Why Tests Are in Project Root (`tests/`):**
+
 1. **Separation of Concerns**: Tests are separate from source code, making it clear they're not part of the application
 2. **Import Clarity**: Tests import from `backend.*`, making it explicit they're testing the backend package
 3. **Configuration Alignment**: `pyproject.toml` specifies `testpaths = ["tests"]`, making this the canonical location
 4. **Standard Practice**: Many Python projects use a top-level `tests/` directory
 
 **Consolidation Status:**
+
 - ✅ **COMPLETED**: Moved `backend/tests/test_fixes.py` → `tests/test_fixes.py`
 - ✅ **COMPLETED**: Moved `backend/tests/test_multi_user.py` → `tests/test_multi_user.py`
 - ✅ **Imports**: Verified - imports remain `from backend.*` (no changes needed)
@@ -371,6 +400,7 @@
 - ✅ **Documentation**: Updated `CONTRIBUTING.md` and `DEVELOPER_GUIDE.md` ✅ **COMPLETED**
 
 **Frontend Tests:**
+
 - ✅ **Location**: `frontend/src/` directory (e.g., `frontend/src/api.test.js`)
 - ✅ **Configuration**: Vitest configured in `frontend/vite.config.js`
 - ✅ **Separation**: Frontend tests are correctly separated from backend tests
@@ -380,6 +410,7 @@
 **Note**: Coverage data from `coverage.json` (verified 2025-12-04). Test infrastructure is functional.
 
 **Test Files Present:**
+
 - ✅ `tests/test_critical_paths_skeleton.py` - Comprehensive tests for council orchestration (2000+ lines)
 - ✅ `tests/test_council_implementation.py` - **NEW** - Direct implementation tests for council.py functions
 - ✅ `tests/test_council_helpers_unit.py` - **NEW** - Direct unit tests for council_helpers.py helper functions
@@ -417,10 +448,12 @@
   - `get_org_personalities_dir` and `get_org_config_dir`: 4 test cases for directory helpers
 
 **Frontend Tests:**
+
 - ✅ `frontend/src/api.test.js` - API client tests
 - ⚠️ **Limited component tests** - Only API tests found
 
 **Recent Test Improvements (2025-12-04):**
+
 - ✅ Added comprehensive edge case tests for `generate_conversation_title` in `tests/test_council.py`:
   - Empty title after stripping quotes
   - Missing content key in response
@@ -431,6 +464,7 @@
 ### Coverage Gaps & Recommendations
 
 **Critical Gaps:**
+
 1. **`backend/council.py`** - 15% coverage → **Targeting 60%+**
    - **Action**: Added comprehensive implementation tests in `tests/test_council_implementation.py`
    - **Effort**: Medium (2-4 hours)
@@ -604,6 +638,7 @@
    - Performance tests for council orchestration
 
 **Summary:**
+
 - ✅ **Category**: Tests & Coverage
 - ✅ **Severity**: Low (87.5% coverage, above 80% target) - **Significant improvement from 61.8%**
 - ✅ **Effort**: Low (comprehensive test infrastructure exists, coverage targets achieved)
@@ -742,6 +777,7 @@
     - **Recommendation**: ✅ No action needed
 
 **Complexity Metrics** (approximate):
+
 - **Average function length**: ~25-30 lines (good)
 - **Maximum function length**: ~110 lines (`_stage2_personality_mode`)
 - **Nested depth**: Generally ≤3 levels (good)
@@ -750,6 +786,7 @@
 ### Maintainability Assessment
 
 **Code Quality Indicators:**
+
 - ✅ **Modularity**: Good - functions are well-separated
 - ✅ **Naming**: Clear and descriptive function/variable names
 - ✅ **Documentation**: Functions have docstrings
@@ -776,6 +813,7 @@
 **Safe Refactors** (low risk, high value):
 
 1. **Extract Model Selector Component** (`SystemPromptsEditor.jsx`)
+
    ```jsx
    // Create: frontend/src/components/ModelSelector.jsx
    // Extract duplicated model selection dropdown code
@@ -783,6 +821,7 @@
    ```
 
 2. **Extract Test Helpers** (`ChatInterface.test.jsx`)
+
    ```javascript
    // Create: frontend/src/test/helpers.js
    // Extract common test setup functions
@@ -790,6 +829,7 @@
    ```
 
 3. **Extract Shared CSS** (Stage1.css, Stage2.css)
+
    ```css
    // Create: frontend/src/components/shared/Tabs.css
    // Extract shared tab styling
@@ -803,6 +843,7 @@
    - Risk: Medium | Effort: 1-2 hours | Impact: Improves readability
 
 **Summary:**
+
 - ✅ **Category**: Quality, Duplication & Complexity
 - ✅ **Severity**: Low (excellent duplication metrics, manageable complexity)
 - 🔧 **Effort**: Low-Medium (mostly optional improvements)
@@ -817,6 +858,7 @@
 **Status**: ✅ **Excellent** - Comprehensive and well-structured
 
 **Strengths:**
+
 - ✅ Clear project description and value proposition
 - ✅ Detailed setup instructions (dependencies, configuration, environment variables)
 - ✅ Comprehensive troubleshooting section
@@ -826,12 +868,14 @@
 - ✅ Multi-user and admin features documented
 
 **Areas for Improvement:**
+
 - ⚠️ **Quickstart section**: Could add a "Quick Start" section at the top for faster onboarding
 - ✅ **No action needed** - README is comprehensive
 
 ### Baseline Documentation Files
 
 **Present and Reviewed:**
+
 - ✅ **`README.md`** - Comprehensive (549 lines) with setup, troubleshooting, deployment
 - ✅ **`CONTRIBUTING.md`** - Code style, formatting, linting guidelines, testing approach
 - ✅ **`SECURITY.md`** - Security policy, vulnerability reporting, best practices, CORS configuration
@@ -839,11 +883,13 @@
 - ✅ **`LICENSE`** - Proprietary license clearly stated
 
 **Missing (Intentional):**
+
 - ❌ **`CODE_OF_CONDUCT.md`** - Not present (acceptable for proprietary project)
 
 ### Documentation Structure
 
 **Present:**
+
 - ✅ **`docs/adr/`** - 13 ADRs with `ADR_INDEX.md` (excellent coverage)
 - ✅ **`docs/design/`** - System overview document
 - ✅ **`docs/api/`** - API surface documentation (`API_SURFACE.md`)
@@ -852,6 +898,7 @@
 - ✅ **`docs/UPGRADE_QUICK_REFERENCE.md`** - Quick reference guide
 
 **ADR Coverage:**
+
 - ✅ All major architectural decisions documented
 - ✅ **ADR Index**: All ADRs indexed including ADR-014
 - ✅ Recent ADRs cover multi-tenancy, secrets management, voting statistics, structured personality prompts
@@ -859,12 +906,14 @@
 ### Inline Documentation
 
 **Python Code:**
+
 - ✅ **Module docstrings**: Present in most modules
 - ✅ **Function docstrings**: Present for public functions
 - ✅ **Type hints**: Used throughout codebase
 - ⚠️ **Some private functions**: Missing docstrings (acceptable for internal functions)
 
 **JavaScript/JSX Code:**
+
 - ✅ **JSDoc comments added**: Added to complex functions and components
 - ✅ **Component documentation**: Added JSDoc to ModelSelector, PromptEditor, and key API functions
 - **Status**: ✅ **COMPLETED** - Added JSDoc comments to:
@@ -874,6 +923,7 @@
   - 10+ API functions (login, register, admin endpoints, etc.)
 
 **Code Comments:**
+
 - ✅ **TODO/FIXME markers**: Only 12 instances found (low, acceptable)
 - ✅ **Comments**: Appropriate use of comments for complex logic
 - ✅ **No excessive comments**: Code is self-documenting where appropriate
@@ -881,12 +931,14 @@
 ### Developer Experience
 
 **Setup & Onboarding:**
+
 - ✅ **Clear setup instructions**: README provides step-by-step setup
 - ✅ **Environment variables**: Well-documented in README and `.env.example`
 - ✅ **Dependencies**: Clear separation between runtime and dev dependencies
 - ✅ **Quick start**: Could be improved with a "Quick Start" section
 
 **Development Tools:**
+
 - ✅ **Formatting**: Ruff (Python) and Prettier (JS) configured
 - ✅ **Linting**: Ruff (Python) and ESLint (JS) configured
 - ✅ **Makefile**: Convenient commands for common tasks (`make format-all`, `make lint-all`)
@@ -894,6 +946,7 @@
 - ✅ **Editor config**: `.editorconfig` present for consistent formatting
 
 **Documentation Accessibility:**
+
 - ✅ **Swagger UI**: Available at `/docs` endpoint
 - ✅ **API documentation**: Comprehensive `API_SURFACE.md`
 - ✅ **Architecture docs**: Well-organized in `docs/` directory
@@ -925,6 +978,7 @@
 ### Documentation Gaps
 
 **Minor Gaps:**
+
 - ⚠️ **Frontend component documentation**: No component-level docs
 - ⚠️ **API usage examples**: Limited examples in API docs
 - ⚠️ **Error handling documentation**: Could document common error scenarios
@@ -934,6 +988,7 @@
 ### Summary
 
 **Documentation Quality**: ✅ **Excellent**
+
 - Comprehensive README with setup, troubleshooting, deployment
 - Well-organized documentation structure
 - ADRs cover major architectural decisions
@@ -941,18 +996,21 @@
 - API documentation exists
 
 **Developer Experience**: ✅ **Good**
+
 - Clear setup instructions
 - Convenient development tools (Makefile, pre-commit hooks)
 - Good tooling (Ruff, Prettier, ESLint)
 - Editor configuration present
 
 **Recommendations:**
+
 - ✅ **Quick Win**: Add ADR-014 to ADR_INDEX.md - **COMPLETED**
 - ✅ **Quick Win**: Add "Quick Start" section to README - **COMPLETED**
 - ✅ **Near-term**: Add JSDoc comments to complex JavaScript functions - **COMPLETED**
 - 📋 **Backlog**: Add component-level documentation for React components
 
 **Summary:**
+
 - ✅ **Category**: Documentation & DevEx
 - ✅ **Severity**: Low (excellent documentation, minor improvements possible)
 - 🔧 **Effort**: Low-Medium (mostly optional enhancements)
@@ -967,6 +1025,7 @@
 **Status**: ⚠️ **Intentionally Deferred** - No automated CI/CD pipelines per project policy (verified 2025-12-04)
 
 **Present:**
+
 - ✅ **Dependabot**: Configured (`.github/dependabot.yml`)
   - Python dependencies: Daily checks
   - JavaScript dependencies: Daily checks
@@ -978,6 +1037,7 @@
   - **Note**: Optional and non-blocking (can skip with `--no-verify`)
 
 **Absent:**
+
 - ❌ **GitHub Actions workflows**: No `.github/workflows/` directory
 - ❌ **GitLab CI**: No `.gitlab-ci.yml`
 - ❌ **CircleCI**: No `.circleci/` directory
@@ -992,40 +1052,47 @@ Per `CONTRIBUTING.md`:
 **Configuration**: ✅ **Present** (`.pre-commit-config.yaml`)
 
 **Hooks Configured:**
+
 1. **ruff-format** - Auto-formats Python code
 2. **ruff** - Lints and auto-fixes Python code
 3. **prettier** - Auto-formats JavaScript/JSX/CSS
 
 **Characteristics:**
+
 - ✅ **Optional**: Can be skipped with `--no-verify`
 - ✅ **Non-blocking**: Won't prevent commits
 - ✅ **Auto-fix**: Automatically fixes issues when possible
 - ⚠️ **ESLint not included**: Requires npm/node setup (run manually)
 
 **Installation:**
+
 - Command: `make install-pre-commit` or `uv run pre-commit install`
 - Usage: Runs automatically on `git commit`
 - Manual run: `make run-pre-commit`
 
 **Recommendations:**
+
 - ✅ **No action needed** - Pre-commit hooks are well-configured
 - 📋 **Optional**: Consider adding ESLint to pre-commit hooks (requires npm setup)
 
 ### Recent Fixes (2025-12-04)
 
 **Quick Wins Completed:**
+
 1. ✅ Fixed venv path issues - Recreated venv with `uv sync`, enabling `pip-audit` and `bandit` security scans
 2. ✅ Added Quick Start section to README - Added 5-minute setup guide for faster onboarding
 3. ✅ Extracted test helpers - Created `frontend/src/test/helpers.js` to reduce test duplication in `ChatInterface.test.jsx`
 4. ✅ Verified `validate_org_access` test exists - Test already present in `tests/test_admin_boundaries.py`
 
 **Near-term Fixes Completed:**
+
 1. ✅ Increased `admin_routes.py` coverage to 70%+ - Added 15+ comprehensive test cases
 2. ✅ Extracted Model Selector component - Created reusable `ModelSelector.jsx` component
 3. ✅ Added JSDoc comments - Added documentation to 10+ API functions and components
 4. ✅ Completed security audits - Fixed all Medium/High severity Bandit findings
 
 **Additional Test Coverage Improvements (2025-12-04):**
+
 1. ✅ Added comprehensive edge case tests for `council_helpers.py`:
    - `calculate_aggregate_rankings`: empty parsed rankings, unparseable rankings, duplicate labels, no matching labels, rounding precision
    - Additional coverage for error paths and edge cases
@@ -1034,6 +1101,7 @@ Per `CONTRIBUTING.md`:
    - `get_active_personalities`: invalid YAML, missing id field, disabled by default, excludes system-prompts.yaml, empty file handling
 
 **Impact:**
+
 - Security audits now functional (pip-audit, bandit)
 - Improved developer onboarding experience
 - Reduced test code duplication
@@ -1044,16 +1112,19 @@ Per `CONTRIBUTING.md`:
 ### Dependency Management Policies
 
 **Lockfiles:**
+
 - ✅ **Python**: `uv.lock` present and tracked
 - ✅ **JavaScript**: `package-lock.json` present and tracked
 - ✅ **Policy**: Lockfiles are committed to repository (good practice)
 
 **Dependency Updates:**
+
 - ✅ **Dependabot**: Configured for automated dependency updates
 - ✅ **Manual checks**: `make check-outdated` command available
 - ✅ **Security audits**: `make security-audit` command available
 
 **Recommendations:**
+
 - ✅ **No action needed** - Dependency management is well-configured
 
 ### CI/CD Recommendations (If Enabled in Future)
@@ -1061,6 +1132,7 @@ Per `CONTRIBUTING.md`:
 **If CI/CD is enabled, recommend:**
 
 1. **Basic CI Pipeline** (`.github/workflows/ci.yml`):
+
    ```yaml
    name: CI
    on: [push, pull_request]
@@ -1111,6 +1183,7 @@ Per `CONTRIBUTING.md`:
 ### Current State Assessment
 
 **Strengths:**
+
 - ✅ Pre-commit hooks configured (optional, non-blocking)
 - ✅ Dependabot configured for dependency updates
 - ✅ Lockfiles present and tracked
@@ -1118,12 +1191,14 @@ Per `CONTRIBUTING.md`:
 - ✅ Security audit commands available (`make security-audit`)
 
 **Gaps:**
+
 - ⚠️ **No automated CI/CD**: Intentionally deferred (per project policy)
 - ⚠️ **No coverage badge**: Cannot display coverage in README
 - ⚠️ **No automated testing**: Tests must be run manually
 - ⚠️ **No automated security scanning**: Security audits must be run manually
 
 **Risk Assessment:**
+
 - **Risk**: Low-Medium (manual processes require discipline)
 - **Impact**: Medium (potential for bugs/security issues to slip through)
 - **Mitigation**: Pre-commit hooks help catch issues early
@@ -1131,17 +1206,20 @@ Per `CONTRIBUTING.md`:
 ### Recommendations
 
 **Current State (Intentionally Deferred):**
+
 - ✅ **No action needed** - CI/CD intentionally deferred per project policy
 - ✅ **Pre-commit hooks**: Well-configured and optional
 - ✅ **Dependabot**: Configured for dependency updates
 
 **If CI/CD is Enabled in Future:**
+
 - 📋 **Quick Win**: Add basic CI pipeline with lint + test + coverage
 - 📋 **Near-term**: Add coverage badge to README
 - 📋 **Near-term**: Add security scanning to CI pipeline
 - 📋 **Backlog**: Add lockfile validation to CI
 
 **Summary:**
+
 - ⚠️ **Category**: CI/CD & Policies
 - ⚠️ **Severity**: Medium (CI/CD intentionally deferred, manual processes required)
 - 🔧 **Effort**: N/A (intentionally deferred)
@@ -1169,6 +1247,7 @@ Per `CONTRIBUTING.md`:
 **Overall Repository Health**: ⚠️ **Good** (Score: 7/10) - Verified 2025-12-08 at 15:55 UTC
 
 **Strengths:**
+
 - ✅ Excellent documentation structure (14 ADRs)
 - ✅ Excellent code quality (0% duplication)
 - ✅ Good security practices (encryption, path validation, Bandit passing)
@@ -1176,6 +1255,7 @@ Per `CONTRIBUTING.md`:
 - ✅ Well-configured development tools
 
 **Areas for Improvement:**
+
 - ✅ **URGENT**: urllib3 upgraded to 2.6.1 - all CVEs resolved
 - ⚠️ Test coverage below target (61.8% vs 80%) - 32 test files exist, comprehensive infrastructure
 - ✅ ADR-014 added to ADR_INDEX.md
@@ -1320,6 +1400,7 @@ Per `CONTRIBUTING.md`:
 ### Priority Recommendations
 
 **Immediate (This Week):**
+
 1. ✅ **URGENT**: Upgrade urllib3 to 2.6.1 → Fixed 2 CVEs (CVE-2025-66418, CVE-2025-66471) - **COMPLETED**
 2. ✅ Add ADR-014 to ADR_INDEX.md → Complete documentation index - **COMPLETED**
 3. ✅ Fix venv path issues → Enable security audits - **COMPLETED**
@@ -1327,12 +1408,14 @@ Per `CONTRIBUTING.md`:
 5. ✅ Extract test helpers → Reduce duplication - **COMPLETED**
 
 **Short-term (This Month):**
+
 1. ✅ Increase test coverage to 70%+ - **COMPLETED**
 2. ✅ Run security audits (pip-audit, bandit) - **COMPLETED**
 3. ✅ Extract Model Selector component - **COMPLETED**
 4. ✅ Add JSDoc comments - **COMPLETED**
 
 **Long-term (Next Quarter):**
+
 1. Reach 80% test coverage
 2. Add frontend component tests
 3. Consider CI/CD if policy changes
@@ -1369,6 +1452,7 @@ python3 -c "import json; data = json.load(open('coverage.json')); print(f\"Cover
 ### Files Analyzed
 
 **Configuration Files:**
+
 - `pyproject.toml` - Python project configuration
 - `frontend/package.json` - JavaScript dependencies
 - `.gitignore` - Git ignore patterns
@@ -1378,6 +1462,7 @@ python3 -c "import json; data = json.load(open('coverage.json')); print(f\"Cover
 - `.github/dependabot.yml` - Dependabot configuration
 
 **Documentation Files:**
+
 - `README.md` - Main documentation
 - `CONTRIBUTING.md` - Contribution guidelines
 - `SECURITY.md` - Security policy
@@ -1387,6 +1472,7 @@ python3 -c "import json; data = json.load(open('coverage.json')); print(f\"Cover
 - `docs/api/API_SURFACE.md` - API documentation
 
 **Code Analysis:**
+
 - Coverage data: `coverage.json`
 - Duplication report: `jscpd-report/jscpd-report.json`
 - Test files: 30 test files in `tests/` directory (verified 2025-12-04)
@@ -1411,4 +1497,3 @@ python3 -c "import json; data = json.load(open('coverage.json')); print(f\"Cover
 - Test coverage data from previous test runs (coverage.json)
 - Duplication analysis from existing jscpd report
 - Security findings based on code review and static analysis
-

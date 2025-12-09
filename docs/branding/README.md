@@ -7,7 +7,9 @@ Welcome to the Accordant brand guidelines. This directory contains comprehensive
 ## 📚 Documentation Structure
 
 ### [01. Brand Foundation](./01-brand-foundation.md)
+
 **Start here** to understand Accordant's core identity:
+
 - Brand purpose, vision, and mission
 - Core brand values
 - Brand personality
@@ -16,7 +18,9 @@ Welcome to the Accordant brand guidelines. This directory contains comprehensive
 - Brand story
 
 ### [02. Visual Identity](./02-visual-identity.md)
+
 Complete visual design system:
+
 - Logo system and usage guidelines
 - Color palette and accessibility
 - Typography system
@@ -27,7 +31,9 @@ Complete visual design system:
 - Responsive design standards
 
 ### [03. Brand Voice](./03-brand-voice.md)
+
 Writing and communication guidelines:
+
 - Voice attributes
 - Tone variations (default, technical, friendly, authoritative)
 - Writing style principles
@@ -37,7 +43,9 @@ Writing and communication guidelines:
 - Voice examples by context
 
 ### [04. Design Tokens](./04-design-tokens.md)
+
 Technical implementation guide:
+
 - Complete design token system
 - CSS custom properties
 - JavaScript/TypeScript tokens
@@ -46,7 +54,9 @@ Technical implementation guide:
 - Token naming conventions
 
 ### [05. Asset Guidelines](./05-asset-guidelines.md)
+
 Asset management and organization:
+
 - Asset directory structure
 - Logo formats and variations
 - Icon specifications
@@ -61,23 +71,27 @@ Asset management and organization:
 ## 🚀 Quick Start
 
 ### For Designers
+
 1. Read [Brand Foundation](./01-brand-foundation.md) to understand the brand
 2. Review [Visual Identity](./02-visual-identity.md) for design system
 3. Check [Asset Guidelines](./05-asset-guidelines.md) for available assets
 4. Use design tokens from [Design Tokens](./04-design-tokens.md)
 
 ### For Developers
+
 1. Read [Design Tokens](./04-design-tokens.md) for implementation
 2. Reference [Visual Identity](./02-visual-identity.md) for design specs
 3. Check [Brand Voice](./03-brand-voice.md) for UI copy guidelines
 4. Use assets from [Asset Guidelines](./05-asset-guidelines.md)
 
 ### For Content Writers
+
 1. Start with [Brand Foundation](./01-brand-foundation.md) for brand understanding
 2. Study [Brand Voice](./03-brand-voice.md) for writing guidelines
 3. Reference [Visual Identity](./02-visual-identity.md) for context
 
 ### For Marketers
+
 1. Read [Brand Foundation](./01-brand-foundation.md) for brand strategy
 2. Review [Brand Voice](./03-brand-voice.md) for messaging
 3. Check [Visual Identity](./02-visual-identity.md) for design standards
@@ -88,6 +102,7 @@ Asset management and organization:
 ## 🎯 Brand Principles
 
 ### Core Values
+
 1. **Collaboration** - Multiple perspectives working together
 2. **Transparency** - Open, visible processes
 3. **Quality** - High standards through peer review
@@ -96,6 +111,7 @@ Asset management and organization:
 6. **Empowerment** - Users control and customize their experience
 
 ### Brand Personality
+
 - Intelligent & Thoughtful
 - Collaborative & Inclusive
 - Transparent & Trustworthy
@@ -107,20 +123,24 @@ Asset management and organization:
 ## 🎨 Quick Reference
 
 ### Primary Colors
+
 - **Primary**: `#2563eb` (Blue)
 - **Secondary**: `#7c3aed` (Purple)
 - **Gradient**: `linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)`
 
 ### Typography
+
 - **Font**: Inter
 - **Body**: 16px, Regular (400)
 - **Headings**: Bold (700) to Extrabold (800)
 
 ### Spacing
+
 - **Base Unit**: 4px
 - **Common**: 8px, 16px, 24px, 32px
 
 ### Logo
+
 - **Primary**: Sparkles icon + "Accordant" wordmark
 - **Icon Only**: Sparkles icon
 - **Minimum Size**: 32px height (icon)
@@ -145,11 +165,13 @@ When creating new materials, ensure:
 ## 📖 Additional Resources
 
 ### External Documentation
+
 - [System Overview](../design/SYSTEM_OVERVIEW.md) - Technical architecture
 - [Developer Guide](../DEVELOPER_GUIDE.md) - Implementation details
 - [API Documentation](../api/API_SURFACE.md) - API reference
 
 ### Brand Assets
+
 - Logo files: `/brand-assets/logos/`
 - Icons: `/brand-assets/icons/`
 - Colors: `/brand-assets/colors/`
@@ -160,9 +182,11 @@ When creating new materials, ensure:
 ## 🔄 Keeping Guidelines Updated
 
 ### Version History
+
 - **v1.0.0** (2025-01-XX) - Initial brand guidelines release
 
 ### Update Process
+
 1. Brand team reviews and approves changes
 2. Guidelines are updated in this directory
 3. Version number is incremented
@@ -174,6 +198,7 @@ When creating new materials, ensure:
 ## 💬 Questions & Feedback
 
 For questions about brand guidelines:
+
 - **Design Questions**: Contact brand/design team
 - **Technical Questions**: See [Design Tokens](./04-design-tokens.md)
 - **Asset Requests**: Follow process in [Asset Guidelines](./05-asset-guidelines.md)

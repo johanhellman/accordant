@@ -9,6 +9,7 @@ Architecture Decision Records are documents that capture important architectural
 ## ADR Format
 
 Each ADR follows this structure:
+
 - **Status**: Proposed, Accepted, Deprecated, or Superseded
 - **Context**: The issue motivating this decision
 - **Decision**: The change that we're proposing or have agreed to implement
@@ -60,4 +61,3 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 - [README.md](../../README.md) - Project overview and setup
 - [API Documentation](../api/API_SURFACE.md) - API endpoint documentation
 - [System Overview](../design/SYSTEM_OVERVIEW.md) - High-level architecture and component overview
-
