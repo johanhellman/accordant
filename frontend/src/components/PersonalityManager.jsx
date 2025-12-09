@@ -5,6 +5,7 @@ import PersonalityEditor from './PersonalityEditor';
 import SystemPromptsEditor from './SystemPromptsEditor';
 import LeagueTable from './LeagueTable';
 import EvolutionPanel from './EvolutionPanel';
+import VotingHistory from './VotingHistory';
 
 const PersonalityManager = () => {
   const [personalities, setPersonalities] = useState([]);
@@ -165,6 +166,12 @@ const PersonalityManager = () => {
         >
           System Prompts
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'voting-history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('voting-history')}
+        >
+          Voting History
+        </button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -217,6 +224,10 @@ const PersonalityManager = () => {
 
         {activeTab === 'system-prompts' && (
           <SystemPromptsEditor />
+        )}
+
+        {activeTab === 'voting-history' && (
+          <VotingHistory />
         )}
       </div>
 

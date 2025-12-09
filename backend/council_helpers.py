@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from typing import Any
 
-from .config.personalities import DEFAULT_RANKING_PROMPT
+
 from .schema import MessageDict, Stage2Result
 
 # Constants for magic strings
@@ -123,7 +123,7 @@ def build_ranking_prompt(
         user_query: The original user question
         responses_text: Formatted text containing all responses to evaluate
         exclude_self: If True, uses "peers" language.
-        prompt_template: Optional custom instructions. Defaults to DEFAULT_RANKING_PROMPT instructions.
+        prompt_template: Optional custom instructions.
         enforced_context: Enforced context string (loaded from config)
         enforced_format: Enforced output format string (loaded from config)
 

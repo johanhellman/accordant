@@ -10,13 +10,6 @@ from pydantic import BaseModel
 
 from .auth import get_current_admin_user, get_current_instance_admin, validate_org_access
 from .config.personalities import (
-    DEFAULT_BASE_SYSTEM_PROMPT,
-    DEFAULT_CHAIRMAN_PROMPT,
-    DEFAULT_RANKING_MODEL,
-    DEFAULT_RANKING_PROMPT,
-    DEFAULT_TITLE_GENERATION_PROMPT,
-    DEFAULT_RANKING_PROMPT,
-    DEFAULT_TITLE_GENERATION_PROMPT,
     get_org_personalities_dir,
     get_all_personalities,
     _load_defaults,
@@ -276,20 +269,20 @@ async def get_default_system_prompts(current_user: User = Depends(get_current_in
         "base_system_prompt": to_cv(defaults.get("base_system_prompt", "")),
         "ranking": { 
             "prompt": to_cv(ranking_prompt),
-            "model": DEFAULT_RANKING_MODEL, 
-            "effective_model": DEFAULT_RANKING_MODEL,
+            "model": "openai/gpt-4o", 
+            "effective_model": "openai/gpt-4o",
         },
         "ranking_enforced_context": ENFORCED_CONTEXT,
         "ranking_enforced_format": ENFORCED_OUTPUT_FORMAT.replace("{FINAL_RANKING_MARKER}", "FINAL RANKING:").replace("{RESPONSE_LABEL_PREFIX}", "Response "),
         "chairman": {
             "prompt": to_cv(chairman_prompt),
-            "model": DEFAULT_RANKING_MODEL,
-            "effective_model": DEFAULT_RANKING_MODEL,
+            "model": "gemini/gemini-2.5-pro",
+            "effective_model": "gemini/gemini-2.5-pro",
         },
         "title_generation": {
             "prompt": to_cv(title_prompt),
-            "model": DEFAULT_RANKING_MODEL,
-            "effective_model": DEFAULT_RANKING_MODEL,
+            "model": "gemini/gemini-2.5-pro",
+            "effective_model": "gemini/gemini-2.5-pro",
         },
         "evolution_prompt": to_cv(evolution_prompt),
         "stage1_response_structure": to_cv(defaults.get("stage1_response_structure", "")),

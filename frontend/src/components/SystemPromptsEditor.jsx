@@ -515,7 +515,7 @@ function SystemPromptsEditor() {
           })}
         </nav>
       </div>
-      <div className={`main-content ${scope === 'global' ? 'global-scope' : ''}`}>
+      <div className={`editor-content ${scope === 'global' ? 'global-scope' : ''}`}>
         {scope === 'global' && (
           <div className="global-scope-banner">
             ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit these settings.

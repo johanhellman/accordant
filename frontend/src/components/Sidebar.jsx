@@ -60,31 +60,7 @@ export default function Sidebar({
                 className={`nav-item ${currentView === "personalities" ? "active" : ""}`}
                 onClick={() => onViewChange("personalities")}
               >
-                Personalities
-              </div>
-              <div
-                className={`nav-item ${currentView === "league" ? "active" : ""}`}
-                onClick={() => onViewChange("league")}
-              >
-                League Table
-              </div>
-              <div
-                className={`nav-item ${currentView === "evolution" ? "active" : ""}`}
-                onClick={() => onViewChange("evolution")}
-              >
-                Board Evolution
-              </div>
-              <div
-                className={`nav-item ${currentView === "prompts" ? "active" : ""}`}
-                onClick={() => onViewChange("prompts")}
-              >
-                System Prompts
-              </div>
-              <div
-                className={`nav-item ${currentView === "voting_history" ? "active" : ""}`}
-                onClick={() => onViewChange("voting_history")}
-              >
-                Voting History
+                Council Personalities
               </div>
 
               <div className="nav-group-label">System Settings</div>

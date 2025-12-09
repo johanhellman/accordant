@@ -18,21 +18,7 @@ from .paths import (
 from .paths import (
     validate_file_path as validate_file_path,
 )
-from .personalities import (
-    DEFAULT_BASE_SYSTEM_PROMPT as DEFAULT_BASE_SYSTEM_PROMPT,
-)
-from .personalities import (
-    DEFAULT_CHAIRMAN_PROMPT as DEFAULT_CHAIRMAN_PROMPT,
-)
-from .personalities import (
-    DEFAULT_RANKING_MODEL as DEFAULT_RANKING_MODEL,
-)
-from .personalities import (
-    DEFAULT_RANKING_PROMPT as DEFAULT_RANKING_PROMPT,
-)
-from .personalities import (
-    DEFAULT_TITLE_GENERATION_PROMPT as DEFAULT_TITLE_GENERATION_PROMPT,
-)
+
 from .personalities import (
     get_active_personalities as get_active_personalities,
 )

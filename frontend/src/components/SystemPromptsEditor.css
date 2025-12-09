@@ -67,14 +67,14 @@
 }
 
 /* Main Content Styles */
-.main-content {
+.editor-content {
   flex-grow: 1;
   padding: 40px;
   transition: all 0.3s ease;
 }
 
 /* Global Scope Theme */
-.main-content.global-scope {
+.editor-content.global-scope {
   background-color: var(--color-bg-secondary);
   /* Very light orange background */
 }
@@ -93,7 +93,7 @@
   box-shadow: 0 2px 4px rgba(133, 100, 4, 0.1);
 }
 
-.main-content.global-scope .section-content {
+.editor-content.global-scope .section-content {
   border-top: 4px solid #f6ad55;
   /* Orange top border */
 }
@@ -284,6 +284,7 @@ label {
 
 .scope-buttons {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   background: #f0f0f0;
   padding: 4px;

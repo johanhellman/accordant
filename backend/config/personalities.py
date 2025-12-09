@@ -28,7 +28,6 @@ except ValueError as e:
     )
     PERSONALITIES_DIR = os.path.join(PROJECT_ROOT, "data", "personalities")
 
-    PERSONALITIES_DIR = os.path.join(PROJECT_ROOT, "data", "personalities")
 
 # Ordered list of editable personality sections
 # Ordered list of editable personality sections (snake_case keys)
