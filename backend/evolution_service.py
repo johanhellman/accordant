@@ -74,9 +74,9 @@ async def combine_personalities(
     prompts = load_org_system_prompts(org_id)
     evolution_prompt_template = prompts.get("evolution_prompt", "")
     
-    evolution_prompt_template = prompts.get("evolution_prompt", "")
     
     if not evolution_prompt_template:
+        raise ValueError("System prompt 'evolution_prompt' is missing configuration.")
         raise ValueError("System prompt 'evolution_prompt' is missing configuration.")
         
     prompt = evolution_prompt_template.format(
