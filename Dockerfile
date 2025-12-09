@@ -20,11 +20,7 @@ WORKDIR /app
 # This provides /etc/mime.types which Python's mimetypes module uses
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-<<<<<<< Updated upstream
-    mime-support \
-=======
     media-types \
->>>>>>> Stashed changes
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
