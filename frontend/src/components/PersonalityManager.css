@@ -81,11 +81,18 @@
   color: var(--text-secondary);
 }
 
-.personality-grid {
+.personalities-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   padding-bottom: 40px;
+}
+
+.grid-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
 
 .personality-card {

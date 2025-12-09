@@ -11,7 +11,7 @@ const PersonalityManager = () => {
   const [personalities, setPersonalities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('profiles'); // profiles, league, evolution, system-prompts
+  const [activeTab, setActiveTab] = useState('personalities'); // personalities, league, evolution, system-prompts
   const [activePersonality, setActivePersonality] = useState(null);
   const [isInstanceAdmin, setIsInstanceAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -134,19 +134,15 @@ const PersonalityManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Council Personalities</h2>
-        {activeTab === 'profiles' && (
-          <button className="create-btn" onClick={() => setIsCreating(true)}>
-            + Add Personality
-          </button>
-        )}
+
       </div>
 
       <div className="manager-tabs">
         <button
-          className={`tab-btn ${activeTab === 'profiles' ? 'active' : ''}`}
-          onClick={() => setActiveTab('profiles')}
+          className={`tab-btn ${activeTab === 'personalities' ? 'active' : ''}`}
+          onClick={() => setActiveTab('personalities')}
         >
-          Profiles
+          Personalities
         </button>
         <button
           className={`tab-btn ${activeTab === 'league' ? 'active' : ''}`}
@@ -177,8 +173,13 @@ const PersonalityManager = () => {
       {error && <div className="error-banner">{error}</div>}
 
       <div className="tab-content">
-        {activeTab === 'profiles' && (
-          <div className="profiles-grid">
+        {activeTab === 'personalities' && (
+          <div className="personalities-grid">
+            <div className="grid-actions">
+              <button className="create-btn" onClick={() => setIsCreating(true)}>
+                + Add Personality
+              </button>
+            </div>
             {personalities.map(p => (
               <div key={p.id} className="personality-card">
                 <div className="card-header">
