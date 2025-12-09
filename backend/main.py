@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -175,6 +175,7 @@ async def health_check():
     """
     import time
     from pathlib import Path
+    from datetime import datetime
 
     start_time = time.time()
     
