@@ -182,22 +182,34 @@ if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") and (
         "Set CORS_ORIGINS environment variable to a comma-separated list of allowed origins."
     )
 
-# Middleware to add cache headers to static assets
+# Middleware to add cache headers and CORS headers to static assets
 # Must be added before static files are mounted
 from starlette.middleware.base import BaseHTTPMiddleware
 
 class StaticCacheMiddleware(BaseHTTPMiddleware):
-    """Add cache-control headers to static asset responses."""
+    """Add cache-control and CORS headers to static asset responses."""
     
     async def dispatch(self, request, call_next):
         response = await call_next(request)
         
-        # Add cache headers for static assets (CSS, JS, images, fonts)
+        # Add cache headers and CORS headers for static assets (CSS, JS, images, fonts)
         if request.url.path.startswith("/assets/"):
             # Vite builds assets with content hashes, so we can cache aggressively
             # Cache for 1 year, but require revalidation (stale-while-revalidate)
             response.headers["Cache-Control"] = "public, max-age=31536000, stale-while-revalidate=86400"
             response.headers["X-Content-Type-Options"] = "nosniff"
+            
+            # Add CORS headers for module scripts with crossorigin attribute
+            # Required for ES modules loaded with crossorigin="anonymous"
+            origin = request.headers.get("origin")
+            if origin:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+            else:
+                # For same-origin requests, allow origin to be same-origin
+                response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
         
         return response
 

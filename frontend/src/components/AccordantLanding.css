@@ -33,6 +33,13 @@
   color: var(--color-text-primary);
 }
 
+.header-brand-name {
+  /* Inherit styles from parent .header-brand */
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
 .header-logo {
   width: 32px;
   height: 32px;
