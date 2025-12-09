@@ -13,6 +13,13 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from . import admin_routes, admin_users_routes, org_routes, storage
+import mimetypes
+
+# Explicitly register MIME types to ensure correct serving in minimal Docker containers
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
+
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,

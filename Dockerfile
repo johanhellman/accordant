@@ -18,6 +18,7 @@ WORKDIR /app
 # Install system dependencies if needed (e.g. for build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    mime-support \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
