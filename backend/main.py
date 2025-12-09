@@ -182,6 +182,27 @@ if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") and (
         "Set CORS_ORIGINS environment variable to a comma-separated list of allowed origins."
     )
 
+# Middleware to add cache headers to static assets
+# Must be added before static files are mounted
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class StaticCacheMiddleware(BaseHTTPMiddleware):
+    """Add cache-control headers to static asset responses."""
+    
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        
+        # Add cache headers for static assets (CSS, JS, images, fonts)
+        if request.url.path.startswith("/assets/"):
+            # Vite builds assets with content hashes, so we can cache aggressively
+            # Cache for 1 year, but require revalidation (stale-while-revalidate)
+            response.headers["Cache-Control"] = "public, max-age=31536000, stale-while-revalidate=86400"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+        
+        return response
+
+app.add_middleware(StaticCacheMiddleware)
+
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -252,6 +273,9 @@ async def health_check():
 static_dir = os.getenv("STATIC_DIR", "frontend/dist")
 if os.path.isdir(static_dir):
     logger.info(f"Serving static files from {static_dir}")
+    
+    # Mount static assets directory
+    # Cache headers are added via StaticCacheMiddleware (defined above)
     app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
     
     # Root route for SPA - must be defined before catch-all
