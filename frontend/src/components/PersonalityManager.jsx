@@ -12,6 +12,9 @@ const PersonalityManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('personalities'); // personalities, league, evolution, system-prompts
+  const [scope, setScope] = useState('org'); // 'org' or 'global'
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
   const [activePersonality, setActivePersonality] = useState(null);
   const [isInstanceAdmin, setIsInstanceAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,7 +46,9 @@ const PersonalityManager = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await api.listPersonalities();
+      const data = scope === 'global'
+        ? await api.listDefaultPersonalities()
+        : await api.listPersonalities();
       setPersonalities(data);
       setError(null);
     } catch (err) {
@@ -53,6 +58,10 @@ const PersonalityManager = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, [scope]);
 
   const handleCreate = async () => {
     try {
@@ -67,13 +76,23 @@ const PersonalityManager = () => {
         return;
       }
 
-      await api.createPersonality({
-        ...newPersonality,
-        id,
-        personality_prompt: typeof newPersonality.personality_prompt === 'string'
-          ? newPersonality.personality_prompt
-          : {}
-      });
+      if (scope === 'global') {
+        await api.createDefaultPersonality({
+          ...newPersonality,
+          id,
+          personality_prompt: typeof newPersonality.personality_prompt === 'string'
+            ? newPersonality.personality_prompt
+            : {}
+        });
+      } else {
+        await api.createPersonality({
+          ...newPersonality,
+          id,
+          personality_prompt: typeof newPersonality.personality_prompt === 'string'
+            ? newPersonality.personality_prompt
+            : {}
+        });
+      }
 
       setIsCreating(false);
       setNewPersonality({ name: '', description: '', model: '', temperature: 0.7, personality_prompt: '' });
@@ -86,7 +105,11 @@ const PersonalityManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this personality?')) return;
     try {
-      await api.deletePersonality(id);
+      if (scope === 'global') {
+        await api.deleteDefaultPersonality(id);
+      } else {
+        await api.deletePersonality(id);
+      }
       loadData();
     } catch (err) {
       setError(err.message);
@@ -105,6 +128,23 @@ const PersonalityManager = () => {
   const openEditor = (personality) => {
     setActivePersonality(personality);
     setIsEditing(true);
+  };
+
+  const handleToggleEnabled = async (e, p) => {
+    e.stopPropagation();
+    try {
+      const updated = { ...p, enabled: !p.enabled };
+      if (scope === 'global') {
+        await api.updateDefaultPersonality(p.id, updated);
+      } else {
+        await api.updatePersonality(p.id, updated);
+      }
+      // Optimistic update
+      setPersonalities(personalities.map(pers => pers.id === p.id ? updated : pers));
+    } catch (err) {
+      setError("Failed to update status");
+      loadData(); // Revert on failure
+    }
   };
 
   const closeEditor = () => {
@@ -133,41 +173,69 @@ const PersonalityManager = () => {
   return (
     <div className="manager-container">
       <div className="manager-header">
-        <h2>Council Personalities</h2>
+        <div>
+          <h2>Council Personalities</h2>
+          {isInstanceAdmin && (
+            <div className="scope-selector" style={{ marginTop: '10px' }}>
+              <label>Editing Scope:</label>
+              <div className="scope-buttons">
+                <button
+                  className={scope === 'org' ? 'active' : ''}
+                  onClick={() => setScope('org')}
+                >
+                  Organization
+                </button>
+                <button
+                  className={scope === 'global' ? 'active' : ''}
+                  onClick={() => setScope('global')}
+                >
+                  Global Defaults
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
 
       <div className="manager-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'personalities' ? 'active' : ''}`}
-          onClick={() => setActiveTab('personalities')}
-        >
-          Personalities
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'league' ? 'active' : ''}`}
-          onClick={() => setActiveTab('league')}
-        >
-          League Table
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
-          onClick={() => setActiveTab('evolution')}
-        >
-          Evolution
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'system-prompts' ? 'active' : ''}`}
-          onClick={() => setActiveTab('system-prompts')}
-        >
-          System Prompts
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'voting-history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('voting-history')}
-        >
-          Voting History
-        </button>
+        <div className="manager-tabs">
+          <div className="tab-group">
+            <button
+              className={`tab-btn ${activeTab === 'personalities' ? 'active' : ''}`}
+              onClick={() => setActiveTab('personalities')}
+            >
+              Personalities
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
+              onClick={() => setActiveTab('evolution')}
+            >
+              Evolution
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'system-prompts' ? 'active' : ''}`}
+              onClick={() => setActiveTab('system-prompts')}
+            >
+              System Prompts
+            </button>
+          </div>
+          <div className="tab-separator"></div>
+          <div className="tab-group">
+            <button
+              className={`tab-btn ${activeTab === 'league' ? 'active' : ''}`}
+              onClick={() => setActiveTab('league')}
+            >
+              League Table
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'voting-history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('voting-history')}
+            >
+              Voting History
+            </button>
+          </div>
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -176,36 +244,63 @@ const PersonalityManager = () => {
         {activeTab === 'personalities' && (
           <div className="personalities-grid">
             <div className="grid-actions">
+              <div className="filters">
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="all">All Status</option>
+                  <option value="enabled">Enabled</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+                <select value={filterSource} onChange={(e) => setFilterSource(e.target.value)}>
+                  <option value="all">All Sources</option>
+                  <option value="system">System</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
               <button className="create-btn" onClick={() => setIsCreating(true)}>
                 + Add Personality
               </button>
             </div>
-            {personalities.map(p => (
+            {personalities.filter(p => {
+              if (filterStatus === 'enabled' && p.enabled === false) return false;
+              if (filterStatus === 'disabled' && p.enabled !== false) return false;
+              if (filterSource === 'system' && p.source !== 'system') return false;
+              if (filterSource === 'custom' && p.source === 'system') return false;
+              return true;
+            }).map(p => (
               <div key={p.id} className="personality-card">
                 <div className="card-header">
-                  <div className="card-icon" style={{ backgroundColor: p.ui?.color || '#666' }}>
-                    {p.ui?.icon || '👤'}
-                  </div>
                   <div className="card-meta">
                     <h3>{p.name}</h3>
                     <span className="model-badge">{p.model}</span>
                   </div>
                 </div>
                 <div className="card-body">
-                  <p>{p.description}</p>
+                  <p className="description">{p.description}</p>
                   <div className="tags">
                     {p.source === 'system' && <span className="tag system">System</span>}
                     {p.source === 'custom' && <span className="tag custom">Custom</span>}
-                    {!p.enabled && <span className="tag disabled">Disabled</span>}
                   </div>
                 </div>
                 <div className="card-actions">
-                  <button onClick={() => openEditor(p)}>
-                    {p.source === 'system' ? 'View / Shadow' : 'Edit'}
-                  </button>
-                  {p.source !== 'system' && (
-                    <button className="p-delete-btn" onClick={() => handleDelete(p.id)}>Delete</button>
-                  )}
+                  <div className="action-buttons">
+                    <button onClick={() => openEditor(p)} className={p.source === 'system' ? 'view-shadow-btn' : 'edit-btn'}>
+                      {p.source === 'system' ? 'View / Shadow' : 'Edit'}
+                    </button>
+                    {p.source !== 'system' && (
+                      <button className="p-delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>Delete</button>
+                    )}
+                  </div>
+                  <div className="enable-toggle">
+                    <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={p.enabled !== false}
+                        onChange={(e) => handleToggleEnabled(e, p)}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                    <span className="toggle-label">{p.enabled !== false ? 'Enabled' : 'Disabled'}</span>
+                  </div>
                 </div>
               </div>
             ))}
