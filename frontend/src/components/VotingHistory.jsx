@@ -98,6 +98,8 @@ export default function VotingHistory() {
 
           <div className="vh-filters">
             <select
+              id="vh-user-filter"
+              name="selectedUser"
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
               className="filter-select"
@@ -112,6 +114,8 @@ export default function VotingHistory() {
 
             <div className="date-filters">
               <input
+                id="vh-start-date"
+                name="startDate"
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
@@ -120,6 +124,8 @@ export default function VotingHistory() {
               />
               <span className="date-sep">to</span>
               <input
+                id="vh-end-date"
+                name="endDate"
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
@@ -132,6 +138,8 @@ export default function VotingHistory() {
           <div className="toggle-filter">
             <label>
               <input
+                id="vh-enabled-only"
+                name="showEnabledOnly"
                 type="checkbox"
                 checked={showEnabledOnly}
                 onChange={(e) => setShowEnabledOnly(e.target.checked)}

@@ -118,8 +118,10 @@ const EvolutionPanel = ({ personalities: initialPersonalities, onRefresh }) => {
                 </p>
 
                 <div className="evo-form">
-                    <label>New Personality Name</label>
+                    <label htmlFor="offspring-name">New Personality Name</label>
                     <input
+                        id="offspring-name"
+                        name="offspringName"
                         type="text"
                         value={offspringName}
                         onChange={(e) => setOffspringName(e.target.value)}

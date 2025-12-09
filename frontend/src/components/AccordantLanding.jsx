@@ -439,6 +439,8 @@ function AccordantLanding({ onShowLogin }) {
             <form className="cta-form" onSubmit={handleEmailSubmit}>
               <div className="form-group">
                 <input
+                  id="landing-email"
+                  name="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}

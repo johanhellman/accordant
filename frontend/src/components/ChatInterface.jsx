@@ -123,6 +123,8 @@ export default function ChatInterface({ conversation, onSendMessage, isLoading }
 
       <form className="input-form" onSubmit={handleSubmit}>
         <textarea
+          id="message-input"
+          name="message"
           className="message-input"
           placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
           value={input}

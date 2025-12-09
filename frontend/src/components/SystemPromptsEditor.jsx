@@ -17,10 +17,13 @@ const SECTIONS = [
 
 
 const InheritanceToggle = ({ label, configValue, onToggle }) => {
+  const checkboxId = `inherit-${label.toLowerCase().replace(/\s+/g, '-')}`;
   return (
     <div className="inheritance-toggle">
-      <label className="toggle-label">
+      <label className="toggle-label" htmlFor={checkboxId}>
         <input
+          id={checkboxId}
+          name={`inherit${label.replace(/\s+/g, '')}`}
           type="checkbox"
           checked={configValue.is_default}
           onChange={(e) => onToggle(e.target.checked)}

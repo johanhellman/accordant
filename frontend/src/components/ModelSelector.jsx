@@ -12,13 +12,16 @@
  * @param {string} [props.effectiveModel] - Effective model ID (from env/config override)
  * @param {boolean} [props.showOverrideWarning=true] - Whether to show override warning
  */
-function ModelSelector({ value, models, onChange, label, effectiveModel, showOverrideWarning = true }) {
+function ModelSelector({ value, models, onChange, label, effectiveModel, showOverrideWarning = true, id, name }) {
   const isOverridden = showOverrideWarning && effectiveModel && value !== effectiveModel;
+  // Generate id from label if not provided
+  const selectId = id || `model-selector-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const selectName = name || `model-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
     <div className="form-group model-config">
-      <label>{label}</label>
-      <select value={value} onChange={onChange}>
+      <label htmlFor={selectId}>{label}</label>
+      <select id={selectId} name={selectName} value={value} onChange={onChange}>
         {models.map((m) => (
           <option key={m.id} value={m.id}>
             {m.name} ({m.id})

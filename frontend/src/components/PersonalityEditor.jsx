@@ -117,16 +117,20 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
                 <div className="editor-content">
                     <div className="form-row">
                         <div className="form-group">
-                            <label>ID (Unique) *</label>
+                            <label htmlFor="personality-id">ID (Unique) *</label>
                             <input
+                                id="personality-id"
+                                name="personalityId"
                                 value={personality.id}
                                 disabled={true} // ID is locked during edit
                                 className="disabled-input"
                             />
                         </div>
                         <div className="form-group">
-                            <label>Name *</label>
+                            <label htmlFor="personality-name">Name *</label>
                             <input
+                                id="personality-name"
+                                name="personalityName"
                                 value={personality.name}
                                 onChange={(e) => setPersonality({ ...personality, name: e.target.value })}
                                 placeholder="Display Name"
@@ -135,8 +139,10 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>Description *</label>
+                        <label htmlFor="personality-description">Description *</label>
                         <input
+                            id="personality-description"
+                            name="personalityDescription"
                             value={personality.description}
                             onChange={(e) => setPersonality({ ...personality, description: e.target.value })}
                             placeholder="Short description of role"
@@ -145,9 +151,11 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Model *</label>
+                            <label htmlFor="personality-provider-filter">Model *</label>
                             <div className="model-selector">
                                 <select
+                                    id="personality-provider-filter"
+                                    name="providerFilter"
                                     value={providerFilter}
                                     onChange={(e) => setProviderFilter(e.target.value)}
                                     className="provider-select"
@@ -159,6 +167,8 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
                                     ))}
                                 </select>
                                 <select
+                                    id="personality-model"
+                                    name="personalityModel"
                                     value={personality.model}
                                     onChange={(e) => setPersonality({ ...personality, model: e.target.value })}
                                     className="model-select"
@@ -173,8 +183,10 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
                             </div>
                         </div>
                         <div className="form-group">
-                            <label>Temperature *</label>
+                            <label htmlFor="personality-temperature">Temperature *</label>
                             <input
+                                id="personality-temperature"
+                                name="personalityTemperature"
                                 type="number"
                                 min="0"
                                 max="2"

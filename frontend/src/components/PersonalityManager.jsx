@@ -251,12 +251,12 @@ const PersonalityManager = () => {
           <div className="personalities-grid">
             <div className="grid-actions">
               <div className="filters">
-                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <select id="pm-filter-status" name="filterStatus" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                   <option value="all">All Status</option>
                   <option value="enabled">Enabled</option>
                   <option value="disabled">Disabled</option>
                 </select>
-                <select value={filterSource} onChange={(e) => setFilterSource(e.target.value)}>
+                <select id="pm-filter-source" name="filterSource" value={filterSource} onChange={(e) => setFilterSource(e.target.value)}>
                   <option value="all">All Sources</option>
                   <option value="system">System</option>
                   <option value="custom">Custom</option>
@@ -297,8 +297,10 @@ const PersonalityManager = () => {
                     )}
                   </div>
                   <div className="enable-toggle">
-                    <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
+                    <label className="toggle-switch" htmlFor={`enable-toggle-${p.id}`} onClick={(e) => e.stopPropagation()}>
                       <input
+                        id={`enable-toggle-${p.id}`}
+                        name={`enableToggle-${p.id}`}
                         type="checkbox"
                         checked={p.enabled !== false}
                         onChange={(e) => handleToggleEnabled(e, p)}
@@ -358,24 +360,30 @@ const PersonalityManager = () => {
             </div>
 
             <div className="form-group">
-              <label>Name</label>
+              <label htmlFor="new-personality-name">Name</label>
               <input
+                id="new-personality-name"
+                name="newPersonalityName"
                 value={newPersonality.name}
                 onChange={e => setNewPersonality({ ...newPersonality, name: e.target.value })}
                 placeholder="e.g. The Analyst"
               />
             </div>
             <div className="form-group">
-              <label>Description</label>
+              <label htmlFor="new-personality-description">Description</label>
               <textarea
+                id="new-personality-description"
+                name="newPersonalityDescription"
                 value={newPersonality.description}
                 onChange={e => setNewPersonality({ ...newPersonality, description: e.target.value })}
                 placeholder="Brief description of their role..."
               />
             </div>
             <div className="form-group">
-              <label>Model</label>
+              <label htmlFor="new-personality-model">Model</label>
               <select
+                id="new-personality-model"
+                name="newPersonalityModel"
                 value={newPersonality.model}
                 onChange={e => setNewPersonality({ ...newPersonality, model: e.target.value })}
               >
