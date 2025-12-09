@@ -425,174 +425,172 @@ input:checked+.slider:before {
   gap: 8px;
 }
 
+
 .editor-content {
+  padding: 24px;
+  /* Increased padding */
+  overflow-y: auto;
+  /* Allow scrolling if main content overflows, though PromptEditor handles its own */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  /* Important for flex child scrolling */
+}
 
-  .editor-content {
-    padding: 24px;
-    /* Increased padding */
-    overflow-y: auto;
-    /* Allow scrolling if main content overflows, though PromptEditor handles its own */
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    /* Important for flex child scrolling */
-  }
+/* Prompt Editor Wrapper to fill space */
+.prompt-editor-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  /* Minimum height for the editor area */
+  margin-bottom: 0;
+  /* Override default form-group margin */
+}
 
-  /* Prompt Editor Wrapper to fill space */
-  .prompt-editor-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 400px;
-    /* Minimum height for the editor area */
-    margin-bottom: 0;
-    /* Override default form-group margin */
-  }
+.form-row {
+  display: flex;
+  gap: 20px;
+}
 
-  .form-row {
-    display: flex;
-    gap: 20px;
-  }
+.form-row .form-group {
+  flex: 1;
+  min-width: 0;
+  /* Prevent flex item overflow */
+}
 
-  .form-row .form-group {
-    flex: 1;
-    min-width: 0;
-    /* Prevent flex item overflow */
-  }
+.editor-actions {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--bg-tertiary);
+  flex-shrink: 0;
+}
 
-  .editor-actions {
-    padding: 20px 24px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    background: var(--bg-tertiary);
-    flex-shrink: 0;
-  }
+.form-group {
+  margin-bottom: 20px;
+}
 
-  .form-group {
-    margin-bottom: 20px;
-  }
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
 
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-  }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  /* Proper box sizing */
+}
 
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: border-color 0.2s;
-    box-sizing: border-box;
-    /* Proper box sizing */
-  }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
 
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  }
+.model-selector {
+  display: flex;
+  gap: 12px;
+}
 
-  .model-selector {
-    display: flex;
-    gap: 12px;
-  }
+.provider-select {
+  width: 140px !important;
+  flex-shrink: 0;
+}
 
-  .provider-select {
-    width: 140px !important;
-    flex-shrink: 0;
-  }
+.model-select {
+  flex-grow: 1;
+}
 
-  .model-select {
-    flex-grow: 1;
-  }
+button.primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
 
-  button.primary {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
+button.primary:hover {
+  background: var(--primary-hover);
+}
 
-  button.primary:hover {
-    background: var(--primary-hover);
-  }
+button.secondary {
+  background: white;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
 
-  button.secondary {
-    background: white;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
+button.secondary:hover {
+  background: var(--bg-tertiary);
+}
 
-  button.secondary:hover {
-    background: var(--bg-tertiary);
-  }
+/* Tabs */
+.manager-tabs {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
 
-  /* Tabs */
-  .manager-tabs {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 24px;
-  }
+.tab-group {
+  display: flex;
+  gap: 2px;
+}
 
-  .tab-group {
-    display: flex;
-    gap: 2px;
-  }
+.tab-separator {
+  flex-grow: 1;
+}
 
-  .tab-separator {
-    flex-grow: 1;
-  }
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  border-radius: 6px 6px 0 0;
+}
 
-  .tab-btn {
-    background: transparent;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-weight: 500;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    border-radius: 6px 6px 0 0;
-  }
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
 
-  .tab-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
-  }
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  background: rgba(37, 99, 235, 0.05);
+}
 
-  .tab-btn.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-    background: rgba(37, 99, 235, 0.05);
-  }
-
-  .tab-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
+.tab-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;}

@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [
     react(),
+    // Remove crossorigin attribute from CSS links (not needed for same-origin resources)
+    // Remove crossorigin from css plugin removed to prevent HTML corruption
   ],
   base: '/', // Ensure assets are served from root path
   build: {
