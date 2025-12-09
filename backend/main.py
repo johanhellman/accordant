@@ -2,6 +2,7 @@
 
 import json
 import logging
+import mimetypes
 import os
 import uuid
 from datetime import datetime, timedelta
@@ -12,13 +13,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from . import admin_routes, admin_users_routes, org_routes, storage
-import mimetypes
+# Register MIME types explicitly to ensure correct content types are served
+# This is critical for CSS and JS files to be properly recognized by browsers
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('application/javascript', '.mjs')
+mimetypes.add_type('application/json', '.json')
+mimetypes.add_type('image/svg+xml', '.svg')
+mimetypes.add_type('image/png', '.png')
+mimetypes.add_type('image/jpeg', '.jpg')
+mimetypes.add_type('image/jpeg', '.jpeg')
+mimetypes.add_type('image/gif', '.gif')
+mimetypes.add_type('image/webp', '.webp')
+mimetypes.add_type('font/woff', '.woff')
+mimetypes.add_type('font/woff2', '.woff2')
+mimetypes.add_type('font/ttf', '.ttf')
+mimetypes.add_type('font/otf', '.otf')
+mimetypes.add_type('application/x-font-ttf', '.ttf')
+mimetypes.add_type('application/font-woff', '.woff')
 
-# Explicitly register MIME types to ensure correct serving in minimal Docker containers
-mimetypes.add_type("application/javascript", ".js")
-mimetypes.add_type("text/css", ".css")
-mimetypes.add_type("image/svg+xml", ".svg")
+from . import admin_routes, admin_users_routes, org_routes, storage
 
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,

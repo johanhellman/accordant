@@ -16,9 +16,15 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Install system dependencies if needed (e.g. for build tools)
+# Install media-types to ensure proper MIME type detection for static files
+# This provides /etc/mime.types which Python's mimetypes module uses
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+<<<<<<< Updated upstream
     mime-support \
+=======
+    media-types \
+>>>>>>> Stashed changes
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies

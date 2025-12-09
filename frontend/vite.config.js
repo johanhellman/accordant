@@ -3,7 +3,19 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Remove crossorigin attribute from CSS links (not needed for same-origin resources)
+    {
+      name: 'remove-crossorigin-from-css',
+      enforce: 'post',
+      apply: 'build',
+      transformIndexHtml(html) {
+        // Remove crossorigin from link tags (CSS files)
+        return html.replace(/<link([^>]*)\scrossorigin([^>]*)>/gi, '<link$1$2>')
+      },
+    },
+  ],
   base: '/', // Ensure assets are served from root path
   build: {
     assetsDir: 'assets',
