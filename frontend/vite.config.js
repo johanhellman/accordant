@@ -8,6 +8,13 @@ export default defineConfig({
   build: {
     assetsDir: 'assets',
     outDir: 'dist',
+    // Ensure proper module loading for production
+    rollupOptions: {
+      output: {
+        // Ensure consistent chunking
+        manualChunks: undefined,
+      },
+    },
   },
   test: {
     globals: true,

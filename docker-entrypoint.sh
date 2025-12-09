@@ -19,5 +19,6 @@ fi
 mkdir -p /app/data/organizations
 
 echo "Starting Accordant (Docker Mode)..."
-# Exec uvicorn/python directly
+# Use python -m backend.main to match dev environment (start.sh uses 'uv run python -m backend.main')
+# This ensures consistent module loading and initialization
 exec python -m backend.main
