@@ -280,46 +280,6 @@ async def health_check():
     }
 
 
-# Mount Static Files (Frontend)
-# Only if the build directory exists (i.e. inside Docker or after manual build)
-static_dir = os.getenv("STATIC_DIR", "frontend/dist")
-if os.path.isdir(static_dir):
-    logger.info(f"Serving static files from {static_dir}")
-    
-    # Mount static assets directory
-    # Cache headers are added via StaticCacheMiddleware (defined above)
-    app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
-    
-    # Root route for SPA - must be defined before catch-all
-    @app.get("/")
-    async def root():
-        """Serve the index page for the SPA."""
-        return FileResponse(os.path.join(static_dir, "index.html"))
-    
-    # Catch-all for SPA routes (must be last route)
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # Don't intercept API routes (they should have matched above, but just in case of 404s)
-        if full_path.startswith("api/"):
-             raise HTTPException(status_code=404, detail="API endpoint not found")
-        
-        # Check if file exists in root of dist (e.g. favicon.ico, vite.svg)
-        file_path = os.path.join(static_dir, full_path)
-        if os.path.isfile(file_path):
-            logger.debug(f"Serving static file: {full_path}")
-            return FileResponse(file_path)
-            
-        # Otherwise serve index.html for SPA routing
-        return FileResponse(os.path.join(static_dir, "index.html"))
-else:
-    logger.warning(f"Static directory {static_dir} not found. Running in API-only mode.")
-    
-    @app.get("/")
-    async def root():
-        """Retrieve health info if static not served."""
-        return {"status": "ok", "service": "Accordant API (Dev Mode)"}
-
-
 # --- Auth Routes ---
 
 
@@ -550,6 +510,47 @@ async def send_message_stream(
             "Connection": "keep-alive",
         },
     )
+
+
+# Mount Static Files (Frontend)
+# Only if the build directory exists (i.e. inside Docker or after manual build)
+# IMPORTANT: This must be AFTER all API routes to prevent catch-all from intercepting API calls
+static_dir = os.getenv("STATIC_DIR", "frontend/dist")
+if os.path.isdir(static_dir):
+    logger.info(f"Serving static files from {static_dir}")
+    
+    # Mount static assets directory
+    # Cache headers are added via StaticCacheMiddleware (defined above)
+    app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
+    
+    # Root route for SPA - must be defined before catch-all
+    @app.get("/")
+    async def root():
+        """Serve the index page for the SPA."""
+        return FileResponse(os.path.join(static_dir, "index.html"))
+    
+    # Catch-all for SPA routes (must be last route - after all API routes)
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Don't intercept API routes (they should have matched above, but just in case of 404s)
+        if full_path.startswith("api/"):
+             raise HTTPException(status_code=404, detail="API endpoint not found")
+        
+        # Check if file exists in root of dist (e.g. favicon.ico, vite.svg)
+        file_path = os.path.join(static_dir, full_path)
+        if os.path.isfile(file_path):
+            logger.debug(f"Serving static file: {full_path}")
+            return FileResponse(file_path)
+            
+        # Otherwise serve index.html for SPA routing
+        return FileResponse(os.path.join(static_dir, "index.html"))
+else:
+    logger.warning(f"Static directory {static_dir} not found. Running in API-only mode.")
+    
+    @app.get("/")
+    async def root():
+        """Retrieve health info if static not served."""
+        return {"status": "ok", "service": "Accordant API (Dev Mode)"}
 
 
 if __name__ == "__main__":
