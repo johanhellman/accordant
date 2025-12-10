@@ -265,7 +265,7 @@ Another process (e.g., another Docker container, a dev server, or an IDE process
 **Solution:**
 
 - Verify you're using the correct username/password
-- Check that the user exists in `data/users.json`
+- Check that the user exists in `data/system.db` (use `sqlite3 data/system.db "SELECT * FROM users;"`)
 - Ensure JWT tokens are being sent in requests (check browser Network tab)
 - Clear browser cookies/localStorage and try again
 
@@ -275,7 +275,7 @@ Another process (e.g., another Docker container, a dev server, or an IDE process
 
 **Solution:**
 
-- Verify organization exists in `data/organizations.json`
+- Verify organization exists in `data/system.db`
 - Check user's `org_id` matches organization ID
 - Ensure API key is configured for the organization (see [ADMIN_GUIDE.md](ADMIN_GUIDE.md))
 
@@ -351,11 +351,11 @@ cd frontend && npm list --depth=0
 # Check data directory exists
 ls -la data/
 
-# Check conversations directory
-ls -la data/conversations/
+# Check System DB (Users/Orgs)
+ls -la data/system.db
 
-# Check users file (if exists)
-cat data/users.json | jq .
+# Check Tenant DBs
+ls -la data/organizations/*/tenant.db
 ```
 
 ## Getting Help

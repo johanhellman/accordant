@@ -1,6 +1,6 @@
 # ADR-003: JSON-Based File Storage
 
-**Status**: Accepted  
+**Status**: Superseded by [ADR-016](016-sqlite-migration.md)  
 **Date**: 2025-11-25  
 **Deciders**: Project Team
 

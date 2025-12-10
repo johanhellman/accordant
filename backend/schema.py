@@ -5,7 +5,7 @@ built-in 'types' module, which caused import conflicts when running tools
 like pip-audit from the backend directory.
 """
 
-from typing import Any, TypedDict
+from typing import Any, TypedDict, Literal
 
 from pydantic import BaseModel
 
@@ -72,3 +72,14 @@ class Conversation(BaseModel):
     created_at: str
     title: str
     messages: list[dict[str, Any]]
+
+class RegistrationRequest(BaseModel):
+    """
+    Request for atomic User + Organization registration.
+    Supersedes simple UserCreate to prevent orphaned users.
+    """
+    username: str
+    password: str
+    mode: Literal["create_org", "join_org"] = "create_org"
+    org_name: str | None = None # Required if mode is create_org
+    invite_code: str | None = None # Future use for join_org

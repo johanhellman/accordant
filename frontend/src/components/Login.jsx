@@ -32,31 +32,8 @@ const Login = ({ onBackToLanding }) => {
 
     try {
       if (isRegistering) {
-        // 1. Register
-        await register(username, password);
-
-        // 2. Login immediately
-        const loginSuccess = await login(username, password);
-        if (!loginSuccess) {
-          throw new Error("Registration successful, but auto-login failed.");
-        }
-
-        // 3. Handle Org Action
-        if (regMode === "create_org") {
-          if (!orgName || !ownerEmail) {
-            // Should be validated by required props, but just in case
-            throw new Error("Organization details required");
-          }
-          await api.createOrg(orgName, ownerEmail);
-        } else if (regMode === "join_org") {
-          if (!inviteCode) {
-            throw new Error("Invite code required");
-          }
-          await api.joinOrg(inviteCode);
-        }
-
-        // 4. Refresh User to get new Org ID and Roles
-        await refreshUser();
+        // Atomic Registration (creates user + org + logs in)
+        await register(username, password, regMode, orgName, inviteCode);
       } else {
         // Login Flow
         const success = await login(username, password);

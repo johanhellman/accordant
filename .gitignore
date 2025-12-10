@@ -36,4 +36,9 @@ frontend/.vite/
 # Logs
 logs/
 report/jscpd-report.json
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
 .DS_Store

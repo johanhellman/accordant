@@ -33,6 +33,11 @@ mimetypes.add_type('application/x-font-ttf', '.ttf')
 mimetypes.add_type('application/font-woff', '.woff')
 
 from . import admin_routes, admin_users_routes, org_routes, storage
+from .database import get_system_db, system_engine
+from . import models
+
+# Create tables on startup (System DB only - Tenants created on demand)
+models.SystemBase.metadata.create_all(bind=system_engine)
 
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -54,10 +59,12 @@ from .schema import (
     ConversationMetadata,
     CreateConversationRequest,
     SendMessageRequest,
+    RegistrationRequest
 )
 from .streaming import run_council_streaming
 from .users import User, UserCreate, UserInDB, UserResponse, create_user, get_user
 from .voting_history import record_votes
+from sqlalchemy.orm import Session
 
 # --- Helper Functions ---
 
@@ -303,7 +310,8 @@ async def health_check():
             "storage": {
                 "status": storage_status,
                 "writable": writable,
-                "data_dir": data_dir
+                "data_dir": data_dir,
+                "type": "sqlite"
             }
         },
         "response_time_ms": round(process_time, 2)
@@ -314,94 +322,101 @@ async def health_check():
 
 
 @app.post("/api/auth/register", response_model=Token)
-async def register(user_data: UserCreate):
-    # Check if user exists
-    if get_user(user_data.username):
+async def register(reg_data: RegistrationRequest, db: Session = Depends(get_system_db)):
+    """
+    Atomic registration of User and Organization.
+    Prevents orphaned users by wrapping both creations in a single transaction.
+    """
+    
+    # 1. Validation
+    existing_user = get_user(reg_data.username, db=db)
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered"
         )
 
-    # Check if this is the first user (will be instance admin)
-    from .users import get_all_users
-    
-    existing_users = get_all_users()
-    is_first_user = len(existing_users) == 0
-    
-    # Check existing organizations
-    orgs = list_orgs()
-    
-    # Create user object first (need user ID for org creation)
-    hashed_password = get_password_hash(user_data.password)
-    user_id = str(uuid.uuid4())
-    org_id = None
-    
-    if is_first_user:
-        # First user: Create default organization automatically
-        if not orgs:
-            logger.info("First user registration: Creating default organization")
-            from .organizations import OrganizationCreate, create_org
-            
-            # Create user first to get ID
-            user_in_db = UserInDB(
-                id=user_id,
-                username=user_data.username,
-                password_hash=hashed_password,
-                org_id=None,  # Will be set after org creation
-            )
-            user = create_user(user_in_db)
-            
-            # Create default org with user as owner
-            default_org = create_org(
-                OrganizationCreate(name="Default Organization", owner_email=""),
-                owner_id=user.id
-            )
-            org_id = default_org.id
-            logger.info(f"Created default organization: {org_id}")
-            
-            # Update user's org_id and make them org admin
-            from .users import update_user_org
-            update_user_org(user.id, org_id, is_admin=True)
-            logger.info(f"Assigned first user {user.username} to organization {org_id} as admin")
-        else:
-            # Edge case: Orgs exist but no users - assign to first org
-            logger.warning(
-                "Data inconsistency: Organizations exist but no users. "
-                "Assigning first user to first organization."
-            )
-            org_id = orgs[0].id
-            user_in_db = UserInDB(
-                id=user_id,
-                username=user_data.username,
-                password_hash=hashed_password,
-                org_id=org_id,
-            )
-            user = create_user(user_in_db)
-            from .users import update_user_org
-            update_user_org(user.id, org_id, is_admin=True)
-    else:
-        # Subsequent users: Must create/join org after registration
-        # They will have org_id=None until they create/join an org
-        # This is handled by the frontend registration flow
-        user_in_db = UserInDB(
-            id=user_id,
-            username=user_data.username,
-            password_hash=hashed_password,
-            org_id=None,  # Will be set when they create/join org
+    if reg_data.mode == "create_org" and not reg_data.org_name:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Organization name required for creation"
         )
-        user = create_user(user_in_db)
-
-    # Create access token
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+         
+    # 2. Preparation
+    user_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(reg_data.password)
+    
+    try:
+        # 3. Execution (Atomic)
+        # We use explicit begin/commit matching schema in main dependencies, or explicit logical blocks
+        
+        # Determine Admin Status
+        # If this is the VERY FIRST user in the system, they become Instance Admin
+        user_count = db.query(models.User).count()
+        is_first_user = (user_count == 0)
+        
+        new_org = None
+        org_id = None
+        
+        if reg_data.mode == "create_org":
+            # Create User (temporarily without Org)
+            db_user = models.User(
+                id=user_id,
+                username=reg_data.username,
+                password_hash=hashed_password,
+                is_admin=True, # Creating org makes you admin of it
+                is_instance_admin=is_first_user,
+                org_id=None 
+            )
+            db.add(db_user)
+            db.flush() # User now "exists" in transaction with ID
+            
+            # Create Org
+            org_id = str(uuid.uuid4())
+            new_org = models.Organization(
+                id=org_id,
+                name=reg_data.org_name,
+                owner_id=user_id,
+                settings={},
+                api_config={}
+            )
+            db.add(new_org)
+            db.flush()
+            
+            # Link User to Org
+            db_user.org_id = org_id
+            
+            # Ensure physical directories exist (Personalities etc)
+            # The Tenant DB will be created on first access (get_tenant_session)
+            # But we still create the data folders for file-artifacts
+            org_dir = os.path.join("data", "organizations", org_id)
+            os.makedirs(os.path.join(org_dir, "personalities"), exist_ok=True)
+            os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
+            
+        elif reg_data.mode == "join_org":
+             # Placeholder for invite logic
+             raise HTTPException(status_code=501, detail="Join organization via invite not yet implemented")
+             
+        # Commit Transaction
+        db.commit()
+        
+        logger.info(f"Registered user {reg_data.username} and org {org_id} atomically.")
+        
+        # 4. Token Generation
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": reg_data.username}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Registration failed: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @app.post("/api/auth/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)):
     """Login to get access token."""
-    user = get_user(form_data.username)
+    user = get_user(form_data.username, db=db)
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

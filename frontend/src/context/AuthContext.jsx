@@ -64,9 +64,21 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const register = async (username, password) => {
+  const register = async (username, password, mode, orgName, inviteCode) => {
     try {
-      await api.register(username, password);
+      const data = await api.register(username, password, mode, orgName, inviteCode);
+      const { access_token } = data;
+
+      if (!access_token) {
+        throw new Error("Registration succeeded but no token returned");
+      }
+
+      localStorage.setItem("token", access_token);
+      api.setToken(access_token);
+
+      // Fetch full user details including roles
+      const userData = await api.getCurrentUser();
+      setUser(userData);
       return true;
     } catch (error) {
       console.error("Registration failed:", error);

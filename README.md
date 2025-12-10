@@ -78,7 +78,7 @@ For detailed admin documentation, see [Admin Guide](docs/ADMIN_GUIDE.md).
 
 - **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
 - **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/` (per organization)
+- **Storage:** SQLite database (`data/accordant.db`) with SQLAlchemy ORM
 - **Package Management:** uv for Python, npm for JavaScript
 
 ## Documentation
