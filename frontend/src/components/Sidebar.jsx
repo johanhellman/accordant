@@ -97,6 +97,16 @@ export default function Sidebar({
           >
             FAQ
           </a>
+
+          <div className="nav-group-label" style={{ marginTop: "1rem" }}>
+            Account
+          </div>
+          <div
+            className={`nav-item ${currentView === "user-settings" ? "active" : ""}`}
+            onClick={() => onViewChange("user-settings")}
+          >
+            User Settings
+          </div>
         </div>
 
         {user && (

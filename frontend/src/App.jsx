@@ -5,6 +5,7 @@ import PersonalityManager from "./components/PersonalityManager";
 import UserManagement from "./components/UserManagement";
 import OrgSettings from "./components/OrgSettings";
 import OrganizationManagement from "./components/OrganizationManagement";
+import UserSettings from "./components/UserSettings";
 import Login from "./components/Login";
 import AccordantLanding from "./components/AccordantLanding";
 import DocViewer from "./components/DocViewer";
@@ -238,6 +239,22 @@ function Dashboard() {
     window.history.pushState({}, "", "/");
   };
 
+  const handleDeleteConversation = async (id) => {
+    try {
+      await api.deleteConversation(id);
+      // Remove from list
+      setConversations(conversations.filter(c => c.id !== id));
+      // If current was deleted, clear selection
+      if (currentConversationId === id) {
+        setCurrentConversationId(null);
+        setCurrentConversation(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      alert("Failed to delete conversation. Please try again.");
+    }
+  };
+
   if (docRoute) {
     // Dynamically import to avoid circular dep issues if any, usually fine here
     // But we need to import DocViewer at top level.
@@ -273,6 +290,7 @@ function Dashboard() {
           <ChatInterface
             conversation={currentConversation}
             onSendMessage={handleSendMessage}
+            onDelete={handleDeleteConversation}
             isLoading={isLoading}
           />
         )}
@@ -282,6 +300,7 @@ function Dashboard() {
         {view === "users" && (user?.is_admin || user?.is_instance_admin) && <UserManagement />}
         {view === "organizations" && user?.is_instance_admin && <OrganizationManagement />}
         {view === "settings" && (user?.is_admin || user?.is_instance_admin) && <OrgSettings />}
+        {view === "user-settings" && <UserSettings />}
       </div>
     </div>
   );
