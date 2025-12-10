@@ -110,21 +110,16 @@
   font-weight: var(--font-weight-medium);
 }
 
-.submit-btn {
-  width: 100%;
-  padding: var(--spacing-3);
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: background-color var(--duration-base);
-  font-weight: var(--font-weight-medium);
+
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-6);
 }
 
-.submit-btn:hover {
-  background-color: var(--color-primary-hover);
+.submit-btn {
+  width: 100%;
+  /* Other styles handled by .btn and .btn-primary */
 }
 
 .error-message {

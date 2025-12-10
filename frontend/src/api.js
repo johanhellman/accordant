@@ -582,12 +582,76 @@ export const api = {
   },
 
   async deactivatePersonality(id) {
-    const response = await fetch(`${API_BASE}/api/evolution/deactivate`, {
+    const response = await fetch(`${API_BASE}/api/evolution/deactivate/${id}`, {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({ personality_id: id }),
     });
     if (!response.ok) throw new Error("Failed to deactivate personality");
     return response.json();
+  },
+
+  /**
+   * Fetch public documentation content (markdown).
+   * @param {string} docId - 'privacy', 'terms', 'faq', 'manual'
+   */
+  async getDocumentation(docId) {
+    const response = await fetch(`${API_BASE}/api/docs/${docId}`);
+    if (!response.ok) throw new Error("Failed to load documentation");
+    return response.json();
+  },
+
+  /**
+   * Delete a conversation.
+   * @param {string} id - Conversation ID
+   */
+  async deleteConversation(id) {
+    const response = await fetch(`${API_BASE}/api/conversations/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to delete conversation");
+    return response.json();
+  },
+
+  /**
+   * Delete the current user's account and all data.
+   */
+  async deleteAccount() {
+    const response = await fetch(`${API_BASE}/api/users/me`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to delete account");
+    return response.json();
+  },
+
+  /**
+   * trigger download of user data export.
+   */
+  async exportUserData() {
+    const response = await fetch(`${API_BASE}/api/users/me/export`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to export data");
+
+    // Trigger download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    // Try to get filename from content-disposition
+    const disposition = response.headers.get("Content-Disposition");
+    let filename = "accordant_export.json";
+    if (disposition && disposition.indexOf("filename=") !== -1) {
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+      if (matches != null && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '');
+      }
+    }
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   },
 };

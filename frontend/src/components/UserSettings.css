@@ -1,0 +1,146 @@
+.user-settings-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.settings-section {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-primary);
+}
+
+.section-icon {
+    color: var(--color-primary);
+}
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.profile-row:last-child {
+    border-bottom: none;
+}
+
+.profile-row .label {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.profile-row .value {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+.profile-row .value.monospace {
+    font-family: monospace;
+    font-size: 0.9em;
+    background: #f8fafc;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.privacy-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.action-card {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.action-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text-primary);
+}
+
+.action-card p {
+    margin: 0 0 1rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.danger-zone {
+    background: #fff5f5;
+    border-color: #fee2e2;
+}
+
+.danger-zone h4 {
+    color: #991b1b;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.delete-confirm {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #fee2e2;
+}
+
+.warning-text {
+    color: #dc2626;
+    font-weight: 600;
+    margin-bottom: 1rem !important;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.error-message {
+    margin-top: 1rem;
+    color: #dc2626;
+    text-align: center;
+}

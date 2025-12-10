@@ -12,26 +12,14 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.sidebar-header h1 {
-  margin: 0 0 var(--spacing-4) 0;
-  font-size: var(--font-size-xl);
-  color: var(--color-text-primary);
+.sidebar-header .sidebar-logo {
+  margin-bottom: var(--spacing-4);
 }
 
 .new-conversation-btn {
   width: 100%;
-  padding: var(--spacing-3);
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: var(--font-weight-medium);
-  transition: background-color var(--duration-base);
-}
-
-.new-conversation-btn:hover {
-  background-color: var(--color-primary-hover);
+  justify-content: center;
+  /* Ensure center alignment for flex btn */
 }
 
 .conversation-list {

@@ -27,7 +27,7 @@ def setup_logging():
 
     root_logger.addHandler(handler)
 
-    logging.getLogger("uvicorn").setLevel(logging.WARNING)
+    # logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
     # File logging

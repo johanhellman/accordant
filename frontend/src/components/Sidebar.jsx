@@ -1,4 +1,5 @@
 import "./Sidebar.css";
+import Logo from "./Logo";
 
 export default function Sidebar({
   conversations,
@@ -13,11 +14,12 @@ export default function Sidebar({
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h1>Accordant</h1>
-        <button className="new-conversation-btn" onClick={onNewConversation}>
+        <Logo size="md" className="sidebar-logo" />
+        <button className="new-conversation-btn btn btn-primary" onClick={onNewConversation}>
           + New Conversation
         </button>
       </div>
+
 
       <div className="conversation-list">
         {conversations.length === 0 ? (
@@ -78,6 +80,33 @@ export default function Sidebar({
               </div>
             </>
           )}
+          <div className="nav-group-label" style={{ marginTop: "1rem" }}>
+            Resources
+          </div>
+          <a
+            href="/help"
+            className="nav-item"
+            style={{ display: "block", textDecoration: "none" }}
+          >
+            User Manual
+          </a>
+          <a
+            href="/faq"
+            className="nav-item"
+            style={{ display: "block", textDecoration: "none" }}
+          >
+            FAQ
+          </a>
+
+          <div className="nav-group-label" style={{ marginTop: "1rem" }}>
+            Account
+          </div>
+          <div
+            className={`nav-item ${currentView === "user-settings" ? "active" : ""}`}
+            onClick={() => onViewChange("user-settings")}
+          >
+            User Settings
+          </div>
         </div>
 
         {user && (

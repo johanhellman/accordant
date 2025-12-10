@@ -1,0 +1,54 @@
+.accordant-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    user-select: none;
+}
+
+.accordant-logo .logo-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+/* Size Variants */
+.accordant-logo.size-sm {
+    font-size: 1.125rem;
+    /* 18px */
+}
+
+.accordant-logo.size-sm .logo-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.accordant-logo.size-md {
+    font-size: 1.5rem;
+    /* 24px */
+}
+
+.accordant-logo.size-md .logo-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.accordant-logo.size-lg {
+    font-size: 2rem;
+    /* 32px */
+}
+
+.accordant-logo.size-lg .logo-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.accordant-logo.size-xl {
+    font-size: 2.5rem;
+    /* 40px */
+}
+
+.accordant-logo.size-xl .logo-icon {
+    width: 48px;
+    height: 48px;
+}

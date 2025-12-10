@@ -219,6 +219,36 @@ app.add_middleware(StaticCacheMiddleware)
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+@app.get("/api/docs/{doc_id}")
+async def get_documentation(doc_id: str):
+    """
+    Serve documentation files (markdown).
+    Publicly accessible.
+    """
+    valid_docs = {
+        "privacy": "docs/legal/PRIVACY_POLICY.md",
+        "terms": "docs/legal/TERMS_OF_USE.md",
+        "faq": "docs/FAQ.md",  # General FAQ
+        "manual": "docs/USER_MANUAL.md",
+    }
+    
+    if doc_id not in valid_docs:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    file_path = os.path.join(os.getcwd(), valid_docs[doc_id])
+    
+    if not os.path.exists(file_path):
+        # Fallback for dev environment or if files moved
+        # Try finding them relative to where main.py is if cwd is different? 
+        # But os.getcwd() usually works for this project structure.
+        logger.error(f"Documentation file not found: {file_path}")
+        raise HTTPException(status_code=404, detail="Document content missing")
+
+    with open(file_path, "r") as f:
+        content = f.read()
+        
+    return {"content": content}
+
 # ... (Auth Routes and others) ...
 
 @app.get("/api/health")
@@ -263,7 +293,7 @@ async def health_check():
     return {
         "status": status_overall,
         "service": "Accordant API",
-        "version": "0.2.1",  # Should ideally match config
+        "version": "0.3.0",  # Should ideally match config
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "checks": {
             "backend": {
@@ -397,6 +427,81 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     )
 
 
+@app.get("/api/users/me/export")
+async def export_data(current_user: User = Depends(get_current_user)):
+    """
+    Export all user data (Profile + Conversations).
+    GDPR Right to Data Portability.
+    """
+    # 1. Get User Profile
+    profile = {
+        "username": current_user.username,
+        "id": current_user.id,
+        "org_id": current_user.org_id,
+        "roles": {
+            "is_admin": current_user.is_admin,
+            "is_instance_admin": current_user.is_instance_admin
+        },
+        "exported_at": datetime.utcnow().isoformat()
+    }
+    
+    # 2. Get All Conversations (Full Content)
+    conv_metadata = storage.list_conversations(current_user.id, current_user.org_id)
+    full_conversations = []
+    
+    for meta in conv_metadata:
+        conv_id = meta["id"]
+        full_conv = storage.get_conversation(conv_id, current_user.org_id)
+        if full_conv:
+            full_conversations.append(full_conv)
+            
+    export_package = {
+        "user_profile": profile,
+        "conversations": full_conversations,
+        "version": "1.0"
+    }
+    
+    filename = f"accordant_export_{current_user.username}_{datetime.utcnow().strftime('%Y%m%d')}.json"
+    
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        content=export_package,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+
+@app.delete("/api/users/me")
+async def delete_account(current_user: User = Depends(get_current_user)):
+    """
+    Delete the current user's account and all associated data.
+    GDPR Right to Erasure.
+    """
+    try:
+        # 1. Delete all conversations
+        deleted_convs = storage.delete_user_conversations(current_user.id, current_user.org_id)
+        
+        # 2. Delete user record
+        from .users import delete_user
+        success = delete_user(current_user.id)
+        
+        if not success:
+             raise HTTPException(status_code=500, detail="Failed to delete user record")
+             
+        logger.info(f"User {current_user.username} deleted account. Removed {deleted_convs} conversations.")
+        return {
+            "status": "success",
+            "message": "Account and all data deleted permanently",
+            "data_removed": {
+                "conversations": deleted_convs,
+                "account": True
+            }
+        }
+    except Exception as e:
+         logger.error(f"Error deleting account for {current_user.username}: {e}")
+         raise HTTPException(status_code=500, detail="Failed to process account deletion")
+
+
 @app.get("/api/admin/stats/voting")
 async def get_voting_statistics(current_user: User = Depends(get_current_admin_user)):
     """Get aggregated voting statistics."""
@@ -438,6 +543,21 @@ async def get_conversation(conversation_id: str, current_user: User = Depends(ge
         raise HTTPException(status_code=403, detail="Not authorized to access this conversation")
 
     return conversation
+
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a conversation."""
+    conversation = storage.get_conversation(conversation_id, org_id=current_user.org_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Verify ownership or admin status
+    if conversation.get("user_id") != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
+        
+    storage.delete_conversation(conversation_id, org_id=current_user.org_id)
+    return {"status": "success", "message": "Conversation deleted"}
 
 
 @app.post("/api/conversations/{conversation_id}/message", response_model=dict[str, Any])
@@ -602,5 +722,6 @@ if __name__ == "__main__":
     # Host configuration: Use HOST env var or default to 0.0.0.0 for development
     # For production, set HOST=127.0.0.1 or specific IP address
     host = os.getenv("HOST", "0.0.0.0")  # nosec B104
-    port = int(os.getenv("PORT", "8001"))
-    uvicorn.run(app, host=host, port=port)
+    port = int(os.getenv("PORT", "8002"))
+    is_dev = os.getenv("ENVIRONMENT", "development").lower() != "production"
+    uvicorn.run("backend.main:app", host=host, port=port, reload=is_dev)

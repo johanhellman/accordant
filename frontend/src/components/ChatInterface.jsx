@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Trash2 } from "lucide-react";
 import Stage1 from "./Stage1";
 import Stage2 from "./Stage2";
 import Stage3 from "./Stage3";
 import "./ChatInterface.css";
+import ContextualHelp from "./ContextualHelp";
 
-export default function ChatInterface({ conversation, onSendMessage, isLoading }) {
+export default function ChatInterface({ conversation, onSendMessage, onDelete, isLoading }) {
   const [input, setInput] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -27,10 +30,21 @@ export default function ChatInterface({ conversation, onSendMessage, isLoading }
   };
 
   const handleKeyDown = (e) => {
-    // Submit on Enter (without Shift)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this conversation?")) {
+      setIsDeleting(true);
+      try {
+        await onDelete(conversation.id);
+      } catch (error) {
+        console.error("Delete failed", error);
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -47,12 +61,24 @@ export default function ChatInterface({ conversation, onSendMessage, isLoading }
 
   return (
     <div className="chat-interface">
+      <div className="chat-header">
+        <h2>{conversation.title || "Conversation"} <ContextualHelp topic="stages" /></h2>
+        <button
+          className="btn-icon delete-btn"
+          onClick={handleDelete}
+          title="Delete Conversation"
+          disabled={isDeleting}
+        >
+          <Trash2 size={20} />
+        </button>
+      </div>
+
       <div className="messages-container">
         {!conversation.messages ||
-        !Array.isArray(conversation.messages) ||
-        conversation.messages.length === 0 ? (
+          !Array.isArray(conversation.messages) ||
+          conversation.messages.length === 0 ? (
           <div className="empty-state">
-            <h2>Start a conversation</h2>
+            {/* Empty state content moved to header but keeping placeholder if needed */}
             <p>Ask a question to consult the LLM Council</p>
           </div>
         ) : (

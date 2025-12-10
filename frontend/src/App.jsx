@@ -5,8 +5,10 @@ import PersonalityManager from "./components/PersonalityManager";
 import UserManagement from "./components/UserManagement";
 import OrgSettings from "./components/OrgSettings";
 import OrganizationManagement from "./components/OrganizationManagement";
+import UserSettings from "./components/UserSettings";
 import Login from "./components/Login";
 import AccordantLanding from "./components/AccordantLanding";
+import DocViewer from "./components/DocViewer";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { initAnalytics } from "./utils/analytics";
@@ -220,6 +222,46 @@ function Dashboard() {
     }
   };
 
+  // --- Routing Logic for Docs ---
+  const [docRoute, setDocRoute] = useState(null);
+
+  useEffect(() => {
+    // Simple path check on load
+    const path = window.location.pathname;
+    if (path === "/privacy") setDocRoute({ id: "privacy", title: "Privacy Policy" });
+    else if (path === "/terms") setDocRoute({ id: "terms", title: "Terms of Use" });
+    else if (path === "/faq") setDocRoute({ id: "faq", title: "FAQ" });
+    else if (path === "/help") setDocRoute({ id: "manual", title: "User Manual" });
+  }, []);
+
+  const handleBackToApp = () => {
+    setDocRoute(null);
+    window.history.pushState({}, "", "/");
+  };
+
+  const handleDeleteConversation = async (id) => {
+    try {
+      await api.deleteConversation(id);
+      // Remove from list
+      setConversations(conversations.filter(c => c.id !== id));
+      // If current was deleted, clear selection
+      if (currentConversationId === id) {
+        setCurrentConversationId(null);
+        setCurrentConversation(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      alert("Failed to delete conversation. Please try again.");
+    }
+  };
+
+  if (docRoute) {
+    // Dynamically import to avoid circular dep issues if any, usually fine here
+    // But we need to import DocViewer at top level.
+    // For now assuming it is imported.
+    return <DocViewer docId={docRoute.id} title={docRoute.title} onBack={handleBackToApp} />;
+  }
+
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
@@ -248,6 +290,7 @@ function Dashboard() {
           <ChatInterface
             conversation={currentConversation}
             onSendMessage={handleSendMessage}
+            onDelete={handleDeleteConversation}
             isLoading={isLoading}
           />
         )}
@@ -257,6 +300,7 @@ function Dashboard() {
         {view === "users" && (user?.is_admin || user?.is_instance_admin) && <UserManagement />}
         {view === "organizations" && user?.is_instance_admin && <OrganizationManagement />}
         {view === "settings" && (user?.is_admin || user?.is_instance_admin) && <OrgSettings />}
+        {view === "user-settings" && <UserSettings />}
       </div>
     </div>
   );

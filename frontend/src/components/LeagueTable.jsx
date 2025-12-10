@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import './LeagueTable.css';
+import ContextualHelp from './ContextualHelp';
 
 const LeagueTable = ({ isInstanceAdmin }) => {
     const [rankings, setRankings] = useState([]);
@@ -62,7 +63,10 @@ const LeagueTable = ({ isInstanceAdmin }) => {
     return (
         <div className="league-container">
             <div className="league-header">
-                <h3>{isInstanceAdmin ? "Global System Rankings" : "Organization League Table"}</h3>
+                <h3>
+                    {isInstanceAdmin ? "Global System Rankings" : "Organization League Table"}
+                    <ContextualHelp topic="ranking" />
+                </h3>
                 <p className="league-subtitle">
                     {isInstanceAdmin
                         ? "Aggregated performance of System Personalities across all organizations."

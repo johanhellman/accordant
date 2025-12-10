@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import './EvolutionPanel.css';
+import ContextualHelp from './ContextualHelp';
 
 const EvolutionPanel = ({ personalities: initialPersonalities, onRefresh }) => {
     const [personalities, setPersonalities] = useState(initialPersonalities || []);
@@ -113,9 +114,7 @@ const EvolutionPanel = ({ personalities: initialPersonalities, onRefresh }) => {
                 </div>
 
                 <h3>Personality Evolution</h3>
-                <p>
-                    Combine existing personalities to create a new "Offspring" that inherits their strengths and mitigates their weaknesses based on peer feedback.
-                </p>
+                <ContextualHelp topic="evolution" type="banner" />
 
                 <div className="evo-form">
                     <label htmlFor="offspring-name">New Personality Name</label>

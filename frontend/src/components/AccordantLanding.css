@@ -239,12 +239,8 @@
   letter-spacing: -0.02em;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent-pink) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* .gradient-text moved to index.css */
+
 
 .hero-description {
   font-size: clamp(1rem, 2vw, 1.25rem);
