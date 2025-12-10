@@ -2,7 +2,6 @@
 
 import logging
 import os
-import shutil
 import uuid
 from datetime import datetime
 from typing import Any
@@ -12,7 +11,10 @@ from pydantic import BaseModel
 
 from .config import PROJECT_ROOT
 from . import models
-from .database import SessionLocal
+from .database import SystemSessionLocal as SessionLocal # Aliased for minimal diff, or strict rename? 
+# Better to use SystemSessionLocal explicitly for clarity.
+
+from .database import SystemSessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ def get_org(org_id: str, db: Session = None) -> OrganizationInDB | None:
     if db:
        return _get_org_with_session(db, org_id)
         
-    with SessionLocal() as session:
+    with SystemSessionLocal() as session:
         return _get_org_with_session(session, org_id)
 
 def _get_org_with_session(db: Session, org_id: str) -> OrganizationInDB | None:
@@ -62,11 +64,11 @@ def _get_org_with_session(db: Session, org_id: str) -> OrganizationInDB | None:
 
 def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session = None) -> OrganizationInDB:
     """Create a new organization."""
-    # Logic: DB Entry + File Folder logic (for personalities/config)
+    # Logic: DB Entry (System DB) + File Folder logic (for personalities/config)
     
     is_ephemeral = False
     if db is None:
-        db = SessionLocal()
+        db = SystemSessionLocal()
         is_ephemeral = True
 
     try:
@@ -75,10 +77,6 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
             id=org_id,
             name=org_create.name,
             owner_id=owner_id,
-            # owner_email is not in model? Check models.py. 
-            # Reviewing models.py: owner_email was NOT in Organisation model.
-            # Storing it in settings for now if needed, or ignoring.
-            # created_at defaults to utcnow in model
             settings={},
             api_config={}
         )
@@ -89,9 +87,9 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
             db.refresh(new_org)
 
         # Still create directories for personalities/config/assets
+        # These are file-based artifacts NOT stored in SQLite
         org_dir = os.path.join(ORGS_DATA_DIR, org_id)
         os.makedirs(org_dir, exist_ok=True)
-        # os.makedirs(os.path.join(org_dir, "conversations"), exist_ok=True) # No longer needed for files!
         os.makedirs(os.path.join(org_dir, "personalities"), exist_ok=True)
         os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
 
@@ -108,14 +106,14 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
 
 def list_orgs() -> list[OrganizationInDB]:
     """List all organizations."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         orgs = db.query(models.Organization).all()
         return [OrganizationInDB.from_orm(o) for o in orgs]
 
 
 def update_org(org_id: str, updates: dict[str, Any]) -> OrganizationInDB | None:
     """Update an organization."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
         if not org:
             return None
