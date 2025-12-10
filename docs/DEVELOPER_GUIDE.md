@@ -151,14 +151,17 @@ accordant/
 │   ├── council.py    # Core 3-stage orchestration logic
 │   ├── main.py       # FastAPI app and endpoints
 │   ├── openrouter.py # OpenRouter API client
-│   ├── storage.py    # JSON file storage
+│   ├── storage.py    # Database storage logic
 │   └── config.py     # Configuration management
 ├── frontend/         # React + Vite frontend
 │   └── src/
 │       ├── components/ # React components
 │       └── api.js     # API client
 ├── data/             # Data storage (gitignored)
-│   └── conversations/ # Conversation JSON files
+│   ├── system.db     # Users and Organizations
+│   └── organizations/ # Tenant data
+│       └── {org_id}/
+│           └── tenant.db # Conversations and Messages
 ├── docs/             # Documentation
 │   ├── adr/          # Architecture Decision Records
 │   ├── api/          # API documentation
@@ -222,15 +225,18 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including
 
 ## Multi-Tenancy Architecture
 
-The system uses a "Shared Database, Separate Schema" approach (logically), adapted for file-based storage.
+The system uses a **Physically Sharded SQLite Architecture** (ADR-016) to ensure strict data isolation and write scalability.
 
-- **Organizations**: Top-level entity. All users and data belong to an Organization.
-- **Data Isolation**:
-  - **Global**: `users.json`, `organizations.json` (Registry).
-  - **Org-Specific**: `data/organizations/{org_id}/` contains conversations, personalities, and config.
+- **System DB (`data/system.db`)**: 
+  - Stores global data: Users, Organizations, Registration info.
+  - Low write volume, mostly read-heavy.
+- **Tenant DBs (`data/organizations/{org_id}/tenant.db`)**: 
+  - Stores private data: Conversations, Messages.
+  - One database file per organization.
+  - High write volume, better concurrency (writes to Org A don't block Org B).
 - **Secrets**: API keys are encrypted at rest using Fernet (symmetric encryption).
 
-See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secrets-management.md) for details.
+See [ADR-016](adr/ADR-016-multi-tenant-sqlite-sharding.md) and [ADR-013](adr/013-secrets-management.md) for details.
 
 ## Implementation Details
 
@@ -248,7 +254,7 @@ See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secre
 **`auth.py` & `users.py`**
 
 - **Authentication**: JWT-based auth using OAuth2PasswordBearer.
-- **User Management**: `users.py` handles JSON-based user storage (`data/users.json`).
+- **User Management**: `users.py` stores users in `system.db` via `SystemSessionLocal`.
 - **Roles**: Supports `is_admin` flag. First registered user is auto-admin.
 - **Security**: `UserResponse` model ensures password hashes are never returned in API responses.
 
@@ -279,20 +285,20 @@ See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secre
 
 **`storage.py`**
 
-- JSON-based conversation storage in `data/conversations/`
-- Each conversation: `{id, created_at, messages[]}`
-- Assistant messages contain: `{role, stage1, stage2, stage3}`
-- Note: metadata (label_to_model, aggregate_rankings) is NOT persisted to storage, only returned via API
+- **Tenant-Aware**: Uses `get_tenant_session(org_id)` to connect to the correct `tenant.db`.
+- **Normalized Schema**: Messages are stored in a dedicated `Message` table, linked to `Conversation`.
+- **Performance**: Normalized storage prevents large JSON blob overhead during chat appends.
 
 **`main.py`**
 
 - FastAPI app with CORS enabled for localhost:5173 and localhost:3000
+- Initialized `system.db` tables on startup.
 - POST `/api/conversations/{id}/message` returns metadata in addition to stages
 - Metadata includes: label_to_model mapping and aggregate_rankings
 
 **`organizations.py` & `invitations.py`**
 
-- **Organization Model**: `{id, name, owner_id, api_config (encrypted)}`
+- **Organization Model**: Stored in `system.db`.
 - **Invitation Model**: `{code, org_id, expires_at, is_active}`
 - **Org Routes**: Public endpoints for creating orgs and joining via invite code.
 
@@ -334,6 +340,7 @@ To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled
 - Main orchestration: manages conversations list and current conversation
 - Handles message sending and metadata storage
 - Important: metadata is stored in the UI state for display but not persisted to backend JSON
+- Important: metadata is stored in the UI state for display
 
 **`components/ChatInterface.jsx`**
 
