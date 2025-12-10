@@ -166,6 +166,49 @@ accordant/
 └── tests/            # Test files (skeleton tests exist)
 ```
 
+### Route Ordering in FastAPI
+
+**Important:** FastAPI matches routes in the order they're defined. When adding routes to `main.py`, follow this order:
+
+1. **API routes first** - All `/api/*` endpoints must be defined before catch-all routes
+2. **Static file mounting** - Mount `/assets` directory for frontend assets
+3. **Root route** - Define `@app.get("/")` for SPA index page
+4. **Catch-all route last** - `@app.get("/{full_path:path}")` must be the very last route
+
+**Why this matters:**
+- If catch-all route is defined before API routes, it will intercept API requests and return 404
+- FastAPI matches routes top-to-bottom, so more specific routes must come first
+- The catch-all route is needed for SPA client-side routing, but must not interfere with API calls
+
+**Example structure in `main.py`:**
+```python
+# 1. API routes (health, auth, conversations, etc.)
+@app.get("/api/health")
+async def health_check():
+    ...
+
+@app.get("/api/auth/me")
+async def get_current_user():
+    ...
+
+# ... all other API routes ...
+
+# 2. Static file mounting (after all API routes)
+app.mount("/assets", StaticFiles(...))
+
+# 3. Root route
+@app.get("/")
+async def root():
+    return FileResponse("index.html")
+
+# 4. Catch-all route (MUST BE LAST)
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    if full_path.startswith("api/"):
+        raise HTTPException(404, "API endpoint not found")
+    return FileResponse("index.html")
+```
+
 ### Contributing
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including:

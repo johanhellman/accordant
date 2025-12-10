@@ -129,6 +129,34 @@ Common issues and solutions for Accordant LLM Council.
 - **Development:** For local development, the frontend defaults to relative URLs. If you need `http://localhost:8001`, set `VITE_API_BASE=http://localhost:8001` before running `npm run dev`
 - **Browser extensions:** If errors persist, try disabling browser extensions or test in incognito mode
 
+### API Routes Returning 404
+
+**Error:** API endpoints like `/api/auth/me` return `404 Not Found` even though they exist in the backend
+
+**Cause:**
+- In FastAPI, routes are matched in the order they're defined
+- If a catch-all route (like `/{full_path:path}` for SPA routing) is defined before API routes, it intercepts API requests
+- This was a bug where the static file mounting and catch-all route were defined before API routes
+
+**Solution:**
+
+- **Fixed in code:** The catch-all route is now defined after all API routes in `backend/main.py`
+- **If you're modifying routes:** Always define specific API routes before catch-all routes
+- **Route order matters:** FastAPI matches routes top-to-bottom, so more specific routes must come before generic ones
+
+**Example of correct route order:**
+```python
+# ✅ Correct: API routes first
+@app.get("/api/auth/me")
+async def get_current_user():
+    ...
+
+# Then catch-all at the end
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    ...
+```
+
 ### Build Errors
 
 **Error:** Frontend build fails or has TypeScript/ESLint errors
