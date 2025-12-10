@@ -47,6 +47,7 @@ RUN pip install --upgrade pip && pip install .
 
 # Copy backend code
 COPY backend/ ./backend/
+COPY docs/ ./docs/
 COPY start.sh ./
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
