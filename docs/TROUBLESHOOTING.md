@@ -122,6 +122,62 @@ Common issues and solutions for Accordant LLM Council.
 - Check Node.js version compatibility
 - Clear node_modules and reinstall (see above)
 
+
+## Docker & Deployment Issues
+
+### Stale Assets in Docker
+
+**Problem:** Changes to frontend code (CSS/JS) are not reflected in the Docker container, even after restarting it.
+
+**Cause:**
+The `Dockerfile` usage a multi-stage build where the frontend is compiled **inside** the image construction phase. It does **not** mount your local `frontend/dist` directory (preventing host-container mismatches). Therefore, local changes or local builds are ignored by the running container until the image is rebuilt.
+
+**Solution:**
+You MUST rebuild the Docker image to pick up any frontend changes:
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Rendering Artifacts (e.g. `/>`)
+
+**Problem:** `/>` characters appear after text in the production build (port 8000) but not in the development server (port 5173).
+
+**Cause:**
+CSS syntax errors (e.g., missing braces, invalid nesting, or dangling properties) can cause the build tool (esbuild/Vite) to misinterpret the file structure, leading to corrupted assets in the production bundle.
+
+**Solution:**
+
+1. Run a local build to check for warnings:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+2. Look for warnings like `[esbuild css minify] Expected "}"` or `Unexpected token`.
+3. Fix the syntax errors in your `.css` files.
+4. Rebuild the Docker image (see above).
+
+### Docker Port Conflicts
+
+**Problem:** `Bind for 0.0.0.0:8000 failed: port is already allocated`
+
+**Cause:**
+Another process (e.g., another Docker container, a dev server, or an IDE process) is using port 8000.
+
+**Solution:**
+
+1. Identify the blocking process:
+   ```bash
+   lsof -i :8000
+   ```
+2. Stop the conflicting process or container.
+3. Alternatively, change the host port in `docker-compose.yml` to something available (e.g., 8081):
+   ```yaml
+   ports:
+     - "8081:8000"
+   ```
+
 ## General Issues
 
 ### Conversations Not Saving
