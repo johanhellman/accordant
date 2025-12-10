@@ -98,6 +98,10 @@ def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
     Returns:
         List of conversation metadata dicts
     """
+    # If user has no organization, they can't have conversations
+    if not org_id:
+        return []
+
     ensure_data_dir(org_id)
 
     conversations_dir = os.path.join(ORGS_DATA_DIR, org_id, "conversations")
