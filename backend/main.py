@@ -293,7 +293,7 @@ async def health_check():
     return {
         "status": status_overall,
         "service": "Accordant API",
-        "version": "0.2.1",  # Should ideally match config
+        "version": "0.3.0",  # Should ideally match config
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "checks": {
             "backend": {
