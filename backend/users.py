@@ -1,35 +1,39 @@
-"""User management module."""
+"""User management module (SQLAlchemy)."""
 
-import json
 import logging
-import os
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from pydantic import BaseModel
+from . import models
+from .database import SessionLocal, engine
 
-from .config import PROJECT_ROOT
+# Create tables if they don't exist (useful for dev/test)
+# In production, use Alembic for migrations
+models.Base.metadata.create_all(bind=engine)
 
 logger = logging.getLogger(__name__)
 
-USERS_FILE = os.path.join(PROJECT_ROOT, "data", "users.json")
-
+# Re-exporting schemas for compatibility
+# Ideally we'd move pydantic models to schema.py but keeping here for now to minimize diff
+from pydantic import BaseModel
 
 class User(BaseModel):
     id: str
     username: str
     password_hash: str
-    is_admin: bool = False  # Org Admin
-    is_instance_admin: bool = False  # System Admin
+    is_admin: bool = False
+    is_instance_admin: bool = False
     org_id: str | None = None
-
+    
+    class Config:
+        orm_mode = True
 
 class UserCreate(BaseModel):
     username: str
     password: str
 
-
 class UserInDB(User):
     pass
-
 
 class UserResponse(BaseModel):
     id: str
@@ -41,119 +45,107 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
+# --- DB Operations ---
 
-def _load_users() -> dict[str, UserInDB]:
-    """Load users from JSON file."""
-    if not os.path.exists(USERS_FILE):
-        return {}
+def get_user(username: str, db: Session = None) -> UserInDB | None:
+    """
+    Get a user by username.
+    
+    Args:
+        username: The username to find
+        db: Optional existing DB session. If None, creates a new ephemeral session.
+    """
+    if db:
+        return _get_user_with_session(db, username)
+        
+    with SessionLocal() as session:
+        return _get_user_with_session(session, username)
+
+def _get_user_with_session(db: Session, username: str) -> UserInDB | None:
+    user_model = db.query(models.User).filter(models.User.username == username).first()
+    if user_model:
+        return UserInDB.from_orm(user_model)
+    return None
+
+def get_user_by_id(user_id: str, db: Session = None) -> UserInDB | None:
+    if db:
+        user_model = db.query(models.User).filter(models.User.id == user_id).first()
+        if user_model:
+            return UserInDB.from_orm(user_model)
+        return None
+        
+    with SessionLocal() as session:
+        user_model = session.query(models.User).filter(models.User.id == user_id).first()
+        if user_model:
+            return UserInDB.from_orm(user_model)
+        return None
+
+def create_user(user: UserInDB, db: Session = None) -> UserInDB:
+    """Create a new user. WARNING: Should be used within a transaction in main.py ideally."""
+    # If no DB session provided, use ephemeral one (Autocommit)
+    is_ephemeral = False
+    if db is None:
+        db = SessionLocal()
+        is_ephemeral = True
+        
     try:
-        with open(USERS_FILE) as f:
-            data = json.load(f)
-            return {u["username"]: UserInDB(**u) for u in data}
+        db_user = models.User(
+            id=user.id,
+            username=user.username,
+            password_hash=user.password_hash,
+            is_admin=user.is_admin,
+            is_instance_admin=user.is_instance_admin,
+            org_id=user.org_id
+        )
+        db.add(db_user)
+        if is_ephemeral:
+            db.commit()
+            db.refresh(db_user)
+        return UserInDB.from_orm(db_user)
     except Exception as e:
-        logger.error(f"Error loading users: {e}")
-        return {}
-
-
-def _save_users(users: dict[str, UserInDB]):
-    """Save users to JSON file."""
-    try:
-        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
-        with open(USERS_FILE, "w") as f:
-            json.dump([u.dict() for u in users.values()], f, indent=2)
-    except Exception as e:
-        logger.error(f"Error saving users: {e}")
+        if is_ephemeral:
+            db.rollback()
+        logger.error(f"Error creating user: {e}")
         raise
-
-
-def get_user(username: str) -> UserInDB | None:
-    """Get a user by username."""
-    users = _load_users()
-    return users.get(username)
-
-
-def create_user(user: UserInDB) -> UserInDB:
-    """Create a new user."""
-    users = _load_users()
-    if user.username in users:
-        raise ValueError("Username already exists")
-
-    # First user is always admin and instance admin
-    if not users:
-        user.is_admin = True
-        user.is_instance_admin = True
-
-    users[user.username] = user
-    _save_users(users)
-    return user
-
+    finally:
+        if is_ephemeral:
+            db.close()
 
 def get_all_users() -> list[UserInDB]:
     """Get all users."""
-    users = _load_users()
-    return list(users.values())
-
+    with SessionLocal() as db:
+        users = db.query(models.User).all()
+        return [UserInDB.from_orm(u) for u in users]
 
 def update_user_role(user_id: str, is_admin: bool) -> UserInDB | None:
     """Update a user's admin status."""
-    users = _load_users()
-    target_user = None
-
-    for u in users.values():
-        if u.id == user_id:
-            target_user = u
-            break
-
-    if target_user:
-        target_user.is_admin = is_admin
-        users[target_user.username] = target_user
-        _save_users(users)
-        return target_user
-
+    with SessionLocal() as db:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.is_admin = is_admin
+            db.commit()
+            db.refresh(user)
+            return UserInDB.from_orm(user)
     return None
-
 
 def update_user_org(user_id: str, org_id: str, is_admin: bool = False) -> UserInDB | None:
     """Update a user's organization and admin status."""
-    users = _load_users()
-    target_user = None
-
-    for u in users.values():
-        if u.id == user_id:
-            target_user = u
-            break
-
-    if target_user:
-        target_user.org_id = org_id
-        target_user.is_admin = is_admin
-        users[target_user.username] = target_user
-        _save_users(users)
-        return target_user
-
+    with SessionLocal() as db:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.org_id = org_id
+            user.is_admin = is_admin
+            db.commit()
+            db.refresh(user)
+            return UserInDB.from_orm(user)
     return None
 
-
 def delete_user(user_id: str) -> bool:
-    """
-    Delete a user by ID.
-    
-    Args:
-        user_id: User ID to delete
-        
-    Returns:
-        bool: True if deleted, False if not found
-    """
-    users = _load_users()
-    target_username = None
-    
-    for u in users.values():
-        if u.id == user_id:
-            target_username = u.username
-            break
-            
-    if target_username:
-        del users[target_username]
-        _save_users(users)
-        return True
-        
+    """Delete a user by ID."""
+    with SessionLocal() as db:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            db.delete(user)
+            db.commit()
+            return True
     return False

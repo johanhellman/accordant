@@ -34,6 +34,7 @@ Each ADR follows this structure:
 | [ADR-013](013-secrets-management.md) | Secrets Management | Accepted | 2025-12-04 |
 | [ADR-014](ADR-014-structured-personality-prompts.md) | Structured Personality Prompts | Accepted | 2025-12-08 |
 | [ADR-015](ADR-015-federated-voting-privacy.md) | Federated Voting Privacy | Accepted | 2025-12-08 |
+| [ADR-016](016-sqlite-migration.md) | Migration to SQLite | Accepted | 2025-12-09 |
 
 ## Decision Timeline
 

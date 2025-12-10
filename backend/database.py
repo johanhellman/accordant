@@ -1,0 +1,30 @@
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+from .config import PROJECT_ROOT
+
+# Ensure data directory exists
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'accordant.db')}"
+
+# connect_args={"check_same_thread": False} is required for SQLite 
+# because FastAPI runs in multiple threads
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+# Dependency for FastAPI routes
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
