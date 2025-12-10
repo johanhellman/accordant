@@ -6,19 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from .auth import get_current_admin_user
-from .users import User, get_all_users, update_user_role
+from .users import User, UserResponse, get_all_users, update_user_role
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin/users", tags=["admin-users"])
-
-
-class UserResponse(BaseModel):
-    id: str
-    username: str
-    is_admin: bool
-    is_instance_admin: bool = False
-    org_id: str = None
 
 
 class UserRoleUpdate(BaseModel):

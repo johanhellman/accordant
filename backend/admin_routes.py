@@ -444,6 +444,13 @@ async def get_voting_history(current_user: User = Depends(get_current_admin_user
 @router.get("/settings")
 async def get_org_settings(current_user: User = Depends(get_current_admin_user)):
     """Get organization settings."""
+    # If user has no organization, return default settings
+    if not current_user.org_id:
+        return {
+            "api_key": None,
+            "base_url": "https://openrouter.ai/api/v1/chat/completions",
+        }
+    
     org = get_org(current_user.org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
@@ -466,6 +473,10 @@ async def update_org_settings(
     settings: OrgSettingsUpdate, current_user: User = Depends(get_current_admin_user)
 ):
     """Update organization settings."""
+    # Users without organizations cannot update settings
+    if not current_user.org_id:
+        raise HTTPException(status_code=400, detail="User must belong to an organization to update settings")
+    
     org = get_org(current_user.org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")

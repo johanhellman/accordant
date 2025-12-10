@@ -129,6 +129,10 @@ def _load_org_config_file(org_id: str) -> dict[str, Any] | None:
     Returns:
         Parsed YAML config dict, or None if file does not exist or parsing fails.
     """
+    # If no org_id, return None (no org-specific config)
+    if not org_id:
+        return None
+    
     config_dir = get_org_config_dir(org_id)
     system_prompts_file = os.path.join(config_dir, "system-prompts.yaml")
     return _load_yaml_file(system_prompts_file)
@@ -303,6 +307,25 @@ def get_all_personalities(org_id: str) -> list[dict[str, Any]]:
     Get all personalities for an organization, merging Defaults + Custom.
     Returns ALL personalities (enabled or disabled), with 'source' and 'is_editable' flags.
     """
+    # If user has no organization, return only default personalities
+    if not org_id:
+        defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
+        registry = {}
+        if os.path.exists(defaults_personalities_dir):
+            for filename in os.listdir(defaults_personalities_dir):
+                if filename.endswith(".yaml"):
+                    filepath = os.path.join(defaults_personalities_dir, filename)
+                    try:
+                        with open(filepath) as f:
+                            p = yaml.safe_load(f)
+                            if p and "id" in p:
+                                p["source"] = "system"
+                                p["is_editable"] = False
+                                registry[p["id"]] = p
+                    except Exception as e:
+                        logger.error(f"Error loading default personality {filename}: {e}")
+        return list(registry.values())
+    
     org_personalities_dir = get_org_personalities_dir(org_id)
     defaults_personalities_dir = os.path.join(DEFAULTS_DIR, "personalities")
     
