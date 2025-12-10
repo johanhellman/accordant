@@ -1,4 +1,5 @@
 import "./Sidebar.css";
+import Logo from "./Logo";
 
 export default function Sidebar({
   conversations,
@@ -13,11 +14,12 @@ export default function Sidebar({
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h1>Accordant</h1>
-        <button className="new-conversation-btn" onClick={onNewConversation}>
+        <Logo size="md" className="sidebar-logo" />
+        <button className="new-conversation-btn btn btn-primary" onClick={onNewConversation}>
           + New Conversation
         </button>
       </div>
+
 
       <div className="conversation-list">
         {conversations.length === 0 ? (

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
+import Logo from "./Logo";
 import "./Login.css";
 
 const Login = ({ onBackToLanding }) => {
@@ -88,6 +89,11 @@ const Login = ({ onBackToLanding }) => {
             Back to Landing Page
           </button>
         )}
+
+        <div className="login-logo">
+          <Logo size="lg" />
+        </div>
+
         <h2>{isRegistering ? "Create Account" : "Login"}</h2>
         {error && <div className="error-message">{error}</div>}
 
@@ -180,7 +186,7 @@ const Login = ({ onBackToLanding }) => {
             </div>
           )}
 
-          <button type="submit" className="submit-btn" disabled={loading}>
+          <button type="submit" className="submit-btn btn btn-primary" disabled={loading}>
             {loading ? "Processing..." : isRegistering ? "Register & Continue" : "Login"}
           </button>
         </form>
