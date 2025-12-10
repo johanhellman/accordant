@@ -30,7 +30,7 @@ class Organization(BaseModel):
     api_config: dict[str, str] | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class OrganizationCreate(BaseModel):
     name: str

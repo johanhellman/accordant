@@ -26,7 +26,7 @@ class User(BaseModel):
     org_id: str | None = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserCreate(BaseModel):
     username: str
@@ -43,7 +43,7 @@ class UserResponse(BaseModel):
     org_id: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- DB Operations ---
 

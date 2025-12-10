@@ -71,20 +71,31 @@ export const api = {
   },
 
   /**
-   * Register a new user account.
+   * Register a new user account (Atomic with Organization).
    * @param {string} username - Desired username
    * @param {string} password - User password
-   * @returns {Promise<{id: string, username: string}>}
-   * @throws {Error} If registration fails (e.g., username already exists)
+   * @param {string} mode - 'create_org' or 'join_org'
+   * @param {string} orgName - Organization name (create mode)
+   * @param {string} inviteCode - Invite code (join mode)
+   * @returns {Promise<{access_token: string, token_type: string}>}
+   * @throws {Error} If registration fails
    */
-  async register(username, password) {
+  async register(username, password, mode = "create_org", orgName = null, inviteCode = null) {
     try {
+      const payload = {
+        username,
+        password,
+        mode,
+        org_name: orgName,
+        invite_code: inviteCode
+      };
+
       const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         let errorMessage = "Registration failed";

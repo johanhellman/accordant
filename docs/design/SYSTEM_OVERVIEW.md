@@ -41,7 +41,7 @@ Key modules:
 - `admin_routes.py`: Endpoints for managing personalities and system prompts.
 - `llm_service.py`: Service for discovering available models from the provider.
 - `config.py`: Configuration management (Env vars, YAML files).
-- `storage.py`: JSON-based persistence for conversations.
+- `storage.py`: Database-based persistence for conversations (SQLite).
 
 ### 3. Frontend (React)
 
@@ -61,7 +61,7 @@ Key components:
 - **`main.py`**: FastAPI application, handles HTTP requests and streaming responses
 - **`council.py`**: Core 3-stage deliberation logic
 - **`openrouter.py`**: LLM API client abstraction (OpenRouter/LiteLLM)
-- **`storage.py`**: JSON-based conversation persistence
+- **`storage.py`**: Database-based conversation persistence (SQLite)
 - **`config.py`**: Model configuration and environment variable management
 - **`voting_history.py`**: Voting history tracking and analytics
 - **`logging_config.py`**: Centralized logging configuration
