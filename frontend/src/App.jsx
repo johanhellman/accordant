@@ -7,6 +7,7 @@ import OrgSettings from "./components/OrgSettings";
 import OrganizationManagement from "./components/OrganizationManagement";
 import Login from "./components/Login";
 import AccordantLanding from "./components/AccordantLanding";
+import DocViewer from "./components/DocViewer";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { initAnalytics } from "./utils/analytics";
@@ -219,6 +220,30 @@ function Dashboard() {
       setIsLoading(false);
     }
   };
+
+  // --- Routing Logic for Docs ---
+  const [docRoute, setDocRoute] = useState(null);
+
+  useEffect(() => {
+    // Simple path check on load
+    const path = window.location.pathname;
+    if (path === "/privacy") setDocRoute({ id: "privacy", title: "Privacy Policy" });
+    else if (path === "/terms") setDocRoute({ id: "terms", title: "Terms of Use" });
+    else if (path === "/faq") setDocRoute({ id: "faq", title: "FAQ" });
+    else if (path === "/help") setDocRoute({ id: "manual", title: "User Manual" });
+  }, []);
+
+  const handleBackToApp = () => {
+    setDocRoute(null);
+    window.history.pushState({}, "", "/");
+  };
+
+  if (docRoute) {
+    // Dynamically import to avoid circular dep issues if any, usually fine here
+    // But we need to import DocViewer at top level.
+    // For now assuming it is imported.
+    return <DocViewer docId={docRoute.id} title={docRoute.title} onBack={handleBackToApp} />;
+  }
 
   if (loading) {
     return <div className="loading-screen">Loading...</div>;

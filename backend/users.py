@@ -131,3 +131,29 @@ def update_user_org(user_id: str, org_id: str, is_admin: bool = False) -> UserIn
         return target_user
 
     return None
+
+
+def delete_user(user_id: str) -> bool:
+    """
+    Delete a user by ID.
+    
+    Args:
+        user_id: User ID to delete
+        
+    Returns:
+        bool: True if deleted, False if not found
+    """
+    users = _load_users()
+    target_username = None
+    
+    for u in users.values():
+        if u.id == user_id:
+            target_username = u.username
+            break
+            
+    if target_username:
+        del users[target_username]
+        _save_users(users)
+        return True
+        
+    return False

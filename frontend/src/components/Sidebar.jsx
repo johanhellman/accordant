@@ -80,6 +80,23 @@ export default function Sidebar({
               </div>
             </>
           )}
+          <div className="nav-group-label" style={{ marginTop: "1rem" }}>
+            Resources
+          </div>
+          <a
+            href="/help"
+            className="nav-item"
+            style={{ display: "block", textDecoration: "none" }}
+          >
+            User Manual
+          </a>
+          <a
+            href="/faq"
+            className="nav-item"
+            style={{ display: "block", textDecoration: "none" }}
+          >
+            FAQ
+          </a>
         </div>
 
         {user && (

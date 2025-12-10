@@ -200,3 +200,55 @@ def update_conversation_title(conversation_id: str, title: str, org_id: str):
 
     conversation["title"] = title
     save_conversation(conversation, org_id)
+
+
+def delete_conversation(conversation_id: str, org_id: str) -> bool:
+    """
+    Delete a conversation.
+    
+    Args:
+        conversation_id: ID of conversation to delete
+        org_id: Organization ID
+        
+    Returns:
+        bool: True if deleted, False if not found
+    """
+    path = get_conversation_path(conversation_id, org_id)
+    if os.path.exists(path):
+        os.remove(path)
+        return True
+    return False
+
+
+def delete_user_conversations(user_id: str, org_id: str) -> int:
+    """
+    Delete all conversations owned by a user (Right to Erasure).
+    
+    Args:
+        user_id: User ID
+        org_id: Organization ID
+        
+    Returns:
+        int: Number of conversations deleted
+    """
+    ensure_data_dir(org_id)
+    conversations_dir = os.path.join(ORGS_DATA_DIR, org_id, "conversations")
+    
+    if not os.path.exists(conversations_dir):
+        return 0
+        
+    deleted_count = 0
+    for filename in os.listdir(conversations_dir):
+        if filename.endswith(".json"):
+            path = os.path.join(conversations_dir, filename)
+            try:
+                with open(path) as f:
+                    data = json.load(f)
+                    
+                if data.get("user_id") == user_id:
+                    os.remove(path)
+                    deleted_count += 1
+            except Exception:
+                continue
+                
+    return deleted_count

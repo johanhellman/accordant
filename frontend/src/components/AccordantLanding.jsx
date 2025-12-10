@@ -473,35 +473,38 @@ function AccordantLanding({ onShowLogin }) {
 
             <div className="footer-links">
               <a href="#how-it-works" className="footer-link">How It Works</a>
-              <a href="#" className="footer-link">Documentation</a>
-              <a href="#" className="footer-link">Pricing</a>
-              <a href="#" className="footer-link">Contact</a>
+              <a href="/help" className="footer-link">User Manual</a>
+              <a href="/faq" className="footer-link">FAQ</a>
+              <a href="/privacy" className="footer-link">Privacy Policy</a>
+              <a href="/terms" className="footer-link">Terms of Use</a>
             </div>
           </div>
-          <div className="footer-bottom">
-            <p className="footer-copyright">
-              © 2025 Accordant LLM Council. Built with collaborative AI intelligence.
-            </p>
-          </div>
+        </div>
+        <div className="footer-bottom">
+          <p className="footer-copyright">
+            © 2025 Accordant LLM Council. Built with collaborative AI intelligence.
+          </p>
         </div>
       </footer>
 
       {/* Login Modal */}
-      {showLoginModal && (
-        <div className="login-modal-overlay" onClick={() => setShowLoginModal(false)}>
-          <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="login-modal-close"
-              onClick={() => setShowLoginModal(false)}
-              aria-label="Close login"
-            >
-              <X className="close-icon" />
-            </button>
-            <Login />
+      {
+        showLoginModal && (
+          <div className="login-modal-overlay" onClick={() => setShowLoginModal(false)}>
+            <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="login-modal-close"
+                onClick={() => setShowLoginModal(false)}
+                aria-label="Close login"
+              >
+                <X className="close-icon" />
+              </button>
+              <Login />
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
 

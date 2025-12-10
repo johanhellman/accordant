@@ -5,6 +5,7 @@ import Stage1 from "./Stage1";
 import Stage2 from "./Stage2";
 import Stage3 from "./Stage3";
 import "./ChatInterface.css";
+import ContextualHelp from "./ContextualHelp";
 
 export default function ChatInterface({ conversation, onSendMessage, isLoading }) {
   const [input, setInput] = useState("");
@@ -49,10 +50,13 @@ export default function ChatInterface({ conversation, onSendMessage, isLoading }
     <div className="chat-interface">
       <div className="messages-container">
         {!conversation.messages ||
-        !Array.isArray(conversation.messages) ||
-        conversation.messages.length === 0 ? (
+          !Array.isArray(conversation.messages) ||
+          conversation.messages.length === 0 ? (
           <div className="empty-state">
-            <h2>Start a conversation</h2>
+            <h2>
+              Start a conversation
+              <ContextualHelp topic="stages" />
+            </h2>
             <p>Ask a question to consult the LLM Council</p>
           </div>
         ) : (

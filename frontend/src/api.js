@@ -582,12 +582,21 @@ export const api = {
   },
 
   async deactivatePersonality(id) {
-    const response = await fetch(`${API_BASE}/api/evolution/deactivate`, {
+    const response = await fetch(`${API_BASE}/api/evolution/deactivate/${id}`, {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({ personality_id: id }),
     });
     if (!response.ok) throw new Error("Failed to deactivate personality");
+    return response.json();
+  },
+
+  /**
+   * Fetch public documentation content (markdown).
+   * @param {string} docId - 'privacy', 'terms', 'faq', 'manual'
+   */
+  async getDocumentation(docId) {
+    const response = await fetch(`${API_BASE}/api/docs/${docId}`);
+    if (!response.ok) throw new Error("Failed to load documentation");
     return response.json();
   },
 };
