@@ -5,6 +5,7 @@ This document explains how to configure Plausible Analytics for Accordant with f
 ## Overview
 
 Accordant supports optional Plausible Analytics integration via environment variables. This allows:
+
 - **Flexible deployment**: Analytics can be enabled or disabled per deployment
 - **No hard-coding**: Analytics domain is configurable, not hard-coded
 - **Development-friendly**: Analytics disabled by default in development
@@ -46,6 +47,7 @@ ANALYTICS_DOMAIN=accordant.eu
 ```
 
 **To disable analytics**: Simply don't set `PLAUSIBLE_DOMAIN` or set it to empty:
+
 ```bash
 PLAUSIBLE_DOMAIN=
 ```
@@ -83,6 +85,7 @@ ANALYTICS_DOMAIN=accordant.eu
 ```
 
 Rebuild the Accordant image:
+
 ```bash
 docker compose build accordant
 docker compose up -d accordant
@@ -96,6 +99,7 @@ PLAUSIBLE_DOMAIN=
 ```
 
 Or simply omit the variable:
+
 ```bash
 # .env - No PLAUSIBLE_DOMAIN variable
 ```
@@ -113,6 +117,7 @@ ANALYTICS_DOMAIN=example.com
 ### Check if Analytics is Enabled
 
 1. **Browser Console**: Look for analytics initialization message:
+
    ```
    [Analytics] Initialized - Domain: accordant.eu, Script: https://analytics.accordant.eu/js/script.js
    ```
@@ -124,6 +129,7 @@ ANALYTICS_DOMAIN=example.com
 ### Debug Mode
 
 In development mode (`import.meta.env.DEV`), the analytics utility logs:
+
 - When analytics is disabled (if `VITE_PLAUSIBLE_DOMAIN` not set)
 - When analytics is initialized (domain and script URL)
 - Script loading errors (if any)
