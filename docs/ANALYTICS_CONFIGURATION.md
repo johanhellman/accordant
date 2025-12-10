@@ -167,5 +167,5 @@ This implementation follows Accordant's configuration patterns:
 ## Related Documentation
 
 - [Accordant Deployment Guide](DEPLOYMENT.md)
-- [Accordant Plan](../../accordant_plan.md) - Analytics integration section
+- [Accordant Integration](../../ACCORDANT_INTEGRATION.md) - Analytics integration section
 - [Plausible Documentation](https://plausible.io/docs)
