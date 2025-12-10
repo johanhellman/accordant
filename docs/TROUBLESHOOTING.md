@@ -111,6 +111,24 @@ Common issues and solutions for Accordant LLM Council.
 - If using a different frontend port, add it to `CORS_ORIGINS`
 - Format: comma-separated or JSON array: `CORS_ORIGINS='["http://localhost:5174"]'`
 
+### Network Errors (ERR_BLOCKED_BY_CLIENT)
+
+**Error:** `Failed to load resource: net::ERR_BLOCKED_BY_CLIENT` or `TypeError: Failed to fetch` when registering/logging in
+
+**Cause:**
+- In production, the frontend was previously hardcoded to use `localhost:8001`, causing cross-origin requests to be blocked
+- Browser extensions (ad blockers, privacy tools) may also block requests
+
+**Solution:**
+
+- **Production deployments:** The frontend now uses relative URLs by default (same origin as the backend). Ensure frontend and backend are served from the same domain.
+- **Custom API URLs:** If you need a different API base URL, set `VITE_API_BASE` during build:
+  ```bash
+  VITE_API_BASE=https://api.yourdomain.com npm run build
+  ```
+- **Development:** For local development, the frontend defaults to relative URLs. If you need `http://localhost:8001`, set `VITE_API_BASE=http://localhost:8001` before running `npm run dev`
+- **Browser extensions:** If errors persist, try disabling browser extensions or test in incognito mode
+
 ### Build Errors
 
 **Error:** Frontend build fails or has TypeScript/ESLint errors
@@ -121,7 +139,6 @@ Common issues and solutions for Accordant LLM Council.
 - Auto-fix where possible: `cd frontend && npm run lint:fix`
 - Check Node.js version compatibility
 - Clear node_modules and reinstall (see above)
-
 
 ## Docker & Deployment Issues
 
@@ -150,10 +167,12 @@ CSS syntax errors (e.g., missing braces, invalid nesting, or dangling properties
 **Solution:**
 
 1. Run a local build to check for warnings:
+
    ```bash
    cd frontend
    npm run build
    ```
+
 2. Look for warnings like `[esbuild css minify] Expected "}"` or `Unexpected token`.
 3. Fix the syntax errors in your `.css` files.
 4. Rebuild the Docker image (see above).
@@ -168,11 +187,14 @@ Another process (e.g., another Docker container, a dev server, or an IDE process
 **Solution:**
 
 1. Identify the blocking process:
+
    ```bash
    lsof -i :8000
    ```
+
 2. Stop the conflicting process or container.
 3. Alternatively, change the host port in `docker-compose.yml` to something available (e.g., 8081):
+
    ```yaml
    ports:
      - "8081:8000"

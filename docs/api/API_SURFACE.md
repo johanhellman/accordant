@@ -2,7 +2,9 @@
 
 This document describes the REST API surface for the LLM Council backend.
 
-**Base URL**: `http://localhost:8001` (development)
+**Base URL**: 
+- **Production**: Relative URLs (same origin as frontend, e.g., `https://accordant.eu`)
+- **Development**: `http://localhost:8001` (can be overridden via `VITE_API_BASE` environment variable)
 
 ## Overview
 

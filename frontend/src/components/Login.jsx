@@ -32,10 +32,7 @@ const Login = ({ onBackToLanding }) => {
     try {
       if (isRegistering) {
         // 1. Register
-        const success = await register(username, password);
-        if (!success) {
-          throw new Error("Registration failed. Username might be taken.");
-        }
+        await register(username, password);
 
         // 2. Login immediately
         const loginSuccess = await login(username, password);

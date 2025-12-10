@@ -1,8 +1,11 @@
 /**
  * API client for the LLM Council backend.
+ * 
+ * API_BASE uses relative URLs by default (empty string), which works for both:
+ * - Production: Frontend and backend served from same origin (accordant.eu)
+ * - Development: Can be overridden via VITE_API_BASE environment variable
  */
-
-const API_BASE = "http://localhost:8001";
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 let authToken = null;
 
@@ -33,21 +36,38 @@ export const api = {
    * @throws {Error} If authentication fails
    */
   async login(username, password) {
-    const formData = new URLSearchParams();
-    formData.append("username", username);
-    formData.append("password", password);
+    try {
+      const formData = new URLSearchParams();
+      formData.append("username", username);
+      formData.append("password", password);
 
-    const response = await fetch(`${API_BASE}/api/auth/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData,
-    });
-    if (!response.ok) {
-      throw new Error("Login failed");
+      const response = await fetch(`${API_BASE}/api/auth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      });
+      if (!response.ok) {
+        let errorMessage = "Login failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = `Login failed: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      return response.json();
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        throw new Error(
+          "Unable to connect to server. Please check your network connection and ensure the backend is running."
+        );
+      }
+      throw error;
     }
-    return response.json();
   },
 
   /**
@@ -58,18 +78,36 @@ export const api = {
    * @throws {Error} If registration fails (e.g., username already exists)
    */
   async register(username, password) {
-    const response = await fetch(`${API_BASE}/api/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Registration failed");
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) {
+        let errorMessage = "Registration failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = `Registration failed: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      return response.json();
+    } catch (error) {
+      // Handle network errors (e.g., ERR_BLOCKED_BY_CLIENT, CORS, connection refused)
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        throw new Error(
+          "Unable to connect to server. Please check your network connection and ensure the backend is running."
+        );
+      }
+      // Re-throw other errors (including our own Error objects)
+      throw error;
     }
-    return response.json();
   },
 
   /**

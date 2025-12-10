@@ -322,6 +322,7 @@ See [SETUP.md](SETUP.md#environment-variables-reference) for all available envir
 - **Performance:** Tune `MAX_CONCURRENT_REQUESTS` based on your rate limits
 - **File Paths:** Use absolute paths and ensure proper permissions
 - **HTTPS:** Always use HTTPS in production (use reverse proxy or load balancer)
+- **Frontend API Base URL:** By default, the frontend uses relative URLs (same origin). For custom configurations, set `VITE_API_BASE` during frontend build (e.g., `VITE_API_BASE=https://api.yourdomain.com npm run build`)
 
 ## Monitoring and Logging
 

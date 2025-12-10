@@ -3,6 +3,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Mock import.meta.env before importing api
+vi.stubGlobal("import.meta", {
+  env: {
+    VITE_API_BASE: "http://localhost:8001",
+  },
+});
+
 import { api } from "./api";
 
 describe("API Client", () => {
