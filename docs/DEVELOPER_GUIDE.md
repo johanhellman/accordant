@@ -176,11 +176,13 @@ accordant/
 4. **Catch-all route last** - `@app.get("/{full_path:path}")` must be the very last route
 
 **Why this matters:**
+
 - If catch-all route is defined before API routes, it will intercept API requests and return 404
 - FastAPI matches routes top-to-bottom, so more specific routes must come first
 - The catch-all route is needed for SPA client-side routing, but must not interfere with API calls
 
 **Example structure in `main.py`:**
+
 ```python
 # 1. API routes (health, auth, conversations, etc.)
 @app.get("/api/health")

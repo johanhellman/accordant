@@ -2,6 +2,17 @@
 FROM node:20-slim AS frontend-builder
 WORKDIR /app/frontend
 
+# Accept build arguments for Vite environment variables
+# These allow flexible analytics configuration without hard-coding
+ARG VITE_PLAUSIBLE_DOMAIN
+ARG VITE_ANALYTICS_DOMAIN
+ARG VITE_API_BASE
+
+# Set as environment variables for Vite build
+ENV VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}
+ENV VITE_ANALYTICS_DOMAIN=${VITE_ANALYTICS_DOMAIN}
+ENV VITE_API_BASE=${VITE_API_BASE}
+
 # Install dependencies
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm ci

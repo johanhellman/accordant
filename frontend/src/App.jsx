@@ -9,6 +9,7 @@ import Login from "./components/Login";
 import AccordantLanding from "./components/AccordantLanding";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { initAnalytics } from "./utils/analytics";
 import "./App.css";
 
 function Dashboard() {
@@ -262,6 +263,11 @@ function Dashboard() {
 }
 
 function App() {
+  // Initialize analytics on app mount (if configured)
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <AuthProvider>
       <Dashboard />

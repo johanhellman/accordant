@@ -116,6 +116,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** `Failed to load resource: net::ERR_BLOCKED_BY_CLIENT` or `TypeError: Failed to fetch` when registering/logging in
 
 **Cause:**
+
 - In production, the frontend was previously hardcoded to use `localhost:8001`, causing cross-origin requests to be blocked
 - Browser extensions (ad blockers, privacy tools) may also block requests
 
@@ -123,9 +124,11 @@ Common issues and solutions for Accordant LLM Council.
 
 - **Production deployments:** The frontend now uses relative URLs by default (same origin as the backend). Ensure frontend and backend are served from the same domain.
 - **Custom API URLs:** If you need a different API base URL, set `VITE_API_BASE` during build:
+
   ```bash
   VITE_API_BASE=https://api.yourdomain.com npm run build
   ```
+
 - **Development:** For local development, the frontend defaults to relative URLs. If you need `http://localhost:8001`, set `VITE_API_BASE=http://localhost:8001` before running `npm run dev`
 - **Browser extensions:** If errors persist, try disabling browser extensions or test in incognito mode
 
@@ -134,6 +137,7 @@ Common issues and solutions for Accordant LLM Council.
 **Error:** API endpoints like `/api/auth/me` return `404 Not Found` even though they exist in the backend
 
 **Cause:**
+
 - In FastAPI, routes are matched in the order they're defined
 - If a catch-all route (like `/{full_path:path}` for SPA routing) is defined before API routes, it intercepts API requests
 - This was a bug where the static file mounting and catch-all route were defined before API routes
@@ -145,6 +149,7 @@ Common issues and solutions for Accordant LLM Council.
 - **Route order matters:** FastAPI matches routes top-to-bottom, so more specific routes must come before generic ones
 
 **Example of correct route order:**
+
 ```python
 # ✅ Correct: API routes first
 @app.get("/api/auth/me")
