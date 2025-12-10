@@ -33,11 +33,11 @@ mimetypes.add_type('application/x-font-ttf', '.ttf')
 mimetypes.add_type('application/font-woff', '.woff')
 
 from . import admin_routes, admin_users_routes, org_routes, storage
-from .database import get_db, engine
+from .database import get_system_db, system_engine
 from . import models
 
-# Create tables on startup
-models.Base.metadata.create_all(bind=engine)
+# Create tables on startup (System DB only - Tenants created on demand)
+models.SystemBase.metadata.create_all(bind=system_engine)
 
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -322,7 +322,7 @@ async def health_check():
 
 
 @app.post("/api/auth/register", response_model=Token)
-async def register(reg_data: RegistrationRequest, db: Session = Depends(get_db)):
+async def register(reg_data: RegistrationRequest, db: Session = Depends(get_system_db)):
     """
     Atomic registration of User and Organization.
     Prevents orphaned users by wrapping both creations in a single transaction.
@@ -357,16 +357,6 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_db))
         org_id = None
         
         if reg_data.mode == "create_org":
-            from .organizations import OrganizationCreate, create_org
-            # Create Org
-            # Note: create_org refactored to take DB session, but let's do it inline or call helper
-            # To simulate transaction, we pass the session `db` to helper functions
-            
-            # Create user object first? No, org first?
-            # Circular dependency: Org Owner <-> User Org.
-            # Strategy: Create User with Org=None. Create Org with Owner=User. Update User with Org=Org.
-            # Since we are in a transaction (default in SQLAlchemy request session), we can do this safely.
-            
             # Create User (temporarily without Org)
             db_user = models.User(
                 id=user_id,
@@ -395,9 +385,8 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_db))
             db_user.org_id = org_id
             
             # Ensure physical directories exist (Personalities etc)
-            from .organizations import ensure_orgs_dir
-             # We need to manually trigger folder creation since we bypassed create_org helper
-             # OR we call helper. Let's rely on manual here for clarity of transaction.
+            # The Tenant DB will be created on first access (get_tenant_session)
+            # But we still create the data folders for file-artifacts
             org_dir = os.path.join("data", "organizations", org_id)
             os.makedirs(os.path.join(org_dir, "personalities"), exist_ok=True)
             os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
@@ -425,7 +414,7 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_db))
 
 
 @app.post("/api/auth/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)):
     """Login to get access token."""
     user = get_user(form_data.username, db=db)
     if not user or not verify_password(form_data.password, user.password_hash):

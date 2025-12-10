@@ -1,20 +1,16 @@
 """User management module (SQLAlchemy)."""
 
 import logging
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import models
-from .database import SessionLocal, engine
+from .database import SystemSessionLocal, system_engine
 
-# Create tables if they don't exist (useful for dev/test)
-# In production, use Alembic for migrations
-models.Base.metadata.create_all(bind=engine)
+# Create tables if they don't exist
+models.SystemBase.metadata.create_all(bind=system_engine)
 
 logger = logging.getLogger(__name__)
 
-# Re-exporting schemas for compatibility
-# Ideally we'd move pydantic models to schema.py but keeping here for now to minimize diff
 from pydantic import BaseModel
 
 class User(BaseModel):
@@ -48,17 +44,11 @@ class UserResponse(BaseModel):
 # --- DB Operations ---
 
 def get_user(username: str, db: Session = None) -> UserInDB | None:
-    """
-    Get a user by username.
-    
-    Args:
-        username: The username to find
-        db: Optional existing DB session. If None, creates a new ephemeral session.
-    """
+    """Get a user by username."""
     if db:
         return _get_user_with_session(db, username)
         
-    with SessionLocal() as session:
+    with SystemSessionLocal() as session:
         return _get_user_with_session(session, username)
 
 def _get_user_with_session(db: Session, username: str) -> UserInDB | None:
@@ -74,7 +64,7 @@ def get_user_by_id(user_id: str, db: Session = None) -> UserInDB | None:
             return UserInDB.from_orm(user_model)
         return None
         
-    with SessionLocal() as session:
+    with SystemSessionLocal() as session:
         user_model = session.query(models.User).filter(models.User.id == user_id).first()
         if user_model:
             return UserInDB.from_orm(user_model)
@@ -82,10 +72,9 @@ def get_user_by_id(user_id: str, db: Session = None) -> UserInDB | None:
 
 def create_user(user: UserInDB, db: Session = None) -> UserInDB:
     """Create a new user. WARNING: Should be used within a transaction in main.py ideally."""
-    # If no DB session provided, use ephemeral one (Autocommit)
     is_ephemeral = False
     if db is None:
-        db = SessionLocal()
+        db = SystemSessionLocal()
         is_ephemeral = True
         
     try:
@@ -113,13 +102,13 @@ def create_user(user: UserInDB, db: Session = None) -> UserInDB:
 
 def get_all_users() -> list[UserInDB]:
     """Get all users."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         users = db.query(models.User).all()
         return [UserInDB.from_orm(u) for u in users]
 
 def update_user_role(user_id: str, is_admin: bool) -> UserInDB | None:
     """Update a user's admin status."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if user:
             user.is_admin = is_admin
@@ -130,7 +119,7 @@ def update_user_role(user_id: str, is_admin: bool) -> UserInDB | None:
 
 def update_user_org(user_id: str, org_id: str, is_admin: bool = False) -> UserInDB | None:
     """Update a user's organization and admin status."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if user:
             user.org_id = org_id
@@ -142,7 +131,7 @@ def update_user_org(user_id: str, org_id: str, is_admin: bool = False) -> UserIn
 
 def delete_user(user_id: str) -> bool:
     """Delete a user by ID."""
-    with SessionLocal() as db:
+    with SystemSessionLocal() as db:
         user = db.query(models.User).filter(models.User.id == user_id).first()
         if user:
             db.delete(user)

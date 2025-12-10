@@ -1,4 +1,4 @@
-"""Database-based storage for conversations."""
+"""Database-based storage for conversations (Tenant Sharded)."""
 
 import json
 import logging
@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
-from .database import SessionLocal
+from .database import get_tenant_session
 from . import models
 
 logger = logging.getLogger(__name__)
@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 # --- Conversation Operations ---
 
 def create_conversation(conversation_id: str, user_id: str, org_id: str) -> dict[str, Any]:
-    """Create a new conversation."""
-    with SessionLocal() as db:
+    """Create a new conversation in the tenant DB."""
+    # Strict isolation: Connect to org-specific DB
+    with get_tenant_session(org_id) as db:
         new_conv = models.Conversation(
             id=conversation_id,
             user_id=user_id,
-            org_id=org_id,
-            title="New Conversation",
-            messages=[]
+            org_id=org_id, # Metadata only in tenant DB
+            title="New Conversation"
         )
         db.add(new_conv)
         db.commit()
@@ -31,25 +31,49 @@ def create_conversation(conversation_id: str, user_id: str, org_id: str) -> dict
             "id": new_conv.id,
             "created_at": new_conv.created_at.isoformat() if hasattr(new_conv.created_at, 'isoformat') else str(new_conv.created_at),
             "title": new_conv.title,
-            "messages": new_conv.messages,
+            "messages": [], # Empty on creation
             "user_id": new_conv.user_id,
             "org_id": new_conv.org_id
         }
 
 def get_conversation(conversation_id: str, org_id: str) -> dict[str, Any] | None:
-    """Load a conversation from storage."""
-    with SessionLocal() as db:
+    """
+    Load a conversation from tenant storage.
+    Joins with Message table to reconstruct history.
+    """
+    with get_tenant_session(org_id) as db:
         conv = db.query(models.Conversation).filter(
-            models.Conversation.id == conversation_id,
-            models.Conversation.org_id == org_id
+            models.Conversation.id == conversation_id
         ).first()
         
         if conv:
+            # Reconstruct messages list from normalized table
+            # Sort by created_at (assumed insert order for now)
+            # messages_rel is a relationship, so it fetches automatically
+            # We should probably ensure ordering in the relationship or here
+            
+            # Explicit sort to be safe
+            messages_sorted = sorted(conv.messages_rel, key=lambda m: m.created_at)
+            
+            messages_list = []
+            for m in messages_sorted:
+                msg_dict = {
+                    "role": m.role,
+                    "content": m.content,
+                    # "created_at": m.created_at.isoformat() # Optional if frontend needs it
+                }
+                
+                # If assistant, unpack separate stages
+                if m.stages_json:
+                     msg_dict.update(m.stages_json)
+                     
+                messages_list.append(msg_dict)
+            
             return {
                 "id": conv.id,
                 "created_at": conv.created_at.isoformat() if hasattr(conv.created_at, 'isoformat') else str(conv.created_at),
                 "title": conv.title,
-                "messages": conv.messages or [],
+                "messages": messages_list,
                 "user_id": conv.user_id,
                 "org_id": conv.org_id
             }
@@ -57,20 +81,24 @@ def get_conversation(conversation_id: str, org_id: str) -> dict[str, Any] | None
 
 def save_conversation(conversation: dict[str, Any], org_id: str):
     """
-    Save a conversation to storage.
-    Note: In DB model, we just update the specific fields.
+    Save specific fields (Title).
+    Note: Messages are now added incrementally via add_message, 
+    so 'save_conversation' sending the whole blob is deprecated/inefficient 
+    but we support title updates here.
     """
-    with SessionLocal() as db:
+    with get_tenant_session(org_id) as db:
         conv = db.query(models.Conversation).filter(models.Conversation.id == conversation["id"]).first()
         if conv:
-            conv.title = conversation.get("title", conv.title)
-            conv.messages = conversation.get("messages", [])
+            if "title" in conversation:
+                conv.title = conversation["title"]
             db.commit()
 
 def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
     """List conversations (metadata only)."""
-    with SessionLocal() as db:
-        query = db.query(models.Conversation).filter(models.Conversation.org_id == org_id)
+    with get_tenant_session(org_id) as db:
+        # No need to filter by org_id column, as we are IN the org DB
+        query = db.query(models.Conversation)
+        
         if user_id:
             query = query.filter(models.Conversation.user_id == user_id)
             
@@ -82,25 +110,28 @@ def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
                 "id": c.id,
                 "created_at": c.created_at.isoformat() if hasattr(c.created_at, 'isoformat') else str(c.created_at),
                 "title": c.title,
-                "message_count": len(c.messages) if c.messages else 0
+                "message_count": len(c.messages_rel) # Count related rows
             })
         return results
 
 def add_user_message(conversation_id: str, content: str, org_id: str):
-    """Add a user message."""
-    with SessionLocal() as db:
+    """Add a user message to the normalized table."""
+    with get_tenant_session(org_id) as db:
+        # Verify conv exists
         conv = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
-        if conv:
-            # SQLAlchemy JSON type mutation detection can be tricky.
-            # Best to re-assign the list.
-            messages = list(conv.messages) if conv.messages else []
-            messages.append({"role": "user", "content": content})
-            conv.messages = messages
-            
-            # Since we mutated a JSON field, flag it (or re-assignment handles it)
-            db.commit()
-        else:
+        if not conv:
              raise ValueError(f"Conversation {conversation_id} not found")
+
+        import uuid
+        msg = models.Message(
+            id=str(uuid.uuid4()),
+            conversation_id=conversation_id,
+            role="user",
+            content=content,
+            stages_json=None
+        )
+        db.add(msg)
+        db.commit()
 
 def add_assistant_message(
     conversation_id: str,
@@ -109,22 +140,38 @@ def add_assistant_message(
     stage3: dict[str, Any],
     org_id: str,
 ):
-    """Add an assistant message."""
-    with SessionLocal() as db:
+    """Add an assistant message to the normalized table."""
+    with get_tenant_session(org_id) as db:
+         # Verify conv exists
         conv = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
-        if conv:
-            messages = list(conv.messages) if conv.messages else []
-            messages.append(
-                {"role": "assistant", "stage1": stage1, "stage2": stage2, "stage3": stage3}
-            )
-            conv.messages = messages
-            db.commit()
-        else:
-            raise ValueError(f"Conversation {conversation_id} not found")
+        if not conv:
+             raise ValueError(f"Conversation {conversation_id} not found")
+
+        import uuid
+        
+        # Combine stages into metadata
+        stages_data = {
+            "stage1": stage1,
+            "stage2": stage2,
+            "stage3": stage3
+        }
+        
+        # Use final response as main content
+        final_content = stage3.get("response", "")
+        
+        msg = models.Message(
+            id=str(uuid.uuid4()),
+            conversation_id=conversation_id,
+            role="assistant",
+            content=final_content,
+            stages_json=stages_data
+        )
+        db.add(msg)
+        db.commit()
 
 def update_conversation_title(conversation_id: str, title: str, org_id: str):
     """Update title."""
-    with SessionLocal() as db:
+    with get_tenant_session(org_id) as db:
         conv = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
         if conv:
             conv.title = title
@@ -132,21 +179,20 @@ def update_conversation_title(conversation_id: str, title: str, org_id: str):
 
 def delete_conversation(conversation_id: str, org_id: str) -> bool:
     """Delete conversation."""
-    with SessionLocal() as db:
+    with get_tenant_session(org_id) as db:
         conv = db.query(models.Conversation).filter(
-            models.Conversation.id == conversation_id,
-            models.Conversation.org_id == org_id
+            models.Conversation.id == conversation_id
         ).first()
         if conv:
-            db.delete(conv)
+            db.delete(conv) # Cascades to messages
             db.commit()
             return True
     return False
 
 def delete_user_conversations(user_id: str, org_id: str) -> int:
     """Delete all conversations for a user."""
-    with SessionLocal() as db:
-        # Bulk delete might be efficient
+    # Strict org_id enforcement is implicit by using get_tenant_session(org_id)
+    with get_tenant_session(org_id) as db:
         stmt = models.Conversation.__table__.delete().where(
             models.Conversation.user_id == user_id
         )

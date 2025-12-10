@@ -70,10 +70,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-from .database import get_db
+from .database import get_system_db
 from sqlalchemy.orm import Session
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_system_db)) -> User:
     """
     Get current authenticated user.
     Ensures user belongs to an organization (architecture requirement).
