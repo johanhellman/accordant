@@ -291,33 +291,74 @@ async def register(user_data: UserCreate):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered"
         )
 
-    # Create user without assigning to any organization
-    # User will create or join an organization after registration
-    # The first organization created becomes the "default" organization
-
-    # Edge case check: if orgs exist but no users, flag as data inconsistency
+    # Check if this is the first user (will be instance admin)
+    from .users import get_all_users
+    
+    existing_users = get_all_users()
+    is_first_user = len(existing_users) == 0
+    
+    # Check existing organizations
     orgs = list_orgs()
-    if orgs:
-        from .users import get_all_users
-
-        existing_users = get_all_users()
-        if not existing_users:
-            logger.warning(
-                "Data inconsistency detected: Organizations exist but no users. "
-                "This should not happen in normal operation. "
-                "Please check data consistency."
-            )
-
-    # Create user object (org_id will be None initially)
+    
+    # Create user object first (need user ID for org creation)
     hashed_password = get_password_hash(user_data.password)
-    user_in_db = UserInDB(
-        id=str(uuid.uuid4()),
-        username=user_data.username,
-        password_hash=hashed_password,
-        org_id=None,  # User will create/join org after registration
-    )
-
-    user = create_user(user_in_db)
+    user_id = str(uuid.uuid4())
+    org_id = None
+    
+    if is_first_user:
+        # First user: Create default organization automatically
+        if not orgs:
+            logger.info("First user registration: Creating default organization")
+            from .organizations import OrganizationCreate, create_org
+            
+            # Create user first to get ID
+            user_in_db = UserInDB(
+                id=user_id,
+                username=user_data.username,
+                password_hash=hashed_password,
+                org_id=None,  # Will be set after org creation
+            )
+            user = create_user(user_in_db)
+            
+            # Create default org with user as owner
+            default_org = create_org(
+                OrganizationCreate(name="Default Organization", owner_email=""),
+                owner_id=user.id
+            )
+            org_id = default_org.id
+            logger.info(f"Created default organization: {org_id}")
+            
+            # Update user's org_id and make them org admin
+            from .users import update_user_org
+            update_user_org(user.id, org_id, is_admin=True)
+            logger.info(f"Assigned first user {user.username} to organization {org_id} as admin")
+        else:
+            # Edge case: Orgs exist but no users - assign to first org
+            logger.warning(
+                "Data inconsistency: Organizations exist but no users. "
+                "Assigning first user to first organization."
+            )
+            org_id = orgs[0].id
+            user_in_db = UserInDB(
+                id=user_id,
+                username=user_data.username,
+                password_hash=hashed_password,
+                org_id=org_id,
+            )
+            user = create_user(user_in_db)
+            from .users import update_user_org
+            update_user_org(user.id, org_id, is_admin=True)
+    else:
+        # Subsequent users: Must create/join org after registration
+        # They will have org_id=None until they create/join an org
+        # This is handled by the frontend registration flow
+        user_in_db = UserInDB(
+            id=user_id,
+            username=user_data.username,
+            password_hash=hashed_password,
+            org_id=None,  # Will be set when they create/join org
+        )
+        user = create_user(user_in_db)
 
     # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

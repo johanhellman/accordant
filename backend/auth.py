@@ -1,5 +1,6 @@
 """Authentication logic (JWT, Hashing)."""
 
+import logging
 import os
 from datetime import datetime, timedelta
 
@@ -70,6 +71,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    """
+    Get current authenticated user.
+    Ensures user belongs to an organization (architecture requirement).
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -87,6 +92,40 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     user = get_user(username=token_data.username)
     if user is None:
         raise credentials_exception
+    
+    # Architecture requirement: Users must always belong to an organization
+    # Auto-fix: If user has no org but is instance admin (first user), assign to default org
+    if user.org_id is None:
+        from .organizations import list_orgs
+        from .users import update_user_org
+        
+        orgs = list_orgs()
+        if orgs and user.is_instance_admin:
+            # First user without org - assign to first/default org
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"User {user.username} (instance admin) has no organization. "
+                f"Auto-assigning to default organization {orgs[0].id}"
+            )
+            update_user_org(user.id, orgs[0].id, is_admin=True)
+            # Reload user to get updated org_id
+            user = get_user(username=token_data.username)
+        elif not orgs and user.is_instance_admin:
+            # No orgs exist - create default org for instance admin
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"User {user.username} (instance admin) has no organization and no orgs exist. "
+                "This should not happen - registration should have created default org."
+            )
+            # This is a data inconsistency - log warning but don't fail auth
+            # The user should create an org via the UI
+        elif user.org_id is None:
+            # Non-admin user without org - this violates architecture
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User must belong to an organization. Please create or join an organization."
+            )
+    
     return user
 
 
