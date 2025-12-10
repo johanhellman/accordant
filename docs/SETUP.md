@@ -115,8 +115,7 @@ The application supports distinct "Personalities" for the council members. These
 You can customize the location of these files by setting:
 
 ```bash
-# Directory containing personality# Check users in System DB
-sqlite3 data/system.db "SELECT * FROM users;"alities)
+# Directory containing personality YAML files (Default: data/personalities)
 COUNCIL_PERSONALITIES_DIR=data/personalities
 
 # List of active personality IDs to use (JSON array or comma-separated)
