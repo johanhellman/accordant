@@ -115,10 +115,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
             logger = logging.getLogger(__name__)
             logger.warning(
                 f"User {user.username} (instance admin) has no organization and no orgs exist. "
-                "This should not happen - registration should have created default org."
+                "Auto-creating default organization."
             )
-            # This is a data inconsistency - log warning but don't fail auth
-            # The user should create an org via the UI
+            from .organizations import OrganizationCreate, create_org
+            
+            # Create default org with user as owner
+            default_org = create_org(
+                OrganizationCreate(name="Default Organization", owner_email=""),
+                owner_id=user.id
+            )
+            update_user_org(user.id, default_org.id, is_admin=True)
+            logger.info(f"Created default organization {default_org.id} for instance admin {user.username}")
+            # Reload user to get updated org_id
+            user = get_user(username=token_data.username)
         elif user.org_id is None:
             # Non-admin user without org - this violates architecture
             raise HTTPException(
