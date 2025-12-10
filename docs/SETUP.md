@@ -225,7 +225,7 @@ Then open <http://localhost:5173> in your browser.
 
 #### Server
 
-- `PORT` - Backend server port (default: `8001`)
+- `PORT` - Backend server port (default: `8002`)
 
 ## Next Steps
 

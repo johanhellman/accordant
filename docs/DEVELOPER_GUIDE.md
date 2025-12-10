@@ -61,7 +61,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
 uv sync
 
 # Run with auto-reload (if uvicorn supports it)
-uv run uvicorn backend.main:app --reload --host 0.0.0.0 --port 8001
+uv run uvicorn backend.main:app --reload --host 0.0.0.0 --port 8002
 
 # Or use the module approach
 uv run python -m backend.main
@@ -141,7 +141,7 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 1. Check backend logs: `tail -f logs/llm_council.log`
 2. Check browser console for frontend errors
 3. Verify API key is set: `echo $OPENROUTER_API_KEY` (or check `.env`)
-4. Test API directly: `curl http://localhost:8001/` should return `{"status":"ok"}`
+4. Test API directly: `curl http://localhost:8002/` should return `{"status":"ok"}`
 
 ### Project Structure
 
@@ -243,7 +243,7 @@ See [ADR-012](adr/012-multi-tenancy-architecture.md) and [ADR-013](adr/013-secre
 - Loads global system prompts from `system-prompts.yaml`
 - Uses environment variable `OPENROUTER_API_KEY` from `.env`
 - Uses environment variable `OPENROUTER_API_KEY` from `.env`
-- Backend runs on **port 8001** (NOT 8000 - user had another app on 8000)
+- Backend runs on **port 8002** (NOT 8000 or 8001 - user had other apps on those ports)
 
 **`auth.py` & `users.py`**
 
@@ -412,7 +412,7 @@ All backend modules use relative imports (e.g., `from .config import ...`) not a
 
 ### Port Configuration
 
-- Backend: 8001 (changed from 8000 to avoid conflict)
+- Backend: 8002 (changed from 8000/8001 to avoid conflict)
 - Frontend: 5173 (Vite default)
 - Update both `backend/main.py` and `frontend/src/api.js` if changing
 

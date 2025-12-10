@@ -30,11 +30,11 @@ Common issues and solutions for Accordant LLM Council.
 
 **Solution:**
 
-- Either stop the process using port 8001:
+- Either stop the process using port 8002:
 
   ```bash
-  # Find process using port 8001
-  lsof -ti:8001 | xargs kill -9
+  # Find process using port 8002
+  lsof -ti:8002 | xargs kill -9
   ```
 
 - Or set a different port via environment variable:
@@ -129,7 +129,7 @@ Common issues and solutions for Accordant LLM Council.
   VITE_API_BASE=https://api.yourdomain.com npm run build
   ```
 
-- **Development:** For local development, the frontend defaults to relative URLs. If you need `http://localhost:8001`, set `VITE_API_BASE=http://localhost:8001` before running `npm run dev`
+- **Development:** For local development, the frontend defaults to relative URLs. If you need `http://localhost:8002`, set `VITE_API_BASE=http://localhost:8002` before running `npm run dev`
 - **Browser extensions:** If errors persist, try disabling browser extensions or test in incognito mode
 
 ### API Routes Returning 404
@@ -315,12 +315,12 @@ grep OPENROUTER_API_KEY .env
 
 ```bash
 # Test health endpoint
-curl http://localhost:8001/
+curl http://localhost:8002/
 
 # Should return: {"status":"ok"}
 
 # Test with authentication (if configured)
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8001/api/conversations
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8002/api/conversations
 ```
 
 ### 3. Check Logs

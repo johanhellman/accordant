@@ -40,8 +40,8 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Start backend
-echo "Starting backend on http://localhost:8001..."
-uv run uvicorn backend.main:app --host 0.0.0.0 --port 8001 &
+echo "Starting backend on http://localhost:8002..."
+uv run uvicorn backend.main:app --host 0.0.0.0 --port 8002 &
 BACKEND_PID=$!
 
 # Wait a bit for backend to start
@@ -55,7 +55,7 @@ FRONTEND_PID=$!
 
 echo ""
 echo "✓ Accordant is running!"
-echo "  Backend:  http://localhost:8001"
+echo "  Backend:  http://localhost:8002"
 echo "  Frontend: http://localhost:5173"
 echo ""
 echo "Press Ctrl+C to stop both servers"
