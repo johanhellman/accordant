@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from backend.auth import create_access_token
 from backend.main import app
-from backend.users import UserInDB, _save_users, create_user
+from backend.users import UserInDB, create_user
 
 client = TestClient(app)
 
@@ -21,7 +21,12 @@ def clean_data():
     # and instead rely on the test creating unique data or cleaning up what it creates.
 
     # Clean
-    _save_users({})
+    from backend import models
+    from backend.database import SystemSessionLocal
+    
+    with SystemSessionLocal() as db:
+        db.query(models.User).delete()
+        db.commit()
 
     # Clean up test-org data
     from backend.organizations import ORGS_DATA_DIR

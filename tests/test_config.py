@@ -7,10 +7,7 @@ import pytest
 import yaml
 
 from backend.config.personalities import (
-    DEFAULT_BASE_SYSTEM_PROMPT,
-    DEFAULT_CHAIRMAN_PROMPT,
-    DEFAULT_RANKING_PROMPT,
-    DEFAULT_TITLE_GENERATION_PROMPT,
+    _load_defaults,
     get_active_personalities,
     load_org_system_prompts,
     load_org_models_config,
@@ -106,10 +103,16 @@ class TestPersonalityLoading:
 
         prompts = load_org_system_prompts(org_id)
 
-        assert prompts["base_system_prompt"] == DEFAULT_BASE_SYSTEM_PROMPT
-        assert prompts["chairman_prompt"] == DEFAULT_CHAIRMAN_PROMPT
-        assert prompts["title_prompt"] == DEFAULT_TITLE_GENERATION_PROMPT
-        assert prompts["ranking_prompt"] == DEFAULT_RANKING_PROMPT
+        defaults = _load_defaults()
+        assert prompts["base_system_prompt"] == defaults.get("base_system_prompt", "")
+        assert prompts["chairman_prompt"] == _get_nested_config_value(defaults, "chairman", "prompt", "")
+        # Note: ranking prompt key logic might vary, checking main key
+        # In load_org_system_prompts, it uses default_ranking for ranking_prompt
+        default_ranking = defaults.get("ranking_prompt", "")
+        if not default_ranking:
+             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
+        assert prompts["ranking_prompt"]["value"] == default_ranking
+        assert prompts["title_prompt"] == _get_nested_config_value(defaults, "title_generation", "prompt", "")
 
     def test_get_active_personalities_invalid_yaml(self, temp_org_dir, caplog):
         """Test handling of invalid YAML files."""
@@ -275,7 +278,13 @@ class TestPersonalityLoading:
         prompts = load_org_system_prompts(org_id)
 
         # Should fall back to default since ranking is not a dict
-        assert prompts["ranking_prompt"] == DEFAULT_RANKING_PROMPT
+        # Should fall back to default since ranking is not a dict
+        defaults = _load_defaults()
+        default_ranking = defaults.get("ranking_prompt", "")
+        if not default_ranking:
+             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
+             
+        assert prompts["ranking_prompt"]["value"] == default_ranking
 
 
 class TestNestedConfigValue:

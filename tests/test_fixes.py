@@ -5,7 +5,7 @@ import pytest
 from backend.llm_service import get_available_models
 from backend.main import send_message
 from backend.schema import SendMessageRequest
-from backend.streaming import run_council_streaming
+from backend.streaming import run_council_generator
 
 
 @pytest.mark.asyncio
@@ -65,7 +65,7 @@ async def test_stale_conversation_snapshot_streaming():
         patch("backend.streaming._execute_stage1_stream", new_callable=AsyncMock) as mock_stage1,
     ):
         # Consume the generator
-        async for _ in run_council_streaming(
+        async for _ in run_council_generator(
             "conv1", "New User Msg", mock_conversation, "org1", "key", "url"
         ):
             pass

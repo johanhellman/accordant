@@ -67,7 +67,7 @@ class TestGetDefaultSystemPrompts:
         with open(defaults_file, "w") as f:
             yaml.dump(defaults_data, f)
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             assert result["base_system_prompt"]["value"] == "Default base prompt"
@@ -86,7 +86,7 @@ class TestGetDefaultSystemPrompts:
         defaults_file.parent.mkdir(parents=True, exist_ok=True)
         defaults_file.touch()
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             # Should return empty strings for missing values
@@ -102,7 +102,7 @@ class TestGetDefaultSystemPrompts:
         defaults_file = tmp_path / "defaults" / "system-prompts.yaml"
         # Don't create the file
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             # Should return empty strings for missing values
@@ -121,7 +121,7 @@ class TestGetDefaultSystemPrompts:
         with open(defaults_file, "w") as f:
             yaml.dump(defaults_data, f)
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             assert result["base_system_prompt"]["value"] == "Only base prompt"
@@ -141,7 +141,7 @@ class TestGetDefaultSystemPrompts:
         with open(defaults_file, "w") as f:
             yaml.dump(defaults_data, f)
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             # Should handle gracefully and return empty string
@@ -159,7 +159,7 @@ class TestGetDefaultSystemPrompts:
         with open(defaults_file, "w") as f:
             yaml.dump(defaults_data, f)
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await get_default_system_prompts(current_user=instance_admin_user)
 
             # Should handle gracefully and return empty string
@@ -194,7 +194,7 @@ class TestUpdateDefaultSystemPrompts:
             "stage1_meta_structure": {"value": "Updated meta", "is_default": True, "source": "default"},
         }
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             # Verify updates
@@ -225,7 +225,7 @@ class TestUpdateDefaultSystemPrompts:
             "ranking": {"prompt": "Direct ranking prompt"},
         }
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             assert result["base_system_prompt"]["value"] == "Direct value"
@@ -254,7 +254,7 @@ class TestUpdateDefaultSystemPrompts:
             "base_system_prompt": {"value": "Updated base only", "is_default": True, "source": "default"},
         }
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             # Updated field should be changed
@@ -280,7 +280,7 @@ class TestUpdateDefaultSystemPrompts:
             "ranking": {"prompt": None},
         }
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             # None values should be handled gracefully
@@ -300,7 +300,7 @@ class TestUpdateDefaultSystemPrompts:
         # Empty update config
         update_config = {}
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             # Should preserve existing values
@@ -324,7 +324,7 @@ class TestUpdateDefaultSystemPrompts:
             "title_generation": {"prompt": {"value": "New title prompt", "is_default": True, "source": "default"}},
         }
 
-        with patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)):
+        with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
             result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
 
             # Should create nested dicts
@@ -350,7 +350,7 @@ class TestUpdateDefaultSystemPrompts:
         }
 
         with (
-            patch("backend.admin_routes.DEFAULTS_FILE", str(defaults_file)),
+            patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)),
             patch("backend.admin_routes._save_yaml", side_effect=Exception("Save error")),
         ):
             with pytest.raises(Exception):
