@@ -1,5 +1,31 @@
 # Admin Guide
 
+## Admin Dashboard
+(Instance Admin Only)
+
+When you log in as an Instance Admin, you are greeted by the **Admin Dashboard**. This high-level view provides a real-time pulse of the system:
+*   **Total Organizations**: Number of active tenant organizations.
+*   **Total Users**: Global user count across all organizations.
+*   **Active Conversations**: Number of conversations active in the last 24 hours.
+
+## Organization Management
+(Instance Admin Only)
+
+Navigate to the **Organizations** tab to manage the tenants of your Accordant instance.
+
+*   **Create Organization**: Use the "Create" button to onboard a new tenant.
+*   **Edit Organization**: Click the "Edit" icon to rename an organization or update its API configuration (Base URL).
+*   **Delete Organization**: In the "Danger Zone" of an organization's details, you can permanently delete an organization and all its associated data. **This action is irreversible.**
+
+## User Management
+(Org Admin & Instance Admin)
+
+Navigate to the **Users** tab to manage access within your organization.
+
+*   **Role Management**: You can promote a User to an "Admin" (Organization Admin) or demote them back to a standard User.
+*   **Remove User**: If a member leaves your organization, you can remove them from the list. They will no longer be able to log in to your tenant.
+*   **Invitations**: Generate time-limited invite codes to onboard new team members securely.
+
 ## Managing Personalities
 
 Accordant uses a **Structured Personality System**. This ensures that while each personality has a unique "Soul" (Identity, Tone, Reasoning), they all share a common "Body" (Structure, Metadata) to facilitate effective collaboration in the Council.

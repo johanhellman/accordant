@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../api";
-import { Download, Trash2, Shield, User } from "lucide-react";
+import { Download, Trash2, Shield, User, Lock, Key } from "lucide-react";
 import "./UserSettings.css";
 
 export default function UserSettings() {
@@ -9,7 +9,16 @@ export default function UserSettings() {
     const [exporting, setExporting] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState(null);
+    const [successMsg, setSuccessMsg] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
+
+    // Password Change State
+    const [pwdForm, setPwdForm] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [changingPwd, setChangingPwd] = useState(false);
 
     useEffect(() => {
         loadUser();
@@ -46,11 +55,37 @@ export default function UserSettings() {
         try {
             setDeleting(true);
             await api.deleteAccount();
-            // Force logout essentially
             window.location.reload();
         } catch (err) {
             setError("Failed to delete account: " + err.message);
             setDeleting(false);
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setSuccessMsg(null);
+
+        if (pwdForm.newPassword !== pwdForm.confirmPassword) {
+            setError("New passwords do not match");
+            return;
+        }
+
+        if (pwdForm.newPassword.length < 8) {
+            setError("New password must be at least 8 characters long");
+            return;
+        }
+
+        try {
+            setChangingPwd(true);
+            await api.changePassword(pwdForm.currentPassword, pwdForm.newPassword);
+            setSuccessMsg("Password changed successfully");
+            setPwdForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setChangingPwd(false);
         }
     };
 
@@ -62,6 +97,7 @@ export default function UserSettings() {
                 <h2>User Settings</h2>
             </header>
 
+            {/* Profile Section */}
             <div className="settings-section">
                 <div className="section-header">
                     <User size={20} className="section-icon" />
@@ -85,6 +121,59 @@ export default function UserSettings() {
                 </div>
             </div>
 
+            {/* Security Section */}
+            <div className="settings-section">
+                <div className="section-header">
+                    <Lock size={20} className="section-icon" />
+                    <h3>Security</h3>
+                </div>
+                <div className="security-card">
+                    <form onSubmit={handleChangePassword} className="password-form">
+                        <h4>Change Password</h4>
+                        <div className="form-group">
+                            <label>Current Password</label>
+                            <div className="input-wrapper">
+                                <Key size={16} />
+                                <input
+                                    type="password"
+                                    value={pwdForm.currentPassword}
+                                    onChange={(e) => setPwdForm({ ...pwdForm, currentPassword: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>New Password</label>
+                            <div className="input-wrapper">
+                                <Lock size={16} />
+                                <input
+                                    type="password"
+                                    value={pwdForm.newPassword}
+                                    onChange={(e) => setPwdForm({ ...pwdForm, newPassword: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Confirm New Password</label>
+                            <div className="input-wrapper">
+                                <Lock size={16} />
+                                <input
+                                    type="password"
+                                    value={pwdForm.confirmPassword}
+                                    onChange={(e) => setPwdForm({ ...pwdForm, confirmPassword: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" className="btn btn-primary" disabled={changingPwd}>
+                            {changingPwd ? "Updating..." : "Update Password"}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* Privacy Section */}
             <div className="settings-section">
                 <div className="section-header">
                     <Shield size={20} className="section-icon" />
@@ -143,6 +232,7 @@ export default function UserSettings() {
             </div>
 
             {error && <div className="error-message">{error}</div>}
+            {successMsg && <div className="success-message">{successMsg}</div>}
         </div>
     );
 }

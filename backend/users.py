@@ -138,3 +138,13 @@ def delete_user(user_id: str) -> bool:
             db.commit()
             return True
     return False
+
+def update_user_password(user_id: str, password_hash: str) -> bool:
+    """Update a user's password hash."""
+    with SystemSessionLocal() as db:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.password_hash = password_hash
+            db.commit()
+            return True
+    return False

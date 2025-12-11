@@ -86,3 +86,9 @@ class RegistrationRequest(BaseModel):
     mode: Literal["create_org", "join_org"] = "create_org"
     org_name: str | None = None # Required if mode is create_org
     invite_code: str | None = None # Future use for join_org
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request to change user password."""
+    current_password: str
+    new_password: str

@@ -61,5 +61,9 @@ The League Table tracks the performance of your AI council.
 *   **Settings**: Configure API keys (OpenRouter) and base URLs.
 
 ## 5. User Settings
-*   **Export Data**: Download your conversation history (Coming Soon).
-*   **Delete Account**: Permanently remove your account (Coming Soon).
+Every user has access to their personal settings page to manage their profile and security.
+
+*   **Profile**: Update your display name.
+*   **Change Password**: Securely update your login password.
+*   **Export Data**: Request a download of your personal conversation history in JSON format.
+*   **Delete Account**: Permanently delete your personal account and data from the system. **Warning: This cannot be undone.**

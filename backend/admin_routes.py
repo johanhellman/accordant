@@ -18,10 +18,11 @@ from .config.personalities import (
 from .llm_service import get_available_models
 from .organizations import get_org, get_org_api_config, update_org
 from .security import encrypt_value
-from .users import User
+from .users import User, delete_user, get_all_users
 from .council_helpers import ENFORCED_CONTEXT, ENFORCED_OUTPUT_FORMAT
 from .ranking_service import calculate_league_table, calculate_instance_league_table, generate_feedback_summary
 from .evolution_service import combine_personalities
+from .organizations import delete_org, list_orgs
 
 logger = logging.getLogger(__name__)
 
@@ -681,3 +682,100 @@ async def delete_default_personality(
     except Exception as e:
         logger.error(f"Error deleting default personality: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete default personality") from e
+
+
+# --- Dashboard & Stats ---
+
+
+class AdminStats(BaseModel):
+    total_organizations: int
+    total_users: int
+    active_conversations_24h: int # Placeholder or estimated
+
+
+@router.get("/stats", response_model=AdminStats)
+async def get_admin_stats(current_user: User = Depends(get_current_instance_admin)):
+    """Get global statistics for the Admin Dashboard."""
+    orgs = list_orgs()
+    users = get_all_users()
+    
+    # improved "Active" metric could be implemented here
+    # For now, return 0 as placeholder or implementing simple file-mtime check later
+    return {
+        "total_organizations": len(orgs),
+        "total_users": len(users),
+        "active_conversations_24h": 0 
+    }
+
+
+
+@router.put("/organizations/{org_id}")
+async def update_organization_route(
+    org_id: str, updates: OrgSettingsUpdate, current_user: User = Depends(get_current_instance_admin)
+):
+    """
+    Update an organization (Instance Admin Only).
+    Can update keys, base_url, or name (if schema extended).
+    """
+    org = get_org(org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    current_api_config = org.api_config or {}
+    
+    if updates.api_key:
+        encrypted_key = encrypt_value(updates.api_key)
+        current_api_config["api_key"] = encrypted_key
+        
+    if updates.base_url:
+        current_api_config["base_url"] = updates.base_url
+        
+    # Apply updates
+    success = update_org(org_id, {"api_config": current_api_config})
+    if not success:
+         raise HTTPException(status_code=500, detail="Failed to update organization")
+         
+    return {"status": "success", "message": "Organization updated"}
+
+
+@router.delete("/organizations/{org_id}")
+async def delete_organization_route(
+    org_id: str, current_user: User = Depends(get_current_instance_admin)
+):
+    """Permanently delete an organization."""
+    success = delete_org(org_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {"status": "success", "message": f"Organization {org_id} deleted"}
+
+
+@router.delete("/users/{user_id}")
+async def delete_user_route(
+    user_id: str, current_user: User = Depends(get_current_admin_user)
+):
+    """
+    Delete a user. 
+    Org Admins can only delete users in their own org.
+    Instance Admins can delete anyone.
+    """
+    from .users import get_user_by_id
+    
+    target_user = get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Permission Check
+    if not current_user.is_instance_admin:
+        # Org Admin check
+        if target_user.org_id != current_user.org_id:
+            raise HTTPException(status_code=403, detail="Cannot delete user from another organization")
+            
+    # Prevent self-deletion via this route? usually good practice
+    if target_user.id == current_user.id:
+         raise HTTPException(status_code=400, detail="Cannot delete yourself via admin route. Use settings.")
+
+    success = delete_user(user_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete user")
+        
+    return {"status": "success", "message": f"User {user_id} deleted"}

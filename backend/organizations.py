@@ -156,7 +156,42 @@ def get_org_api_config(org_id: str) -> tuple[str, str]:
          # Simplified error for dev environment?
          pass # Caller handles nulls if needed, or raises later.
 
+
     # 2. Determine Base URL
     base_url = api_config.get("base_url") or OPENROUTER_API_URL
     
     return api_key, base_url
+
+
+def delete_org(org_id: str) -> bool:
+    """
+    Delete an organization and all associated data (Users, Tenant DB, Files).
+    THIS IS IRREVERSIBLE.
+    """
+    import shutil
+    
+    # 1. Database Cleanup (System DB)
+    with SystemSessionLocal() as db:
+        org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+        if not org:
+            return False
+            
+        # Delete associated users first explicitly (to be safe)
+        db.query(models.User).filter(models.User.org_id == org_id).delete()
+        
+        # Delete the organization
+        db.delete(org)
+        db.commit()
+
+    # 2. Filesystem Cleanup
+    # Path: data/organizations/{org_id}
+    org_dir = os.path.join(ORGS_DATA_DIR, org_id)
+    if os.path.exists(org_dir):
+        try:
+            shutil.rmtree(org_dir)
+            logger.info(f"Deleted organization directory: {org_dir}")
+        except Exception as e:
+            logger.error(f"Failed to delete organization directory {org_dir}: {e}")
+            # We don't return False here because DB part succeeded, but it's messy.
+            
+    return True

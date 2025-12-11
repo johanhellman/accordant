@@ -136,6 +136,23 @@ export const api = {
     return response.json();
   },
 
+  async changePassword(currentPassword, newPassword) {
+    const response = await fetch(`${API_BASE}/api/auth/password`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    });
+    if (!response.ok) {
+      let errorMessage = "Failed to change password";
+      try {
+        const err = await response.json();
+        errorMessage = err.detail || errorMessage;
+      } catch { }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  },
+
   /**
    * List all conversations.
    */
@@ -410,6 +427,23 @@ export const api = {
     return response.json();
   },
 
+  async deleteUser(userId) {
+    const response = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to delete user");
+    return response.json();
+  },
+
+  async getAdminStats() {
+    const response = await fetch(`${API_BASE}/api/admin/stats`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to get admin stats");
+    return response.json();
+  },
+
   async getVotingHistory() {
     const response = await fetch(`${API_BASE}/api/votes`, {
       headers: getHeaders(),
@@ -483,6 +517,27 @@ export const api = {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to create invitation");
+    return response.json();
+  },
+
+
+
+  async deleteOrganization(orgId) {
+    const response = await fetch(`${API_BASE}/api/admin/organizations/${orgId}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to delete organization");
+    return response.json();
+  },
+
+  async updateOrganization(orgId, updates) {
+    const response = await fetch(`${API_BASE}/api/admin/organizations/${orgId}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error("Failed to update organization");
     return response.json();
   },
 

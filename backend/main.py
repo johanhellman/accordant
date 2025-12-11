@@ -59,7 +59,8 @@ from .schema import (
     ConversationMetadata,
     CreateConversationRequest,
     SendMessageRequest,
-    RegistrationRequest
+    RegistrationRequest,
+    ChangePasswordRequest
 )
 from .streaming import run_council_generator
 from .users import User, UserCreate, UserInDB, UserResponse, create_user, get_user
@@ -467,6 +468,33 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.put("/api/auth/password")
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_system_db)
+):
+    """Change the current user's password."""
+    # 1. Verify current password
+    user_in_db = get_user(current_user.username, db=db)
+    if not user_in_db or not verify_password(request.current_password, user_in_db.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password"
+        )
+    
+    # 2. Update password
+    new_hash = get_password_hash(request.new_password)
+    from .users import update_user_password
+    success = update_user_password(current_user.id, new_hash)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update password")
+        
+    logger.info(f"User {current_user.username} changed their password.")
+    return {"status": "success", "message": "Password updated successfully"}
 
 
 @app.get("/api/auth/me", response_model=UserResponse)

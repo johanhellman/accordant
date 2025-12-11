@@ -8,6 +8,7 @@ import OrganizationManagement from "./components/OrganizationManagement";
 import UserSettings from "./components/UserSettings";
 import Login from "./components/Login";
 import AccordantLanding from "./components/AccordantLanding";
+import AdminDashboard from "./components/AdminDashboard";
 import DocViewer from "./components/DocViewer";
 import { api } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -286,6 +287,7 @@ function Dashboard() {
         onLogout={logout}
       />
       <div className="main-content">
+
         {view === "chat" && (
           <ChatInterface
             conversation={currentConversation}
@@ -294,6 +296,7 @@ function Dashboard() {
             isLoading={isLoading}
           />
         )}
+        {view === "dashboard" && user?.is_instance_admin && <AdminDashboard />}
         {view === "personalities" && (user?.is_admin || user?.is_instance_admin) && (
           <PersonalityManager />
         )}

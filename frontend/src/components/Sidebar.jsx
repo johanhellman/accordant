@@ -45,6 +45,12 @@ export default function Sidebar({
             <>
               <h3>Instance Admin</h3>
               <div
+                className={`nav-item ${currentView === "dashboard" ? "active" : ""}`}
+                onClick={() => onViewChange("dashboard")}
+              >
+                Dashboard
+              </div>
+              <div
                 className={`nav-item ${currentView === "organizations" ? "active" : ""}`}
                 onClick={() => onViewChange("organizations")}
               >
