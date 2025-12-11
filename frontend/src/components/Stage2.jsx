@@ -17,9 +17,20 @@ function deAnonymizeText(text, labelToModel) {
 
   let result = text;
   // Replace each "Response X" with the actual model name
-  Object.entries(labelToModel).forEach(([label, model]) => {
-    const modelShortName = model.split("/")[1] || model;
-    result = result.replace(new RegExp(label, "g"), `**${modelShortName}**`);
+  Object.entries(labelToModel).forEach(([label, value]) => {
+    // Value can be a string (legacy) or an object { name, id, model }
+    let modelName = "";
+    if (typeof value === "string") {
+      modelName = value;
+    } else if (value && typeof value === "object") {
+      // Prefer name if available, else model
+      modelName = value.name || value.model || "Unknown";
+    }
+
+    // If it looks like a model ID (provider/model), split it. 
+    // If it's a personality name, use it as is.
+    const display = modelName.includes("/") ? (modelName.split("/")[1] || modelName) : modelName;
+    result = result.replace(new RegExp(label, "g"), `**${display}**`);
   });
   return result;
 }
@@ -83,9 +94,12 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
               <ol>
                 {rankings[activeTab].parsed_ranking.map((label, i) => (
                   <li key={i}>
-                    {labelToModel && labelToModel[label]
-                      ? labelToModel[label].split("/")[1] || labelToModel[label]
-                      : label}
+                    {(() => {
+                      const val = labelToModel && labelToModel[label];
+                      if (!val) return label;
+                      const name = typeof val === 'string' ? val : (val.name || val.model || "Unknown");
+                      return name.includes("/") ? (name.split("/")[1] || name) : name;
+                    })()}
                   </li>
                 ))}
               </ol>
