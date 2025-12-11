@@ -4,7 +4,9 @@
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
+  /* Ensure sidebar itself doesn't scroll, only children */
 }
 
 .sidebar-header {

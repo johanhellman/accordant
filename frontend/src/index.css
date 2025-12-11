@@ -168,126 +168,132 @@
   color: var(--color-text-primary);
   background-color: var(--color-bg-primary);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  button {
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: var(--font-weight-medium);
+    font-family: inherit;
+    background-color: var(--color-bg-tertiary);
+    cursor: pointer;
+    transition: border-color var(--duration-base);
+  }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+  button:hover {
+    border-color: var(--color-primary);
+  }
 
-button {
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: var(--font-weight-medium);
-  font-family: inherit;
-  background-color: var(--color-bg-tertiary);
-  cursor: pointer;
-  transition: border-color var(--duration-base);
-}
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
 
-button:hover {
-  border-color: var(--color-primary);
-}
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    /* CRITICAL: Padding doesn't add to width/height */
+  }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Force viewport height */
+    max-height: 100vh;
+    /* Prevent expansion */
+    overflow: hidden;
+    /* STRICT VIEWPORT LOCK */
+    position: fixed;
+    /* Nuclear option: locks body to screen */
+    top: 0;
+    left: 0;
+  }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
 
-/* ==========================================================================
+  /* ==========================================================================
    Global Utilities
    ========================================================================== */
 
-/* Typography */
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent-pink) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  /* Fallback */
-}
+  /* Typography */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent-pink) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* Fallback */
+  }
 
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: var(--font-weight-medium);
-  font-family: inherit;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all var(--duration-base);
-  text-decoration: none;
-}
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: var(--font-weight-medium);
+    font-family: inherit;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--duration-base);
+    text-decoration: none;
+  }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: white;
-  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
-  border: none;
-}
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    border: none;
+  }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
-  filter: brightness(1.1);
-}
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+    filter: brightness(1.1);
+  }
 
-.btn-secondary {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-}
+  .btn-secondary {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
 
-.btn-secondary:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
+  .btn-secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-}
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+  }
 
-.btn-ghost:hover {
-  background: rgba(37, 99, 235, 0.05);
-  color: var(--color-primary);
-}
+  .btn-ghost:hover {
+    background: rgba(37, 99, 235, 0.05);
+    color: var(--color-primary);
+  }

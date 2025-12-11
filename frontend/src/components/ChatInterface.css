@@ -2,14 +2,18 @@
 .chat-interface {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Changed from 100vh to 100% of parent */
+  /* Vertical stack */
+  height: 100%;
+  /* Fill parent (.main-content) */
   position: relative;
   background-color: white;
-  overflow: hidden; /* Prevent outer scroll */
+  overflow: hidden;
+  /* No scroll at this level */
 }
 
 .chat-header {
-  flex-shrink: 0; /* Do not shrink */
+  flex-shrink: 0;
+  /* Never shrink */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,14 +49,18 @@
 
 /* Messages Container */
 .messages-container {
-  flex: 1; /* Take remaining space */
-  overflow-y: auto; /* Scroll internally */
+  flex: 1;
+  /* Take all available space */
+  overflow-y: auto;
+  /* Scroll internally */
   padding: 1rem;
   /* padding-bottom removed, input form is separate */
   scroll-behavior: smooth;
   background-color: var(--color-bg-tertiary);
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  /* Crucial for nested flex scrolling */
 }
 
 /* Scrollbar Styling */
@@ -75,7 +83,8 @@
 
 /* Input Form Fixed at Bottom */
 .input-form {
-  flex-shrink: 0; /* Do not shrink */
+  flex-shrink: 0;
+  /* Never shrink */
   background-color: white;
   padding: 1.5rem;
   border-top: 1px solid var(--color-border);
@@ -83,7 +92,7 @@
   gap: 1rem;
   align-items: flex-end;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
-  position: relative; /* Not absolute */
+  position: relative;
   z-index: 20;
 }
 
@@ -138,7 +147,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1; /* Fill messages container */
+  flex: 1;
+  /* Fill messages container */
   color: var(--color-text-secondary);
   text-align: center;
 }
@@ -154,7 +164,9 @@
 /* Message Groups */
 .message-group {
   margin-bottom: 2rem;
-  max-width: 900px;
+  width: 100%;
+  max-width: 1200px;
+  /* Increased from 900px */
   margin-left: auto;
   margin-right: auto;
 }
