@@ -150,7 +150,7 @@ async def _stage2_personality_mode(
     org_id: str,
     api_key: str,
     base_url: str,
-) -> tuple[list[Stage2Result], dict[str, str]]:
+) -> tuple[list[Stage2Result], dict[str, Any]]:
     """
     Stage 2 implementation for personality mode.
 
@@ -174,9 +174,14 @@ async def _stage2_personality_mode(
     # Create anonymized labels
     labels = [chr(65 + i) for i in range(len(stage1_results))]  # A, B, C, ...
 
-    # Create mapping from label to model name (or personality name)
+    # Create mapping from label to model/identity info
+    # We now store a dict instead of a simple string name to track ID and Name
     label_to_model = {
-        f"{RESPONSE_LABEL_PREFIX}{label}": result.get("personality_name", result["model"])
+        f"{RESPONSE_LABEL_PREFIX}{label}": {
+            "name": result.get("personality_name", result["model"]),
+            "id": result.get("personality_id"),
+            "model": result["model"]
+        }
         for label, result in zip(labels, stage1_results, strict=True)
     }
 
@@ -247,6 +252,7 @@ async def _stage2_personality_mode(
                 {
                     "model": p["model"],
                     "personality_name": p["name"],
+                    "personality_id": p.get("id"),
                     "ranking": full_text,
                     "parsed_ranking": parsed,
                 }
@@ -262,7 +268,7 @@ async def stage2_collect_rankings(
     org_id: str = None,
     api_key: str = None,
     base_url: str = None,
-) -> tuple[list[Stage2Result], dict[str, str]]:
+) -> tuple[list[Stage2Result], dict[str, Any]]:
     """
     Stage 2: Each model ranks the anonymized responses.
 
@@ -308,7 +314,7 @@ async def stage3_synthesize_final(
     user_query: str,
     stage1_results: list[Stage1Result],
     stage2_results: list[Stage2Result],
-    label_to_model: dict[str, str],
+    label_to_model: dict[str, dict[str, Any]], # Updated to be dict of dicts
     messages: list[dict[str, Any]] | None = None,
     org_id: str = None,
     api_key: str = None,
@@ -349,18 +355,10 @@ async def stage3_synthesize_final(
         vote_line = f"Voter: {voter_display}\n"
         for i, label in enumerate(rankings, 1):
             # Resolve label to personality name if available
-            target_info = label_to_model.get(label, "Unknown")
-            # If label_to_model contains "Personality (Model)", we want to extract just "Personality"
-            # But wait, label_to_model is constructed in stage2_collect_rankings.
-            # Let's check how it's constructed.
-            # It uses: result.get('personality_name', result['model'])
-            # So it ALREADY contains just the personality name (or model if no personality).
-            # However, in Phase 1 we might have changed it?
-            # Let's look at stage2_collect_rankings in council.py...
-            # It says: label_to_model = { ... result.get('personality_name', result['model']) ... }
-            # So it is already safe.
-
-            vote_line += f"   {i}. {target_info} ({label})\n"
+            target_info_obj = label_to_model.get(label, {})
+            target_name = target_info_obj.get("name", "Unknown") if isinstance(target_info_obj, dict) else target_info_obj
+            
+            vote_line += f"   {i}. {target_name} ({label})\n"
         voting_details.append(vote_line)
 
     voting_details_text = "\n".join(voting_details)

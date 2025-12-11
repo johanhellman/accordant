@@ -1,116 +1,93 @@
 """
-Persistent storage for voting history.
+Persistent storage for voting history using SQLite (Tenant DB).
 """
 
-import json
 import logging
-import os
 import uuid
-from datetime import datetime
 from typing import Any
 
-from .organizations import ORGS_DATA_DIR
+from sqlalchemy.orm import Session
+
+from .database import get_tenant_session
+from .models import Vote
 
 logger = logging.getLogger(__name__)
-
-VOTING_HISTORY_FILE = "voting_history.json"
-
-
-def get_voting_history_path(org_id: str) -> str:
-    """Get path to voting history file."""
-    return os.path.join(ORGS_DATA_DIR, org_id, "voting_history.json")
-
-
-def load_voting_history(org_id: str) -> list[dict[str, Any]]:
-    """Load voting history from JSON file."""
-    path = get_voting_history_path(org_id)
-    if not os.path.exists(path):
-        return []
-
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading voting history for org {org_id}: {e}")
-        return []
-
-
-def save_voting_history(history: list[dict[str, Any]], org_id: str):
-    """Save voting history to JSON file."""
-    path = get_voting_history_path(org_id)
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            json.dump(history, f, indent=2)
-    except Exception as e:
-        logger.error(f"Error saving voting history for org {org_id}: {e}")
-
 
 def record_votes(
     conversation_id: str,
     stage2_results: list[dict[str, Any]],
-    label_to_model: dict[str, str],
+    label_to_model: dict[str, Any], # dict[str, dict]
     conversation_title: str = "Unknown",
     turn_number: int = 1,
     user_id: str = None,
     org_id: str = None,
 ):
     """
-    Extract votes from Stage 2 results and append to history as a new session.
-
-    Args:
-        conversation_id: The ID of the conversation
-        stage2_results: The results from Stage 2 (rankings)
-        label_to_model: Mapping from anonymous labels (Response A) to model names
-        conversation_title: Title of the conversation
-        turn_number: The turn number of this voting session
-        user_id: The ID of the user who owns the conversation
-        org_id: The ID of the organization
+    Extract votes from Stage 2 results and insert into Tenant DB.
     """
+    if not org_id:
+        logger.error("Cannot record votes: org_id is missing.")
+        return
+
     logger.info(f"Recording votes for conversation {conversation_id} (Turn {turn_number})")
 
-    votes = []
+    db: Session = get_tenant_session(org_id)
+    votes_to_insert = []
 
-    for result in stage2_results:
-        voter_model = result["model"]
-        voter_personality = result.get("personality_name", voter_model)
-        parsed_ranking = result.get("parsed_ranking", [])
-        # Save the full text reasoning if available, but ensure privacy downstream
-        reasoning_text = result.get("ranking", "")
+    try:
+        for result in stage2_results:
+            voter_model = result.get("model", "unknown")
+            # Fallback for ID if stage2 result structure hasn't fully propagated in tests
+            voter_personality_id = result.get("personality_id") 
+            
+            parsed_ranking = result.get("parsed_ranking", [])
+            reasoning_text = result.get("ranking", "")
 
-        # Convert ranked labels to model names
-        ranked_candidates = []
-        for rank, label in enumerate(parsed_ranking, start=1):
-            candidate_name = label_to_model.get(label)
-            if candidate_name:
-                ranked_candidates.append(
-                    {"rank": rank, "candidate": candidate_name, "label": label}
-                )
+            # Convert ranked labels to identity info
+            for rank, label in enumerate(parsed_ranking, start=1):
+                target_info = label_to_model.get(label)
+                if target_info:
+                    # target_info is now {id: ..., name: ..., model: ...}
+                    candidate_id = target_info.get("id") if isinstance(target_info, dict) else None
+                    candidate_name = target_info.get("name") if isinstance(target_info, dict) else str(target_info)
+                    candidate_model = target_info.get("model") if isinstance(target_info, dict) else candidate_name
 
-        if ranked_candidates:
-            votes.append(
-                {
-                    "voter_model": voter_model,
-                    "voter_personality": voter_personality,
-                    "rankings": ranked_candidates,
-                    "reasoning": reasoning_text,  # Store the qualitative feedback
-                }
-            )
+                    vote = Vote(
+                        id=str(uuid.uuid4()),
+                        conversation_id=conversation_id,
+                        turn_number=turn_number,
+                        
+                        voter_model=voter_model,
+                        voter_personality_id=voter_personality_id,
+                        
+                        candidate_model=candidate_model,
+                        candidate_personality_id=candidate_id,
+                        
+                        rank=rank,
+                        label=label,
+                        reasoning=reasoning_text 
+                    )
+                    votes_to_insert.append(vote)
 
-    if votes:
-        session_record = {
-            "id": str(uuid.uuid4()),
-            "timestamp": datetime.utcnow().isoformat(),
-            "conversation_id": conversation_id,
-            "conversation_title": conversation_title,
-            "turn_number": turn_number,
-            "user_id": user_id,
-            "votes": votes,
-        }
+        if votes_to_insert:
+            db.add_all(votes_to_insert)
+            db.commit()
+            logger.info(f"Successfully recorded {len(votes_to_insert)} votes in Tenant DB.")
+        else:
+            logger.warning("No valid votes extracted to record.")
 
-        history = load_voting_history(org_id)
-        history.append(session_record)
-        save_voting_history(history, org_id)
-        logger.info(f"Recorded voting session with {len(votes)} votes")
-    else:
-        logger.warning("No valid votes found to record")
+    except Exception as e:
+        logger.error(f"Error recording votes in DB: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+# Legacy loader function - kept for interface compatibility but now empty/deprecated
+# The new ranking_service queries the DB directly.
+def load_voting_history(org_id: str) -> list[dict[str, Any]]:
+    """
+    DEPRECATED: Returns empty list.
+    Legacy JSON loading is removed. Use ranking_service database queries.
+    """
+    logger.warning("load_voting_history is deprecated and returns empty list.")
+    return []

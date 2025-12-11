@@ -31,6 +31,7 @@ class Stage2Result(TypedDict, total=False):
     """Type definition for Stage 2 ranking result."""
 
     model: str
+    personality_id: str | None
     personality_name: str | None
     ranking: str
     parsed_ranking: list[str]

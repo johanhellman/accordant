@@ -6,321 +6,285 @@ import logging
 import os
 from collections import defaultdict
 from typing import Any
+from sqlalchemy import func
 
 from .config.personalities import get_active_personalities
 from .organizations import ORGS_DATA_DIR
-from .storage import get_conversation
-from .voting_history import load_voting_history
+from .database import get_tenant_session
+from .models import Vote
 
 logger = logging.getLogger(__name__)
 
 
 def calculate_league_table(org_id: str) -> list[dict[str, Any]]:
     """
-    Calculate the league table for an organization.
+    Calculate the league table for an organization using SQLite.
     
     Metrics:
     - distinct_sessions: Number of conversations participated in.
     - votes_received: Total number of times ranked by others.
     - wins: Number of times ranked #1.
-    - total_rank_sum: Sum of all rank positions (1=1st, 2=2nd, etc).
-    - average_rank: total_rank_sum / votes_received.
+    - average_rank: Mean of rank positions.
     - win_rate: wins / distinct_sessions (percentage).
     """
-    history = load_voting_history(org_id)
-    active_personalities = {p["name"]: p for p in get_active_personalities(org_id)}
+    # 1. Get active personalities config to map ID -> Name
+    active_personalities_list = get_active_personalities(org_id)
+    active_map = {p["id"]: p for p in active_personalities_list if "id" in p}
     
-    stats = defaultdict(lambda: {
-        "name": "",
-        "sessions": set(), # Set of conversation IDs
-        "votes_received": 0,
-        "wins": 0,
-        "total_rank_sum": 0,
-        "is_active": False
-    })
-
-    # Initialize with active personalities to ensure they appear even if no votes
-    for name, p in active_personalities.items():
-        stats[name]["name"] = name
-        stats[name]["is_active"] = True
-        stats[name]["id"] = p.get("id")
-
-    for session in history:
-        conv_id = session.get("conversation_id")
+    # 2. Query Aggregate Stats from DB
+    db = get_tenant_session(org_id)
+    try:
+        # We group by candidate_personality_id (UUID)
+        # We also group by candidate_model for legacy records or fallback
+        # But ideally we just trust ID.
         
-        for vote in session.get("votes", []):
-            rankings = vote.get("rankings", [])
-            for rank_entry in rankings:
-                candidate = rank_entry.get("candidate")
-                rank = rank_entry.get("rank")
+        # Query: Get stats per personality ID
+        # We need to handle cases where ID is null (legacy data) - but we decided to drop legacy data.
+        # So we assume ID is present for new data.
+        
+        query = db.query(
+            Vote.candidate_personality_id,
+            Vote.candidate_model,
+            func.count(Vote.id).label("votes_received"),
+            func.sum(Vote.rank).label("total_rank_sum"),
+            func.count(func.distinct(Vote.conversation_id)).label("sessions"),
+        ).filter(
+            Vote.candidate_personality_id.isnot(None)
+        ).group_by(
+            Vote.candidate_personality_id,
+            Vote.candidate_model
+        )
+        
+        rows = query.all()
+        
+        # Also need WINS (Rank=1)
+        # We can do a separate query or conditional sum (if supported by sqlite/sqlalchemy version)
+        # Simpler to do separate query for wins
+        wins_query = db.query(
+            Vote.candidate_personality_id,
+            func.count(Vote.id).label("wins")
+        ).filter(
+            Vote.candidate_personality_id.isnot(None),
+            Vote.rank == 1
+        ).group_by(
+            Vote.candidate_personality_id
+        )
+        
+        wins_map = {row.candidate_personality_id: row.wins for row in wins_query.all()}
+        
+        stats = {}
+        
+        # Process DB Rows
+        for row in rows:
+            p_id = row.candidate_personality_id
+            
+            # Resolve Name
+            name = row.candidate_model # Fallback
+            is_active = False
+            
+            if p_id in active_map:
+                name = active_map[p_id]["name"]
+                is_active = True
                 
-                if candidate:
-                    stats[candidate]["name"] = candidate
-                    stats[candidate]["votes_received"] += 1
-                    stats[candidate]["total_rank_sum"] += rank
-                    stats[candidate]["sessions"].add(conv_id)
-                    
-                    if rank == 1:
-                        stats[candidate]["wins"] += 1
+            wins = wins_map.get(p_id, 0)
+            
+            stats[p_id] = {
+                "id": p_id,
+                "name": name,
+                "is_active": is_active,
+                "sessions": row.sessions,
+                "votes_received": row.votes_received,
+                "wins": wins,
+                "total_rank_sum": row.total_rank_sum
+            }
+            
+        # Add Active Personalities that have 0 votes yet
+        for p_id, p in active_map.items():
+            if p_id not in stats:
+                stats[p_id] = {
+                    "id": p_id,
+                    "name": p["name"],
+                    "is_active": p.get("enabled", True),
+                    "sessions": 0,
+                    "votes_received": 0,
+                    "wins": 0,
+                    "total_rank_sum": 0
+                }
 
-    # Format results
-    results = []
-    for name, data in stats.items():
-        distinct_sessions = len(data["sessions"])
-        votes = data["votes_received"]
-        
-        avg_rank = data["total_rank_sum"] / votes if votes > 0 else 0.0
-        win_rate = (data["wins"] / distinct_sessions * 100) if distinct_sessions > 0 else 0.0
-        
-        results.append({
-            "id": data.get("id"), # Might be missing for legacy/deleted personalities
-            "name": name,
-            "is_active": data["is_active"],
-            "sessions": distinct_sessions,
-            "votes_received": votes,
-            "wins": data["wins"],
-            "average_rank": round(avg_rank, 2),
-            "win_rate": round(win_rate, 1)
-        })
+        # Format Results
+        results = []
+        for p_id, data in stats.items():
+            votes = data["votes_received"]
+            distinct_sessions = data["sessions"]
+            
+            avg_rank = data["total_rank_sum"] / votes if votes > 0 else 0.0
+            win_rate = (data["wins"] / distinct_sessions * 100) if distinct_sessions > 0 else 0.0
+            
+            results.append({
+                "id": p_id,
+                "name": data["name"],
+                "is_active": data["is_active"],
+                "sessions": distinct_sessions,
+                "votes_received": votes,
+                "wins": data["wins"],
+                "average_rank": round(avg_rank, 2),
+                "win_rate": round(win_rate, 1)
+            })
 
-    # Sort by Win Rate (DESC), then Average Rank (ASC)
-    results.sort(key=lambda x: (-x["win_rate"], x["average_rank"]))
-    
-    return results
+        # Sort
+        results.sort(key=lambda x: (-x["win_rate"], x["average_rank"]))
+        return results
+
+    except Exception as e:
+        logger.error(f"Error calculating league table: {e}")
+        return []
+    finally:
+        db.close()
 
 
 def calculate_instance_league_table() -> list[dict[str, Any]]:
     """
-    Calculate global league table by aggregating stats across ALL organizations.
-    Only includes System Personalities (to avoid leaking custom names).
+    Calculate global league table across all organizations.
+    Note: For privacy, we aggregate only by Model/Name matching System Defaults?
+    Or just aggregate by ID? 
+    Since System Personalities have the SAME ID across orgs (unless shadowed with new ID?), 
+    we can aggregate by ID.
+    
+    If shadowed, likely they keep same ID or generate new? 
+    Logic says: Shadowing uses same ID but source=custom.
+    
+    So aggregation by ID works great for "Global System Personality Performance".
     """
+    if not os.path.exists(ORGS_DATA_DIR):
+        return []
+
+    org_ids = [d for d in os.listdir(ORGS_DATA_DIR) if os.path.isdir(os.path.join(ORGS_DATA_DIR, d))]
+    
     global_stats = defaultdict(lambda: {
-        "name": "",
+        "id": "",
+        "name": "Unknown",
         "sessions": 0,
         "votes_received": 0,
         "wins": 0,
         "total_rank_sum": 0
     })
 
-    # Iterate over all org directories
-    if not os.path.exists(ORGS_DATA_DIR):
-        return []
-
-    org_ids = [d for d in os.listdir(ORGS_DATA_DIR) if os.path.isdir(os.path.join(ORGS_DATA_DIR, d))]
-
     for org_id in org_ids:
-        # Load local league table for this org
-        # (Reusing valid logic instead of re-parsing JSON to ensure consistency)
+        # Re-use the per-org logic
         org_results = calculate_league_table(org_id)
         
         for res in org_results:
-            # FILTER: We ideally only want "System" personalities.
-            # However, we don't strictly know if a name is System or Custom without loading the registry.
-            # For now, we aggregate everything, but the UI should filter.
-            # Or better, we trust the name as the key.
-            name = res["name"]
-            global_stats[name]["name"] = name
-            global_stats[name]["sessions"] += res["sessions"]
-            global_stats[name]["votes_received"] += res["votes_received"]
-            global_stats[name]["wins"] += res["wins"]
-            # We can't sum averages, we have to back-calculate if possible, 
-            # or just sum the raw inputs if available. 
-            # calculate_league_table returns derived stats.
-            # To do this accurately, calculate_league_table needs to return raw sums?
-            # Let's just approximate or refactor calculate_league_table to be reusable?
-            pass
-
-    # REFACTOR STRATEGY: 
-    # To avoid double calculation, let's implement a lower-level aggregator.
-    # But for now, let's just parse the raw files again for the global view to be accurate.
-    
-    global_raw_stats = defaultdict(lambda: {
-        "name": "",
-        "sessions": set(), # using tuple (org_id, conv_id) for uniqueness
-        "votes_received": 0,
-        "wins": 0,
-        "total_rank_sum": 0
-    })
-
-    for org_id in org_ids:
-        history = load_voting_history(org_id)
-        for session in history:
-            unique_session_id = f"{org_id}_{session.get('conversation_id')}"
+            p_id = res["id"]
+            if not p_id: continue 
             
-            for vote in session.get("votes", []):
-                rankings = vote.get("rankings", [])
-                for rank_entry in rankings:
-                    candidate = rank_entry.get("candidate")
-                    rank = rank_entry.get("rank")
-                    
-                    if candidate:
-                        global_raw_stats[candidate]["name"] = candidate
-                        global_raw_stats[candidate]["votes_received"] += 1
-                        global_raw_stats[candidate]["total_rank_sum"] += rank
-                        global_raw_stats[candidate]["sessions"].add(unique_session_id)
-                        
-                        if rank == 1:
-                            global_raw_stats[candidate]["wins"] += 1
+            # We assume name from first encounter is good enough (usually system name)
+            if global_stats[p_id]["name"] == "Unknown":
+                global_stats[p_id]["name"] = res["name"]
+                global_stats[p_id]["id"] = p_id
+            
+            global_stats[p_id]["sessions"] += res["sessions"]
+            global_stats[p_id]["votes_received"] += res["votes_received"]
+            global_stats[p_id]["wins"] += res["wins"]
+            # We need to back-calculate sum from average to aggregate correctly
+            # avg = sum / votes  => sum = avg * votes
+            global_stats[p_id]["total_rank_sum"] += (res["average_rank"] * res["votes_received"])
 
-    # Format Global Results
+    # Format
     results = []
-    for name, data in global_raw_stats.items():
-        distinct_sessions = len(data["sessions"])
+    for p_id, data in global_stats.items():
         votes = data["votes_received"]
+        distinct_sessions = data["sessions"] # This is approximate (sum of org sessions), strict global distinct needs UUIDs of sessions
         
         avg_rank = data["total_rank_sum"] / votes if votes > 0 else 0.0
         win_rate = (data["wins"] / distinct_sessions * 100) if distinct_sessions > 0 else 0.0
         
         results.append({
-            "name": name,
+            "name": data["name"], # Global view focuses on name
+            "id": p_id,
             "sessions": distinct_sessions,
             "votes_received": votes,
             "wins": data["wins"],
             "average_rank": round(avg_rank, 2),
             "win_rate": round(win_rate, 1)
         })
-
+        
     results.sort(key=lambda x: (-x["win_rate"], x["average_rank"]))
     return results
 
 
 async def generate_feedback_summary(org_id: str, personality_name: str, api_key: str, base_url: str):
     """
-    Generate a qualitative feedback summary for a personality.
-    SECURE: Fetches content from Chat Storage on demand.
+    Generate feedback summary.
+    Updated to query 'Vote' table directly for reasoning text.
     """
     from .openrouter import query_model
-    
-    history = load_voting_history(org_id)
-    
-    # Collect reasoning texts
-    reasoning_snippets = []
-    
-    # Limit to last N mentions to manage context window
-    MAX_SNIPPETS = 50
-    
-    for session in reversed(history):
-        if len(reasoning_snippets) >= MAX_SNIPPETS:
-            break
-            
-        conv_id = session.get("conversation_id")
-        
-        # Check if relevant for this personality
-        is_relevant = False
-        votes_for_session = session.get("votes", [])
-        
-        # We need to find votes where this personality was RANKED (as candidate)
-        # OR votes where this personality was the VOTER? 
-        # Usually "Feedback" is what OTHERS said about YOU.
-        
-        # In our data structure:
-        # "rankings": [{"candidate": "X", "rank": 1, "label": "A"}]
-        # "reasoning": "I chose A because..."
-        
-        # The reasoning is usually a block of text explaining the sorting.
-        # It might mention "Response A (Personality X) was good because..."
-        
-        # So we need to:
-        # 1. Identify which anonymous Label corresponded to our Target Personality in this session.
-        # 2. Extract specific comments about that Label? Or just dump the whole reasoning?
-        # Dumping the whole reasoning is easier, defaulting to "Here is what peers said in sessions you were in".
-        
-        # Let's find the label for our personality in this session
-        target_label = None
-        # We need to reconstruct the label map?
-        # The history doesn't strictly store the label map, but "votes" -> "rankings" has ("candidate", "label").
-        # So we can infer it from any vote.
-        
-        if not votes_for_session:
-            continue
-            
-        # Infer map from first vote
-        first_vote_rankings = votes_for_session[0].get("rankings", [])
-        for r in first_vote_rankings:
-            if r.get("candidate") == personality_name:
-                target_label = r.get("label")
+    from .config.personalities import load_org_system_prompts
+
+    db = get_tenant_session(org_id)
+    try:
+        # 1. Find the ID for this name (UI passes name currently, ideally should pass ID)
+        # We try to lookup ID from active configs first
+        active_list = get_active_personalities(org_id)
+        target_id = None
+        for p in active_list:
+            if p["name"] == personality_name:
+                target_id = p["id"]
                 break
         
-        if target_label:
-            # This personality was present as 'target_label'
+        # 2. Query Votes for this candidate
+        # If we have ID, query by ID. If not, fallback to name (model column)
+        query = db.query(Vote).filter(Vote.reasoning.isnot(None))
+        
+        if target_id:
+            query = query.filter(Vote.candidate_personality_id == target_id)
+        else:
+            query = query.filter(Vote.candidate_model == personality_name)
             
-            # Now fetch the actual reasoning text from the conversation storage (FIREWALL CHECK)
-            # The 'voting_history' might have 'reasoning' (new format) or not (old format).
-            # If new format, we trust it (Wait, implementation plan said DO NOT STORE TEXT).
-            # Correct: Plan said "voting_history.json will remain metadata-only".
-            # So we MUST fetch from storage.
-            
-            # Optimization: Only fetch if we really need it.
-            try:
-                conversation = get_conversation(conv_id, org_id)
-                if not conversation:
-                    continue
-                    
-                # Find the assistant message with the reasoning.
-                # It's usually a message from "assistant" (or specific model?)
-                # Actually, in Stage 2, we have multiple LLM calls. The "Assistant Message" in the conversation history
-                # is the FINAL summary (Stage 3). 
-                # The Stage 2 votes are NOT always stored as visible messages in the main conversation history text!
-                # Wait, where are Stage 2 results stored in the conversation?
-                # storage.add_assistant_message stores:
-                # { "role": "assistant", "content": ..., "metadata": { "stage1": ..., "stage2": ... } }
-                
-                # So we need to look at the metadata of the assistant messages.
-                
-                messages = conversation.get("messages", [])
-                for msg in reversed(messages):
-                    if msg.get("role") == "assistant":
-                        meta = msg.get("metadata", {})
-                        stage2 = meta.get("stage2", [])
-                        
-                        if stage2:
-                            # Found the Stage 2 results!
-                            for s2_res in stage2:
-                                # Extract reasoning from this voter
-                                raw_ranking = s2_res.get("ranking", "")
-                                
-                                # We want to know what they said about OUR target_label
-                                # We can just include the whole reasoning text and let the LLM filter.
-                                if raw_ranking:
-                                    voter = s2_res.get("personality_name", s2_res.get("model"))
-                                    snippet = f"Voter ({voter}) on Session {conv_id}:\n{raw_ranking}\n---"
-                                    reasoning_snippets.append(snippet)
-                            break # stop searching messages for this session
-                            
-            except Exception as e:
-                logger.error(f"Error fetching conversation {conv_id} for feedback: {e}")
-                continue
+        # Limit to recent votes
+        votes = query.order_by(Vote.timestamp.desc()).limit(50).all()
+        
+        if not votes:
+            return "No qualitative feedback available."
 
-    if not reasoning_snippets:
-        return "No qualitative feedback available."
+        reasoning_snippets = []
+        for v in votes:
+            if v.reasoning:
+                snippet = f"Voter ({v.voter_model}) on Session {v.conversation_id}:\n{v.reasoning}\n---"
+                reasoning_snippets.append(snippet)
+        
+        if not reasoning_snippets:
+             return "No qualitative feedback available."
+             
+        feedback_text = "\n".join(reasoning_snippets)
+        
+        # 3. Summarize with LLM
+        prompts = load_org_system_prompts(org_id)
+        synthesis_prompt_template = prompts.get("feedback_synthesis_prompt", "")
+        
+        if not synthesis_prompt_template:
+            synthesis_prompt_template = """
+            You are analyzing peer feedback for an AI Personality named "{personality_name}".
+            Your task is to synthesize this feedback into a constructive report.
+            FEEDBACK LOGS:
+            {feedback_text}
+            Synthesize:
+            """
 
-    feedback_text = "\n".join(reasoning_snippets)
+        prompt = synthesis_prompt_template.format(
+            personality_name=personality_name,
+            feedback_text=feedback_text
+        )
+        
+        # Use a default smart model (Chairman model) for this analysis
+        model = "gemini/gemini-2.5-pro" # TODO: Load from config
+        
+        messages = [{"role": "user", "content": prompt}]
+        response = await query_model(model, messages, api_key=api_key, base_url=base_url)
+        
+        return response.get("content") if response else "Failed to generate summary."
 
-    # Load system prompts
-    from .config.personalities import load_org_system_prompts
-    prompts = load_org_system_prompts(org_id)
-    synthesis_prompt_template = prompts.get("feedback_synthesis_prompt", "")
-    
-    if not synthesis_prompt_template:
-        # Fallback if config is missing (though should come from defaults)
-        synthesis_prompt_template = """
-        You are analyzing peer feedback for an AI Personality named "{personality_name}".
-        Your task is to synthesize this feedback into a constructive report.
-        FEEDBACK LOGS:
-        {feedback_text}
-        Synthesize:
-        """
-
-    # Summarize with LLM
-    prompt = synthesis_prompt_template.format(
-        personality_name=personality_name,
-        feedback_text=feedback_text
-    )
-    
-    # Use a default smart model (Chairman model) for this analysis
-    model = "gemini/gemini-2.5-pro" # TODO: Load from config
-    
-    messages = [{"role": "user", "content": prompt}]
-    response = await query_model(model, messages, api_key=api_key, base_url=base_url)
-    
-    return response.get("content") if response else "Failed to generate summary."
+    except Exception as e:
+        logger.error(f"Error generating feedback: {e}")
+        return "Error producing feedback summary."
+    finally:
+        db.close()

@@ -35,6 +35,7 @@ Each ADR follows this structure:
 | [ADR-014](ADR-014-structured-personality-prompts.md) | Structured Personality Prompts | Accepted | 2025-12-08 |
 | [ADR-015](ADR-015-federated-voting-privacy.md) | Federated Voting Privacy | Accepted | 2025-12-08 |
 | [ADR-016](ADR-016-multi-tenant-sqlite-sharding.md) | Multi-Tenant SQLite Sharding | Accepted | 2025-12-10 |
+| [ADR-017](ADR-017-sqlite-voting-and-identity.md) | SQLite Voting Storage & UUID Identity | Accepted | 2025-12-11 |
 
 ## Decision Timeline
 

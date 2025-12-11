@@ -1,5 +1,8 @@
 # ADR-015: Federated Voting Privacy & Information Firewalls
 
+## Status
+Accepted (Amended by [ADR-017](ADR-017-sqlite-voting-and-identity.md))
+
 ## Context
 
 As we introduce the "Personality League Table" and "Evolution System", we need to aggregate voting data to rank AI personalities. However, `accordant` is designed as a multi-tenant system where each Organization expects data privacy.

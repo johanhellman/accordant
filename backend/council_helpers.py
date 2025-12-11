@@ -251,7 +251,9 @@ def calculate_aggregate_rankings(
 
         for position, label in enumerate(parsed_ranking, start=1):
             if label in label_to_model:
-                model_name = label_to_model[label]
+                val = label_to_model[label]
+                # Handle both new dict format and legacy string format
+                model_name = val.get("name", "Unknown") if isinstance(val, dict) else val
                 model_positions[model_name].append(position)
 
     # Calculate average position for each model

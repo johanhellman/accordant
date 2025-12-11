@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, ForeignKey, String, DateTime, JSON, Text
+from sqlalchemy import Boolean, Column, ForeignKey, String, DateTime, JSON, Text, Integer
 from sqlalchemy.orm import relationship
 
 from .database import SystemBase, TenantBase
@@ -91,3 +91,29 @@ class Message(TenantBase):
 
     # Relationships
     conversation = relationship("Conversation", back_populates="messages_rel")
+
+class Vote(TenantBase):
+    """
+    Stores voting history for the Personality League Table.
+    Living in `org_{id}.db` ensures privacy.
+    """
+    __tablename__ = "votes"
+
+    id = Column(String, primary_key=True, index=True)
+    conversation_id = Column(String, index=True)
+    turn_number = Column(Integer, default=1)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    # Voter Identity
+    # We store both model name (for historical accuracy) and ID (for identity)
+    voter_model = Column(String)
+    voter_personality_id = Column(String, nullable=True) 
+    
+    # Candidate Identity (The one being ranked)
+    candidate_model = Column(String) 
+    candidate_personality_id = Column(String, nullable=True)
+
+    # The Vote
+    rank = Column(Integer) # e.g., 1, 2, 3
+    label = Column(String) # e.g., "A", "B" (Historical context)
+    reasoning = Column(Text, nullable=True) # Qualitative feedback details

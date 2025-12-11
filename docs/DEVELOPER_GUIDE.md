@@ -161,7 +161,7 @@ accordant/
 │   ├── system.db     # Users and Organizations
 │   └── organizations/ # Tenant data
 │       └── {org_id}/
-│           └── tenant.db # Conversations and Messages
+│           └── tenant.db # Conversations, Messages, and Votes
 ├── docs/             # Documentation
 │   ├── adr/          # Architecture Decision Records
 │   ├── api/          # API documentation
@@ -231,7 +231,7 @@ The system uses a **Physically Sharded SQLite Architecture** (ADR-016) to ensure
   - Stores global data: Users, Organizations, Registration info.
   - Low write volume, mostly read-heavy.
 - **Tenant DBs (`data/organizations/{org_id}/tenant.db`)**: 
-  - Stores private data: Conversations, Messages.
+  - Stores private data: Conversations, Messages, Voting History.
   - One database file per organization.
   - High write volume, better concurrency (writes to Org A don't block Org B).
 - **Secrets**: API keys are encrypted at rest using Fernet (symmetric encryption).
