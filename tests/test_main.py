@@ -22,7 +22,7 @@ class TestHealthCheck:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["service"] == "Accordant API"
+        assert data["service"] == "Accordant API (Dev Mode)"
 
 
 class TestConversationEndpoints:
@@ -32,20 +32,17 @@ class TestConversationEndpoints:
     def temp_data_dir(self, monkeypatch):
         """Create a temporary data directory for testing."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            orgs_file = os.path.join(tmpdir, "organizations.json")
             orgs_dir = os.path.join(tmpdir, "organizations")
-            users_file = os.path.join(tmpdir, "users.json")
             os.makedirs(orgs_dir, exist_ok=True)
-            monkeypatch.setattr("backend.organizations.ORGS_FILE", orgs_file)
             monkeypatch.setattr("backend.organizations.ORGS_DATA_DIR", orgs_dir)
             monkeypatch.setattr("backend.config.PROJECT_ROOT", tmpdir)
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
             yield orgs_dir
 
     def get_auth_headers(self, client, username="testuser", password="password"):
         """Helper to register and login, returning auth headers."""
         # Register
-        client.post("/api/auth/register", json={"username": username, "password": password})
+        resp = client.post("/api/auth/register", json={"username": username, "password": password, "mode": "create_org", "org_name": f"{username}_org"})
+        assert resp.status_code == 200, f"Registration failed: {resp.text}"
         # Login
         response = client.post("/api/auth/token", data={"username": username, "password": password})
         token = response.json()["access_token"]
@@ -183,7 +180,7 @@ class TestConversationEndpoints:
                 {"label_to_model": {"A": "m1"}, "aggregate_rankings": []},
             )
             mock_title.return_value = "Test Title"
-            mock_api_config.return_value = ("test-key", "https://test.url")
+            mock_api_config.return_value = ("test-key", "https://openrouter.ai/api/v1/chat/completions")
 
             client.post(
                 f"/api/conversations/{conv_id}/message",
@@ -207,14 +204,10 @@ class TestMessageEndpoints:
     def temp_data_dir(self, monkeypatch):
         """Create a temporary data directory for testing."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            orgs_file = os.path.join(tmpdir, "organizations.json")
             orgs_dir = os.path.join(tmpdir, "organizations")
-            users_file = os.path.join(tmpdir, "users.json")
             os.makedirs(orgs_dir, exist_ok=True)
-            monkeypatch.setattr("backend.organizations.ORGS_FILE", orgs_file)
             monkeypatch.setattr("backend.organizations.ORGS_DATA_DIR", orgs_dir)
             monkeypatch.setattr("backend.config.PROJECT_ROOT", tmpdir)
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
             yield orgs_dir
 
     @pytest.fixture
@@ -252,7 +245,8 @@ class TestMessageEndpoints:
     def get_auth_headers(self, client, username="testuser", password="password"):
         """Helper to register and login, returning auth headers."""
         # Register
-        client.post("/api/auth/register", json={"username": username, "password": password})
+        resp = client.post("/api/auth/register", json={"username": username, "password": password, "mode": "create_org", "org_name": f"{username}_org"})
+        assert resp.status_code == 200, f"Registration failed: {resp.text}"
         # Login
         response = client.post("/api/auth/token", data={"username": username, "password": password})
         token = response.json()["access_token"]

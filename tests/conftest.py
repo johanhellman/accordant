@@ -1,11 +1,17 @@
 import os
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
+
+# Mock STATIC_DIR to ensure tests run in API-only mode (returning JSON health check at /)
+os.environ["STATIC_DIR"] = "/tmp/non_existent_accordant_test_dir"
 
 from backend.database import SystemBase, TenantBase, get_system_db
 from backend.main import app
+# Import models to ensure they are registered with Base.metadata before create_all
+import backend.models as models
 
 # Use in-memory SQLite for testing
 # We use shared cache/check_same_thread=False to allow sharing across threads if needed
@@ -15,7 +21,14 @@ TENANT_DB_URL = "sqlite:///:memory:"
 @pytest.fixture(scope="session")
 def system_engine():
     """Create a single in-memory system database engine for the test session."""
-    engine = create_engine(SYSTEM_DB_URL, connect_args={"check_same_thread": False})
+    engine = create_engine(
+        SYSTEM_DB_URL, 
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
+    )
+    # Ensure models are imported so they register with metadata
+    import backend.models
+    # Debug prints removed for cleaner output
     SystemBase.metadata.create_all(bind=engine)
     return engine
 
@@ -23,11 +36,12 @@ def system_engine():
 def tenant_engine():
     """
     Create a single in-memory tenant database engine for the test session.
-    All tenants will share this same physical DB in tests, effectively separate schema instances
-    are simulated by just using the same tables. This assumes tests don't need strict
-    table-level isolation between orgs within the same test function.
     """
-    engine = create_engine(TENANT_DB_URL, connect_args={"check_same_thread": False})
+    engine = create_engine(
+        TENANT_DB_URL, 
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
+    )
     TenantBase.metadata.create_all(bind=engine)
     return engine
 
@@ -85,12 +99,10 @@ def mock_db_engines(monkeypatch, tenant_engine, system_engine):
     # Patch where it is imported (if already imported)
     # This is critical for modules that did 'from .database import SystemSessionLocal'
     import backend.organizations
+    import backend.users
     monkeypatch.setattr(backend.organizations, "SystemSessionLocal", TestSystemSessionLocal)
-    
-    # Also patch get_tenant_engine again to be safe with naming
-    def mock_get_engine(org_id):
-        return tenant_engine
-    monkeypatch.setattr("backend.database.get_tenant_engine", mock_get_engine)
+    # Also patch backend.users since it uses SystemSessionLocal
+    monkeypatch.setattr(backend.users, "SystemSessionLocal", TestSystemSessionLocal)
 
 @pytest.fixture
 def client(system_db_session):
@@ -104,15 +116,6 @@ def client(system_db_session):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
-
-@pytest.fixture(autouse=True)
-def clean_db(tenant_engine):
-    """
-    Clean the tenant database after each test.
-    Since tests share the same in-memory DB engine and application code commits transactions,
-    we need to explicitly truncate tables to prevent state leakage.
-    """
-    yield
     
 @pytest.fixture(autouse=True)
 def clean_db(tenant_engine, system_engine):
