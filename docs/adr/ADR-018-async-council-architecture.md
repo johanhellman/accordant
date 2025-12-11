@@ -1,7 +1,7 @@
 # ADR-018: Async Council Architecture for Robustness
 
 ## Status
-Accepted
+Accepted (Phase 1 Implemented)
 
 ## Date
 2025-12-11
