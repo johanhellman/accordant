@@ -66,15 +66,30 @@ def tenant_db_session(tenant_engine):
     connection.close()
 
 @pytest.fixture(autouse=True)
-def mock_tenant_engine(monkeypatch, tenant_engine):
+def mock_db_engines(monkeypatch, tenant_engine, system_engine):
     """
-    Patch get_tenant_engine to always return our in-memory engine.
-    This intercepts all backend.database.get_tenant_session calls.
+    Patch database engines/sessions to use in-memory fixtures.
     """
+    # 1. Patch Tenant Engine (for get_tenant_session)
     def mock_get_engine(org_id):
-        # We ignore org_id and return the same global test engine
         return tenant_engine
+    monkeypatch.setattr("backend.database.get_tenant_engine", mock_get_engine)
+
+    # 2. Patch System Session (for backend.organizations, etc.)
+    # We need to construct a sessionmaker bound to our in-memory system_engine
+    TestSystemSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=system_engine)
     
+    # Patch where it is defined
+    monkeypatch.setattr("backend.database.SystemSessionLocal", TestSystemSessionLocal)
+    
+    # Patch where it is imported (if already imported)
+    # This is critical for modules that did 'from .database import SystemSessionLocal'
+    import backend.organizations
+    monkeypatch.setattr(backend.organizations, "SystemSessionLocal", TestSystemSessionLocal)
+    
+    # Also patch get_tenant_engine again to be safe with naming
+    def mock_get_engine(org_id):
+        return tenant_engine
     monkeypatch.setattr("backend.database.get_tenant_engine", mock_get_engine)
 
 @pytest.fixture
@@ -99,9 +114,23 @@ def clean_db(tenant_engine):
     """
     yield
     
-    # Truncate all tables
+@pytest.fixture(autouse=True)
+def clean_db(tenant_engine, system_engine):
+    """
+    Clean both databases after each test.
+    """
+    yield
+    
     from sqlalchemy import inspect, text
+    
+    # Clean Tenant DB
     inspector = inspect(tenant_engine)
     with tenant_engine.begin() as conn:
         for table in inspector.get_table_names():
+            conn.execute(text(f"DELETE FROM {table}"))
+            
+    # Clean System DB
+    inspector_sys = inspect(system_engine)
+    with system_engine.begin() as conn:
+        for table in inspector_sys.get_table_names():
             conn.execute(text(f"DELETE FROM {table}"))
