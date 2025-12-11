@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
-import { Trash2, Edit2, ShieldAlert, X } from "lucide-react";
+import { Trash2, Edit2, ShieldAlert, X, Users } from "lucide-react";
 import "./OrganizationManagement.css";
 
 export default function OrganizationManagement() {
@@ -14,6 +14,8 @@ export default function OrganizationManagement() {
 
   // Edit Form State
   const [editForm, setEditForm] = useState({
+    name: "",
+    owner_username: "",
     api_key: "",
     base_url: "",
   });
@@ -62,6 +64,8 @@ export default function OrganizationManagement() {
   const handleEditClick = (org) => {
     setEditingOrg(org);
     setEditForm({
+      name: org.name || "",
+      owner_username: org.owner_username || "",
       api_key: "", // Don't show existing key for security, only placeholder
       base_url: org.api_config?.base_url || "",
     });
@@ -74,8 +78,15 @@ export default function OrganizationManagement() {
   const handleSaveEdit = async () => {
     try {
       const updates = {};
+      if (editForm.name && editForm.name !== editingOrg.name) updates.name = editForm.name;
+      if (editForm.owner_username && editForm.owner_username !== editingOrg.owner_username) updates.owner_username = editForm.owner_username;
       if (editForm.api_key) updates.api_key = editForm.api_key;
       if (editForm.base_url) updates.base_url = editForm.base_url;
+
+      if (Object.keys(updates).length === 0) {
+        setEditingOrg(null);
+        return;
+      }
 
       await api.updateOrganization(editingOrg.id, updates);
 
@@ -114,8 +125,8 @@ export default function OrganizationManagement() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>ID</th>
-              <th>Owner Email</th>
+              <th>Owner</th>
+              <th>Users</th>
               <th>Created At</th>
               <th>Configuration</th>
               <th>Actions</th>
@@ -131,9 +142,17 @@ export default function OrganizationManagement() {
             ) : (
               organizations.map((org) => (
                 <tr key={org.id}>
-                  <td className="font-medium">{org.name}</td>
-                  <td className="id-cell">{org.id.substring(0, 8)}...</td>
-                  <td>{org.owner_email || "N/A"}</td>
+                  <td className="font-medium">
+                    {org.name}
+                    <div className="org-id-sub">{org.id.substring(0, 8)}...</div>
+                  </td>
+                  <td>{org.owner_username || "N/A"}</td>
+                  <td>
+                    <div className="user-count-badge">
+                      <Users size={14} />
+                      {org.user_count || 0}
+                    </div>
+                  </td>
                   <td>{formatDate(org.created_at)}</td>
                   <td>
                     {org.api_config?.api_key ? (
@@ -150,7 +169,7 @@ export default function OrganizationManagement() {
                       <button
                         className="icon-btn edit-btn"
                         onClick={() => handleEditClick(org)}
-                        title="Edit Configuration"
+                        title="Edit Organization"
                       >
                         <Edit2 size={18} />
                       </button>
@@ -175,12 +194,30 @@ export default function OrganizationManagement() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Edit Organization: {editingOrg.name}</h3>
+              <h3>Edit Organization</h3>
               <button className="close-btn" onClick={() => setEditingOrg(null)}>
                 <X size={20} />
               </button>
             </div>
             <div className="modal-body">
+              <div className="form-group">
+                <label>Organization Name</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Owner Username</label>
+                <input
+                  type="text"
+                  value={editForm.owner_username}
+                  onChange={(e) => setEditForm({ ...editForm, owner_username: e.target.value })}
+                  placeholder="Username of new owner"
+                />
+              </div>
+              <hr className="modal-divider" />
               <div className="form-group">
                 <label>API Key (Leave blank to keep existing)</label>
                 <input

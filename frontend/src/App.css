@@ -37,3 +37,9 @@
   font-size: 1.2rem;
   color: var(--text-secondary);
 }
+
+.scrollable-view {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+}

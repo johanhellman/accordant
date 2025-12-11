@@ -249,3 +249,29 @@
   text-align: center;
   color: var(--text-secondary);
 }
+
+/* User Count Badge */
+.user-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-tertiary);
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.org-id-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  font-family: monospace;
+}
+
+.modal-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 16px 0;
+}

@@ -296,14 +296,19 @@ function Dashboard() {
             isLoading={isLoading}
           />
         )}
-        {view === "dashboard" && user?.is_instance_admin && <AdminDashboard />}
-        {view === "personalities" && (user?.is_admin || user?.is_instance_admin) && (
-          <PersonalityManager />
+
+        {view !== "chat" && (
+          <div className="scrollable-view">
+            {view === "dashboard" && user?.is_instance_admin && <AdminDashboard />}
+            {view === "personalities" && (user?.is_admin || user?.is_instance_admin) && (
+              <PersonalityManager />
+            )}
+            {view === "users" && (user?.is_admin || user?.is_instance_admin) && <UserManagement />}
+            {view === "organizations" && user?.is_instance_admin && <OrganizationManagement />}
+            {view === "settings" && (user?.is_admin || user?.is_instance_admin) && <OrgSettings />}
+            {view === "user-settings" && <UserSettings />}
+          </div>
         )}
-        {view === "users" && (user?.is_admin || user?.is_instance_admin) && <UserManagement />}
-        {view === "organizations" && user?.is_instance_admin && <OrganizationManagement />}
-        {view === "settings" && (user?.is_admin || user?.is_instance_admin) && <OrgSettings />}
-        {view === "user-settings" && <UserSettings />}
       </div>
     </div>
   );

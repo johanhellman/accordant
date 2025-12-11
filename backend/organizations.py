@@ -104,11 +104,33 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
             db.close()
 
 
-def list_orgs() -> list[OrganizationInDB]:
-    """List all organizations."""
+class OrganizationDetails(Organization):
+    user_count: int
+    owner_username: str | None = None
+
+
+def list_orgs() -> list[OrganizationDetails]:
+    """List all organizations with details."""
     with SystemSessionLocal() as db:
         orgs = db.query(models.Organization).all()
-        return [OrganizationInDB.from_orm(o) for o in orgs]
+        users = db.query(models.User).all()
+        
+        # Helper maps
+        user_map = {u.id: u.username for u in users}
+        org_user_counts = {}
+        for u in users:
+            if u.org_id:
+                org_user_counts[u.org_id] = org_user_counts.get(u.org_id, 0) + 1
+        
+        results = []
+        for o in orgs:
+            details = OrganizationDetails.from_orm(o)
+            details.user_count = org_user_counts.get(o.id, 0)
+            if o.owner_id:
+                details.owner_username = user_map.get(o.owner_id)
+            results.append(details)
+            
+        return results
 
 
 def update_org(org_id: str, updates: dict[str, Any]) -> OrganizationInDB | None:

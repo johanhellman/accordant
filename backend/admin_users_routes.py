@@ -50,6 +50,36 @@ async def update_user_role_endpoint(
         id=updated_user.id,
         username=updated_user.username,
         is_admin=updated_user.is_admin,
-        is_instance_admin=updated_user.is_instance_admin,
         org_id=updated_user.org_id,
     )
+    
+@router.delete("/{user_id}")
+async def delete_user_route(
+    user_id: str, current_user: User = Depends(get_current_admin_user)
+):
+    """
+    Delete a user. 
+    Org Admins can only delete users in their own org.
+    Instance Admins can delete anyone.
+    """
+    from .users import get_user_by_id, delete_user
+    
+    target_user = get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Permission Check
+    if not current_user.is_instance_admin:
+        # Org Admin check
+        if target_user.org_id != current_user.org_id:
+            raise HTTPException(status_code=403, detail="Cannot delete user from another organization")
+            
+    # Prevent self-deletion via this route
+    if target_user.id == current_user.id:
+         raise HTTPException(status_code=400, detail="Cannot delete yourself via admin route. Use settings.")
+
+    success = delete_user(user_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete user")
+        
+    return {"status": "success", "message": f"User {user_id} deleted"}

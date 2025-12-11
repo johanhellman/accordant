@@ -90,6 +90,8 @@ class ModelInfo(BaseModel):
 class OrgSettingsUpdate(BaseModel):
     api_key: str | None = None
     base_url: str | None = None
+    name: str | None = None
+    owner_username: str | None = None
 
 
 class CombineRequest(BaseModel):
@@ -693,7 +695,7 @@ class AdminStats(BaseModel):
     active_conversations_24h: int # Placeholder or estimated
 
 
-@router.get("/stats", response_model=AdminStats)
+@router.get("/admin/stats", response_model=AdminStats)
 async def get_admin_stats(current_user: User = Depends(get_current_instance_admin)):
     """Get global statistics for the Admin Dashboard."""
     orgs = list_orgs()
@@ -709,7 +711,7 @@ async def get_admin_stats(current_user: User = Depends(get_current_instance_admi
 
 
 
-@router.put("/organizations/{org_id}")
+@router.put("/admin/organizations/{org_id}")
 async def update_organization_route(
     org_id: str, updates: OrgSettingsUpdate, current_user: User = Depends(get_current_instance_admin)
 ):
@@ -729,16 +731,31 @@ async def update_organization_route(
         
     if updates.base_url:
         current_api_config["base_url"] = updates.base_url
+
+    org_updates = {"api_config": current_api_config}
+
+    # Handle Name Update
+    if updates.name:
+        org_updates["name"] = updates.name
+
+    # Handle Owner Update (resolve username to ID)
+    if updates.owner_username:
+        from .users import get_user
+        new_owner = get_user(updates.owner_username)
+        if not new_owner:
+            # Maybe return warning? Or error. Error is safer for explicit administrative action.
+            raise HTTPException(status_code=400, detail=f"User {updates.owner_username} not found")
+        org_updates["owner_id"] = new_owner.id
         
     # Apply updates
-    success = update_org(org_id, {"api_config": current_api_config})
+    success = update_org(org_id, org_updates)
     if not success:
          raise HTTPException(status_code=500, detail="Failed to update organization")
          
     return {"status": "success", "message": "Organization updated"}
 
 
-@router.delete("/organizations/{org_id}")
+@router.delete("/admin/organizations/{org_id}")
 async def delete_organization_route(
     org_id: str, current_user: User = Depends(get_current_instance_admin)
 ):
@@ -749,33 +766,4 @@ async def delete_organization_route(
     return {"status": "success", "message": f"Organization {org_id} deleted"}
 
 
-@router.delete("/users/{user_id}")
-async def delete_user_route(
-    user_id: str, current_user: User = Depends(get_current_admin_user)
-):
-    """
-    Delete a user. 
-    Org Admins can only delete users in their own org.
-    Instance Admins can delete anyone.
-    """
-    from .users import get_user_by_id
-    
-    target_user = get_user_by_id(user_id)
-    if not target_user:
-        raise HTTPException(status_code=404, detail="User not found")
-        
-    # Permission Check
-    if not current_user.is_instance_admin:
-        # Org Admin check
-        if target_user.org_id != current_user.org_id:
-            raise HTTPException(status_code=403, detail="Cannot delete user from another organization")
-            
-    # Prevent self-deletion via this route? usually good practice
-    if target_user.id == current_user.id:
-         raise HTTPException(status_code=400, detail="Cannot delete yourself via admin route. Use settings.")
 
-    success = delete_user(user_id)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to delete user")
-        
-    return {"status": "success", "message": f"User {user_id} deleted"}
