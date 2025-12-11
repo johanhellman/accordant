@@ -67,6 +67,34 @@ def get_tenant_engine(org_id: str):
     return engine
 
 
+def _migrate_tenant_schema(engine):
+    """
+    Migrate tenant database schema by adding missing columns.
+    This handles schema changes for existing databases.
+    """
+    from sqlalchemy import inspect, text
+    
+    inspector = inspect(engine)
+    
+    # Check if conversations table exists
+    if 'conversations' not in inspector.get_table_names():
+        return
+    
+    # Get existing columns
+    existing_columns = [col['name'] for col in inspector.get_columns('conversations')]
+    
+    # Add processing_state column if missing
+    if 'processing_state' not in existing_columns:
+        logger.info("Adding missing 'processing_state' column to conversations table")
+        with engine.begin() as conn:
+            # SQLite doesn't support IF NOT EXISTS for ALTER TABLE ADD COLUMN
+            # So we check first and only add if missing
+            conn.execute(text("ALTER TABLE conversations ADD COLUMN processing_state VARCHAR DEFAULT 'idle'"))
+            # Update existing rows to have the default value
+            conn.execute(text("UPDATE conversations SET processing_state = 'idle' WHERE processing_state IS NULL"))
+        logger.info("Successfully added 'processing_state' column")
+
+
 def get_tenant_session(org_id: str):
     """
     Get a session for a specific tenant.
@@ -80,6 +108,9 @@ def get_tenant_session(org_id: str):
     # IMPORTANT: Must import models here to ensure they are registered with ValidBase/TenantBase
     from . import models
     TenantBase.metadata.create_all(bind=engine)
+    
+    # Run schema migrations for existing databases
+    _migrate_tenant_schema(engine)
     
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()
