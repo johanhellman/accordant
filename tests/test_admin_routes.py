@@ -22,6 +22,15 @@ MOCK_PERSONALITY = {
     "ui": {"avatar": "default", "color": "#000000"},
 }
 
+@pytest.fixture(autouse=True)
+def mock_global_personalities(monkeypatch, tmp_path):
+    """Mock global defaults directory to be empty."""
+    defaults_dir = tmp_path / "defaults"
+    defaults_dir.mkdir()
+    (defaults_dir / "personalities").mkdir()
+    monkeypatch.setattr("backend.config.personalities.DEFAULTS_DIR", str(defaults_dir))
+    return defaults_dir
+
 MOCK_SYSTEM_PROMPTS = {
     "base_system_prompt": "Base prompt",
     "ranking": {
@@ -50,30 +59,29 @@ def mock_data_root(tmp_path):
 @pytest.fixture
 def auth_headers(tmp_path, monkeypatch):
     """Register an admin user, create an organization, and return auth headers and org_id."""
-    users_file = tmp_path / "users.json"
-    monkeypatch.setattr("backend.users.USERS_FILE", str(users_file))
+    # USERS_FILE patching removed (uses SQLite)
 
-    # Register admin (first user is admin)
-    client.post("/api/auth/register", json={"username": "admin", "password": "password"})
+    # Register admin (first user is admin, creates org atomically)
+    reg_payload = {
+        "username": "admin", 
+        "password": "password", 
+        "mode": "create_org", 
+        "org_name": "Test Organization"
+    }
+    resp = client.post("/api/auth/register", json=reg_payload)
+    assert resp.status_code == 200, f"Register failed: {resp.text}"
 
     # Login
     response = client.post("/api/auth/token", data={"username": "admin", "password": "password"})
+    assert response.status_code == 200, f"Login failed: {response.text}"
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Create organization (user must create/join org after registration)
-    org_resp = client.post(
-        "/api/organizations/",
-        json={"name": "Test Organization", "owner_email": "admin@test.com"},
-        headers=headers,
-    )
-    assert org_resp.status_code == 200, f"Failed to create org: {org_resp.text}"
-    org_id = org_resp.json()["id"]
-
-    # Verify user is assigned to org
+    # Verify user is assigned to org and get org_id
     me_resp = client.get("/api/auth/me", headers=headers)
     assert me_resp.status_code == 200, f"Failed to get user info: {me_resp.text}"
-    assert me_resp.json()["org_id"] == org_id, "User not assigned to created org"
+    org_id = me_resp.json()["org_id"]
+    assert org_id is not None, "User not assigned to created org"
 
     return headers, org_id
 
@@ -145,9 +153,9 @@ def test_get_system_prompts(mock_data_root, auth_headers):
         response = client.get("/api/system-prompts", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["base_system_prompt"] == "Base prompt"
-        assert data["chairman"]["model"] == "gemini/gemini-pro"
-        assert data["ranking"]["model"] == "gemini/gemini-pro"
+        assert data["base_system_prompt"]["value"] == "Base prompt"
+        assert data["chairman"]["prompt"]["value"] == "Chairman for {user_query} using {stage1_text} and {voting_details_text}"
+        assert data["ranking"]["prompt"]["value"] == "Rank {responses_text} for {user_query} from {peer_text}"
 
 
 def test_get_system_prompts_no_file(mock_data_root, auth_headers):
@@ -548,7 +556,7 @@ def test_get_system_prompts_legacy_format(mock_data_root, auth_headers):
         response = client.get("/api/system-prompts", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["ranking"]["prompt"] == "Legacy ranking prompt with {user_query}"
+        assert data["ranking_prompt"]["value"] == "Legacy ranking prompt with {user_query}"
 
 
 def test_update_system_prompts_missing_tags(mock_data_root, auth_headers):
