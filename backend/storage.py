@@ -31,6 +31,7 @@ def create_conversation(conversation_id: str, user_id: str, org_id: str) -> dict
             "id": new_conv.id,
             "created_at": new_conv.created_at.isoformat() if hasattr(new_conv.created_at, 'isoformat') else str(new_conv.created_at),
             "title": new_conv.title,
+            "processing_state": "idle",
             "messages": [], # Empty on creation
             "user_id": new_conv.user_id,
             "org_id": new_conv.org_id
@@ -73,6 +74,7 @@ def get_conversation(conversation_id: str, org_id: str) -> dict[str, Any] | None
                 "id": conv.id,
                 "created_at": conv.created_at.isoformat() if hasattr(conv.created_at, 'isoformat') else str(conv.created_at),
                 "title": conv.title,
+                "processing_state": conv.processing_state or "idle",
                 "messages": messages_list,
                 "user_id": conv.user_id,
                 "org_id": conv.org_id
@@ -110,6 +112,7 @@ def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
                 "id": c.id,
                 "created_at": c.created_at.isoformat() if hasattr(c.created_at, 'isoformat') else str(c.created_at),
                 "title": c.title,
+                "processing_state": c.processing_state or "idle",
                 "message_count": len(c.messages_rel) # Count related rows
             })
         return results
@@ -175,6 +178,14 @@ def update_conversation_title(conversation_id: str, title: str, org_id: str):
         conv = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
         if conv:
             conv.title = title
+            db.commit()
+
+def update_conversation_status(conversation_id: str, status: str, org_id: str):
+    """Update processing_state."""
+    with get_tenant_session(org_id) as db:
+        conv = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
+        if conv:
+            conv.processing_state = status
             db.commit()
 
 def delete_conversation(conversation_id: str, org_id: str) -> bool:

@@ -137,10 +137,14 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
           ))
         )}
 
-        {isLoading && (
+        {(isLoading || conversation.processing_state === "active") && (
           <div className="loading-indicator">
             <div className="spinner"></div>
-            <span>Consulting the council...</span>
+            <span>
+              {conversation.processing_state === "active"
+                ? "Council is deliberating (Async)..."
+                : "Consulting the council..."}
+            </span>
           </div>
         )}
 

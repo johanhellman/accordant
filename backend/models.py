@@ -59,15 +59,14 @@ class Conversation(TenantBase):
     
     # org_id is technically redundant since the DB itself is the org, 
     # but kept for metadata consistency.
-    org_id = Column(String, nullable=False)
-    
     title = Column(String, default="New Conversation")
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # [MIGRATED] 'messages' JSON blobs are removed. 
-    # Instead, we use the relationship below.
+    org_id = Column(String, index=True) # Tenant Context
+    processing_state = Column(String, default="idle") # idle, active, error
 
-    # Relationships (Tenant Only)
+    # One-to-many relationship with messages
     messages_rel = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
 
 

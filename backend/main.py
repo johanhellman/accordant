@@ -61,7 +61,7 @@ from .schema import (
     SendMessageRequest,
     RegistrationRequest
 )
-from .streaming import run_council_streaming
+from .streaming import run_council_generator
 from .users import User, UserCreate, UserInDB, UserResponse, create_user, get_user
 from .voting_history import record_votes
 from sqlalchemy.orm import Session
@@ -711,7 +711,7 @@ async def send_message_stream(
     api_key, base_url = get_org_api_config(current_user.org_id)
 
     return StreamingResponse(
-        run_council_streaming(
+        run_council_generator(
             conversation_id,
             request.content,
             conversation,

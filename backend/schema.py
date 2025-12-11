@@ -64,6 +64,7 @@ class ConversationMetadata(BaseModel):
     created_at: str
     title: str
     message_count: int
+    processing_state: str = "idle"
 
 
 class Conversation(BaseModel):
@@ -72,6 +73,7 @@ class Conversation(BaseModel):
     id: str
     created_at: str
     title: str
+    processing_state: str = "idle"
     messages: list[dict[str, Any]]
 
 class RegistrationRequest(BaseModel):
