@@ -220,6 +220,45 @@ class StaticCacheMiddleware(BaseHTTPMiddleware):
         
         return response
 
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Add security headers to all responses.
+    - Permissions-Policy: Disable interest-cohort (FLoC)
+    - COEP: Relax to unsafe-none to allow external scripts (analytics)
+    - CSP: Restrict scripts to self and trusted domains
+    """
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        
+        # 1. Permissions-Policy
+        # Disable FLoC (interest-cohort) which causes console warnings
+        response.headers["Permissions-Policy"] = "interest-cohort=()"
+        
+        # 2. Cross-Origin-Embedder-Policy (COEP)
+        # Must be unsafe-none to allow loading resources from other origins 
+        # that don't send CORP headers (like many analytics scripts)
+        response.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
+        
+        # 3. Content-Security-Policy (CSP)
+        # Prudent domain whitelisting
+        # Get allowed analytics domain from env
+        analytics_domain = os.getenv("VITE_PLAUSIBLE_DOMAIN") or os.getenv("PLAUSIBLE_DOMAIN")
+        
+        # Base script-src: 'self' and 'unsafe-inline' (needed for some React/Vite inlines)
+        script_src = ["'self'", "'unsafe-inline'"]
+        
+        if analytics_domain:
+            # Add the analytics domain to the whitelist
+            script_src.append(f"https://{analytics_domain}")
+            
+        csp_value = f"script-src {' '.join(script_src)}; object-src 'none'; base-uri 'self';"
+        response.headers["Content-Security-Policy"] = csp_value
+        
+        return response
+
+# Register SecurityHeadersMiddleware BEFORE StaticCacheMiddleware
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StaticCacheMiddleware)
 
 

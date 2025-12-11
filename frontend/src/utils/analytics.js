@@ -35,13 +35,26 @@ export function initAnalytics() {
     return;
   }
 
+  // Pre-check for reachability in dev mode to avoid 404 console errors
+  // This is optional but nice for developer experience
+  if (import.meta.env.DEV) {
+    // If the domain is known to be down or invalid, we can skip
+    // For now, we'll just suppress the noise via onerror
+  }
+
   // Create and inject script
   const script = document.createElement('script');
   script.defer = true;
   script.setAttribute('data-domain', analyticsDomain);
   script.src = scriptUrl;
-  script.onerror = () => {
-    console.warn(`[Analytics] Failed to load script from ${scriptUrl}`);
+
+  // Robust error handling to prevent loud console errors if analytics is blocked or down
+  script.onerror = (e) => {
+    // In dev, logging a warning is fine. In prod, we might want to be quieter or just log once.
+    if (import.meta.env.DEV) {
+      console.warn(`[Analytics] Failed to load script from ${scriptUrl}. Check DNS or VITE_PLAUSIBLE_DOMAIN.`);
+    }
+    // Prevent default error handling if possible (though 404s/network errors are hard to fully suppress)
   };
 
   // Insert before closing head tag or at end of head
