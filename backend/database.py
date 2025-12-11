@@ -77,6 +77,8 @@ def get_tenant_session(org_id: str):
     # Ensure tables exist (Lazy Migration)
     # in prod, we might want to do this explicitly, but for now this ensures 
     # new tenant DBs are initialized.
+    # IMPORTANT: Must import models here to ensure they are registered with ValidBase/TenantBase
+    from . import models
     TenantBase.metadata.create_all(bind=engine)
     
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
