@@ -105,7 +105,7 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
 
 
 class OrganizationDetails(Organization):
-    user_count: int
+    user_count: int = 0
     owner_username: str | None = None
 
 
