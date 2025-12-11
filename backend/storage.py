@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from .database import get_tenant_session
 from . import models
 
@@ -98,24 +99,43 @@ def save_conversation(conversation: dict[str, Any], org_id: str):
 def list_conversations(user_id: str, org_id: str) -> list[dict[str, Any]]:
     """List conversations (metadata only)."""
     with get_tenant_session(org_id) as db:
-        # No need to filter by org_id column, as we are IN the org DB
-        query = db.query(models.Conversation)
-        
-        if user_id:
-            query = query.filter(models.Conversation.user_id == user_id)
+        try:
+            # No need to filter by org_id column, as we are IN the org DB
+            query = db.query(
+                models.Conversation,
+                func.count(models.Message.id).label('message_count')
+            ).outerjoin(
+                models.Message, models.Conversation.id == models.Message.conversation_id
+            )
             
-        convs = query.order_by(models.Conversation.created_at.desc()).all()
-        
-        results = []
-        for c in convs:
-            results.append({
-                "id": c.id,
-                "created_at": c.created_at.isoformat() if hasattr(c.created_at, 'isoformat') else str(c.created_at),
-                "title": c.title,
-                "processing_state": c.processing_state or "idle",
-                "message_count": len(c.messages_rel) # Count related rows
-            })
-        return results
+            if user_id:
+                query = query.filter(models.Conversation.user_id == user_id)
+            
+            # Group by conversation fields to get count per conversation
+            query = query.group_by(
+                models.Conversation.id,
+                models.Conversation.user_id,
+                models.Conversation.org_id,
+                models.Conversation.title,
+                models.Conversation.created_at,
+                models.Conversation.processing_state
+            )
+            
+            convs_with_counts = query.order_by(models.Conversation.created_at.desc()).all()
+            
+            results = []
+            for c, message_count in convs_with_counts:
+                results.append({
+                    "id": c.id,
+                    "created_at": c.created_at.isoformat() if hasattr(c.created_at, 'isoformat') else str(c.created_at),
+                    "title": c.title,
+                    "processing_state": c.processing_state or "idle",
+                    "message_count": message_count or 0
+                })
+            return results
+        except Exception as e:
+            logger.error(f"Error listing conversations for user {user_id} in org {org_id}: {e}", exc_info=True)
+            raise
 
 def add_user_message(conversation_id: str, content: str, org_id: str):
     """Add a user message to the normalized table."""
