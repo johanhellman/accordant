@@ -229,7 +229,7 @@ Then open <http://localhost:5173> in your browser.
 
 ## Next Steps
 
-- See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) if you encounter issues
-- See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for multi-user and admin features
-- See [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for development setup
+- See [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) if you encounter issues
+- See [ADMIN_GUIDE.md](../guides/ADMIN.md) for multi-user and admin features
+- See [DEVELOPER_GUIDE.md](../guides/DEVELOPER.md) for development setup
 - See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment

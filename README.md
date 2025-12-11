@@ -56,7 +56,7 @@ Then open <http://localhost:5173> in your browser.
 - Node.js v18+
 - OpenRouter API key ([get one here](https://openrouter.ai/))
 
-For detailed setup instructions, see [Setup Guide](docs/SETUP.md).
+For detailed setup instructions, see [Setup Guide](docs/getting-started/SETUP.md).
 
 ## Multi-Turn Conversations
 
@@ -72,7 +72,7 @@ The application supports multi-turn conversations. The Council remembers the con
   - **Instance Admin**: Manages all organizations and system-wide settings
   - **Org Admin**: Manages users, settings (API Keys), and invitations within their organization
 
-For detailed admin documentation, see [Admin Guide](docs/ADMIN_GUIDE.md).
+For detailed admin documentation, see [Admin Guide](docs/guides/ADMIN.md).
 
 ## Tech Stack
 
@@ -83,22 +83,24 @@ For detailed admin documentation, see [Admin Guide](docs/ADMIN_GUIDE.md).
 
 ## Documentation
 
-### For Users
+### Getting Started
 
-- **[Setup Guide](docs/SETUP.md)** - Complete setup and configuration instructions
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Admin Guide](docs/ADMIN_GUIDE.md)** - Multi-user and admin features
+- **[Setup Guide](docs/getting-started/SETUP.md)** - Complete setup and configuration instructions
+- **[Deployment](docs/getting-started/DEPLOYMENT.md)** - Production deployment, security, and scaling
 
-### For Developers
+### Guides
 
-- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Implementation details, gotchas, and development notes
-- **[Architecture Decision Records](docs/adr/ADR_INDEX.md)** - Key architectural decisions and rationale
+- **[Admin Guide](docs/guides/ADMIN.md)** - Multi-user and admin features
+- **[Developer Guide](docs/guides/DEVELOPER.md)** - Implementation details
+- **[Maintenance](docs/guides/MAINTENANCE.md)** - Upgrades and dependency management
+- **[Troubleshooting](docs/guides/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Architecture
+
+- **[Architecture Overview](docs/architecture/README.md)** - System design and components
+- **[ADRs](docs/adr/ADR_INDEX.md)** - Key architectural decisions and rationale
 - **[API Documentation](docs/api/API_SURFACE.md)** - Complete API reference
-- **[System Overview](docs/design/SYSTEM_OVERVIEW.md)** - High-level architecture and component overview
-
-### For Deployment
-
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment, security, and scaling
+- **[Async Flow](docs/architecture/ASYNC_FLOW.md)** - Detailed 3-stage flow
 
 For more information, see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 

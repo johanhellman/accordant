@@ -2,9 +2,9 @@
 
 This file contains technical implementation details, gotchas, and important notes for developers working on the LLM Council project.
 
-> **Note**: For architectural decisions, see [Architecture Decision Records](adr/ADR_INDEX.md).  
-> For API documentation, see [API Surface](api/API_SURFACE.md).  
-> For system overview, see [System Overview](design/SYSTEM_OVERVIEW.md).
+> **Note**: For architectural decisions, see [Architecture Decision Records](../adr/ADR_INDEX.md).  
+> For API documentation, see [API Surface](../api/API_SURFACE.md).  
+> For system overview, see [System Overview](../architecture/OVERVIEW.md).
 
 ## Project Overview
 
@@ -216,7 +216,7 @@ async def serve_spa(full_path: str):
 
 ### Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines, including:
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for contribution guidelines, including:
 
 - Code style preferences
 - Testing approach
@@ -236,7 +236,7 @@ The system uses a **Physically Sharded SQLite Architecture** (ADR-016) to ensure
   - High write volume, better concurrency (writes to Org A don't block Org B).
 - **Secrets**: API keys are encrypted at rest using Fernet (symmetric encryption).
 
-See [ADR-016](adr/ADR-016-multi-tenant-sqlite-sharding.md) and [ADR-013](adr/013-secrets-management.md) for details.
+See [ADR-016](../adr/ADR-016-multi-tenant-sqlite-sharding.md) and [ADR-013](../adr/013-secrets-management.md) for details.
 
 ## Implementation Details
 
@@ -375,7 +375,7 @@ To ensure the Consensus Model works correctly, the Ranking Prompt is **assembled
 
 ## Key Implementation Patterns
 
-> **Architectural Decisions**: For detailed design decisions and rationale, see [Architecture Decision Records](adr/ADR_INDEX.md).
+> **Architectural Decisions**: For detailed design decisions and rationale, see [Architecture Decision Records](../adr/ADR_INDEX.md).
 
 ### Stage 2 Prompt Format
 
@@ -388,7 +388,7 @@ The Stage 2 prompt is very specific to ensure parseable output:
 4. No additional text after ranking section
 ```
 
-This strict format allows reliable parsing while still getting thoughtful evaluations. See [ADR-002](adr/ADR-002-anonymized-peer-review.md) for the design rationale.
+This strict format allows reliable parsing while still getting thoughtful evaluations. See [ADR-002](../adr/ADR-002-anonymized-peer-review.md) for the design rationale.
 
 ### De-anonymization Strategy
 
@@ -459,4 +459,4 @@ Use `test_openrouter.py` to verify API connectivity and test different model ide
 
 ## Data Flow
 
-See [System Overview](design/SYSTEM_OVERVIEW.md) for detailed data flow diagrams and component interactions.
+See [System Overview](../architecture/OVERVIEW.md) for detailed data flow diagrams and component interactions.

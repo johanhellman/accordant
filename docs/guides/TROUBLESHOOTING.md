@@ -64,7 +64,7 @@ Common issues and solutions for Accordant LLM Council.
 
 - Ensure `ENCRYPTION_KEY` is set in `.env`
 - Verify the key is valid Fernet format (32 url-safe base64-encoded bytes)
-- If you've lost the key, you'll need to rotate it (see [SETUP.md](SETUP.md#key-rotation))
+- If you've lost the key, you'll need to rotate it (see [SETUP.md](../getting-started/SETUP.md#key-rotation))
 
 ## Frontend Issues
 
@@ -277,7 +277,7 @@ Another process (e.g., another Docker container, a dev server, or an IDE process
 
 - Verify organization exists in `data/system.db`
 - Check user's `org_id` matches organization ID
-- Ensure API key is configured for the organization (see [ADMIN_GUIDE.md](ADMIN_GUIDE.md))
+- Ensure API key is configured for the organization (see [ADMIN_GUIDE.md](ADMIN.md))
 
 ### Logs Location
 
@@ -362,9 +362,9 @@ ls -la data/organizations/*/tenant.db
 
 If you're still experiencing issues:
 
-1. Check the [Developer Guide](DEVELOPER_GUIDE.md) for implementation details
-2. Review [Architecture Decision Records](adr/ADR_INDEX.md) for design context
-3. Check [API Documentation](api/API_SURFACE.md) for endpoint details
+1. Check the [Developer Guide](DEVELOPER.md) for implementation details
+2. Review [Architecture Decision Records](../adr/ADR_INDEX.md) for design context
+3. Check [API Documentation](../api/API_SURFACE.md) for endpoint details
 4. Review logs for specific error messages
 5. Check OpenRouter status: <https://status.openrouter.ai/>
 
