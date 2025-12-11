@@ -102,9 +102,9 @@ const LeagueTable = ({ isInstanceAdmin }) => {
                                     {r.id && <span className="p-id-micro">{r.id.slice(0, 6)}</span>}
                                 </td>
                                 <td>
-                                    <div className="stat-bar-container">
-                                        <div className="stat-bar" style={{ width: `${r.win_rate}%` }}></div>
-                                        <span className="stat-value">{r.win_rate}%</span>
+                                    <div className="league-stat-bar-container">
+                                        <div className="league-stat-bar" style={{ width: `${r.win_rate}%` }}></div>
+                                        <span className="league-stat-value">{r.win_rate}%</span>
                                     </div>
                                 </td>
                                 <td>{r.average_rank}</td>
