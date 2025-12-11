@@ -5,9 +5,10 @@ Complete setup instructions for Accordant LLM Council, including configuration o
 ## Prerequisites
 
 - **Python 3.10+** (3.13.2 recommended)
-- **Node.js v18+** (v24.10.0 recommended)
+- **Node.js v20+** (v24.10.0 recommended)
 - **[uv](https://docs.astral.sh/uv/)** - Modern Python package manager
 - **npm** - Node.js package manager (comes with Node.js)
+- **Docker & Docker Compose** - (Optional, recommended for deployment)
 - **OpenRouter API key** - [Get one here](https://openrouter.ai/)
 
 ## Quick Start
