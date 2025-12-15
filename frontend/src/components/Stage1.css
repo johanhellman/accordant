@@ -1,16 +1,28 @@
 .stage {
   margin: 24px 0;
-  padding: 20px;
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  padding: 24px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-organic);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
 }
 
 .stage-title {
-  margin: 0 0 16px 0;
-  color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
 }
 
 .tabs {
@@ -21,45 +33,60 @@
 }
 
 .tab {
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px 6px 0 0;
-  color: var(--text-secondary);
+  padding: 10px 18px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-soft);
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all var(--duration-base);
 }
 
 .tab:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--primary-color);
+  background: var(--gradient-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-primary);
 }
 
 .tab.active {
-  background: var(--bg-secondary);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-  border-bottom-color: var(--bg-secondary);
-  font-weight: 600;
+  background: var(--gradient-primary);
+  color: white;
+  border-color: var(--color-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-medium);
 }
 
 .tab-content {
-  background: var(--bg-secondary);
-  padding: 16px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-primary);
+  padding: 20px;
+  border-radius: var(--radius-soft);
+  border: 1px solid var(--color-border);
 }
 
 .model-name {
-  color: var(--text-muted);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: 13px;
   margin-bottom: 12px;
   font-family: monospace;
+  padding: 6px 12px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-subtle);
+  display: inline-block;
+}
+
+.personality-name {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.model-detail {
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
 .response-text {
-  color: var(--text-primary);
-  line-height: 1.6;
+  color: var(--color-text-primary);
+  line-height: 1.7;
 }
