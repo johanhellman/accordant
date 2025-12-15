@@ -62,7 +62,9 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
   return (
     <div className="chat-interface">
       <div className="chat-header">
-        <h2>{conversation.title || "Conversation"} <ContextualHelp topic="stages" /></h2>
+        <h2>
+          {conversation.title || "Conversation"} <ContextualHelp topic="stages" />
+        </h2>
         <button
           className="btn-icon delete-btn"
           onClick={handleDelete}
@@ -75,8 +77,8 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
 
       <div className="messages-container">
         {!conversation.messages ||
-          !Array.isArray(conversation.messages) ||
-          conversation.messages.length === 0 ? (
+        !Array.isArray(conversation.messages) ||
+        conversation.messages.length === 0 ? (
           <div className="empty-state">
             {/* Empty state content moved to header but keeping placeholder if needed */}
             <p>Ask a question to consult the LLM Council</p>
@@ -89,9 +91,7 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
                   <div className="message-label">You</div>
                   <div className="message-content">
                     <div className="markdown-content">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content || ""}
-                      </ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content || ""}</ReactMarkdown>
                     </div>
                   </div>
                 </div>

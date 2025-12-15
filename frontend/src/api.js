@@ -1,6 +1,6 @@
 /**
  * API client for the LLM Council backend.
- * 
+ *
  * API_BASE uses relative URLs by default (empty string), which works for both:
  * - Production: Frontend and backend served from same origin (accordant.eu)
  * - Development: Can be overridden via VITE_API_BASE environment variable
@@ -87,7 +87,7 @@ export const api = {
         password,
         mode,
         org_name: orgName,
-        invite_code: inviteCode
+        invite_code: inviteCode,
       };
 
       const response = await fetch(`${API_BASE}/api/auth/register`, {
@@ -147,7 +147,9 @@ export const api = {
       try {
         const err = await response.json();
         errorMessage = err.detail || errorMessage;
-      } catch { }
+      } catch {
+        /* ignore */
+      }
       throw new Error(errorMessage);
     }
     return response.json();
@@ -520,8 +522,6 @@ export const api = {
     return response.json();
   },
 
-
-
   async deleteOrganization(orgId) {
     const response = await fetch(`${API_BASE}/api/admin/organizations/${orgId}`, {
       method: "DELETE",
@@ -711,7 +711,7 @@ export const api = {
     if (disposition && disposition.indexOf("filename=") !== -1) {
       const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
       if (matches != null && matches[1]) {
-        filename = matches[1].replace(/['"]/g, '');
+        filename = matches[1].replace(/['"]/g, "");
       }
     }
     a.download = filename;

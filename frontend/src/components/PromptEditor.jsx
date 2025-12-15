@@ -23,14 +23,7 @@ import "./PromptEditor.css";
  * @param {Array<string>} [props.requiredVariables=[]] - List of required template variables (e.g., ["{user_query}"])
  * @param {number} [props.rows=10] - Number of rows (approximate for editor height)
  */
-function PromptEditor({
-  value,
-  onChange,
-  label,
-  description,
-  requiredVariables = [],
-  rows = 10,
-}) {
+function PromptEditor({ value, onChange, label, description, requiredVariables = [], rows = 10 }) {
   const [mode, setMode] = useState("edit"); // 'edit' or 'preview'
 
   // Derive missing variables directly from props to avoid useEffect/setState loops

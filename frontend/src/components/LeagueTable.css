@@ -1,165 +1,165 @@
 .league-container {
-    background: var(--color-bg-secondary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-5);
-    color: var(--color-text-primary);
-    font-family: var(--font-family);
-    box-shadow: var(--shadow-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  box-shadow: var(--shadow-sm);
 }
 
 .league-header {
-    margin-bottom: var(--spacing-5);
+  margin-bottom: var(--spacing-5);
 }
 
 .league-header h3 {
-    margin: 0;
-    color: var(--color-text-primary);
+  margin: 0;
+  color: var(--color-text-primary);
 }
 
 .league-subtitle {
-    margin: 5px 0 0 0;
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
+  margin: 5px 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 .league-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
 }
 
 .league-table th {
-    text-align: left;
-    padding: var(--spacing-3);
-    border-bottom: 2px solid var(--color-border);
-    color: var(--color-text-secondary);
-    font-weight: var(--font-weight-medium);
+  text-align: left;
+  padding: var(--spacing-3);
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .league-row {
-    border-bottom: 1px solid var(--color-border);
-    cursor: pointer;
-    transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--transition-fast);
 }
 
 .league-row:hover {
-    background: var(--color-bg-tertiary);
+  background: var(--color-bg-tertiary);
 }
 
 .league-row.expanded {
-    background: var(--color-bg-tertiary);
-    border-bottom: none;
+  background: var(--color-bg-tertiary);
+  border-bottom: none;
 }
 
 .league-row td {
-    padding: var(--spacing-3);
-    vertical-align: middle;
+  padding: var(--spacing-3);
+  vertical-align: middle;
 }
 
 .rank-cell {
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
 }
 
 .trophy {
-    margin-right: 5px;
+  margin-right: 5px;
 }
 
 .name-cell {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .p-name {
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
 }
 
 .p-id-micro {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 .league-stat-bar-container {
-    background: var(--color-border);
-    height: 6px;
-    width: 100px;
-    border-radius: var(--radius-sm);
-    position: relative;
-    margin-top: 5px;
+  background: var(--color-border);
+  height: 6px;
+  width: 100px;
+  border-radius: var(--radius-sm);
+  position: relative;
+  margin-top: 5px;
 }
 
 .league-stat-bar {
-    background: var(--color-success);
-    height: 100%;
-    border-radius: var(--radius-sm);
+  background: var(--color-success);
+  height: 100%;
+  border-radius: var(--radius-sm);
 }
 
 .league-stat-value {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-    position: absolute;
-    right: -35px;
-    top: -7px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  position: absolute;
+  right: -35px;
+  top: -7px;
 }
 
 .badge {
-    padding: 2px 8px;
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .badge.active {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--color-success);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .badge.inactive {
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-muted);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
 }
 
 .chevron {
-    display: inline-block;
-    transition: transform var(--transition-fast);
-    font-size: 1.2em;
-    color: var(--color-text-secondary);
+  display: inline-block;
+  transition: transform var(--transition-fast);
+  font-size: 1.2em;
+  color: var(--color-text-secondary);
 }
 
 .chevron.down {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .feedback-row {
-    background: var(--color-bg-tertiary);
+  background: var(--color-bg-tertiary);
 }
 
 .feedback-content {
-    padding: var(--spacing-5);
-    background: var(--color-bg-primary);
-    border-left: 3px solid var(--color-success);
-    margin: 0 10px 10px 10px;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+  padding: var(--spacing-5);
+  background: var(--color-bg-primary);
+  border-left: 3px solid var(--color-success);
+  margin: 0 10px 10px 10px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
 }
 
 .feedback-content h4 {
-    margin-top: 0;
-    color: var(--color-success);
-    font-size: var(--font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wide);
+  margin-top: 0;
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .feedback-text {
-    white-space: pre-wrap;
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-relaxed);
-    color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
 }
 
 .spinner-small {
-    color: var(--color-text-muted);
-    font-style: italic;
-    font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: var(--font-size-sm);
 }

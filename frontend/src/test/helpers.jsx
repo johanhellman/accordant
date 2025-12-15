@@ -49,4 +49,3 @@ export function renderChatInterface(props = {}) {
 
   return render(<ChatInterface {...defaultProps} {...props} />);
 }
-

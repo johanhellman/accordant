@@ -20,12 +20,11 @@ import {
   Brain,
   Shield,
   Rocket,
-  X
+  X,
 } from "lucide-react";
 import Login from "./Login";
 import Logo from "./Logo";
 import "./AccordantLanding.css";
-
 
 function AccordantLanding({ onShowLogin }) {
   const [email, setEmail] = useState("");
@@ -56,9 +55,15 @@ function AccordantLanding({ onShowLogin }) {
             </div>
 
             <nav className="header-nav">
-              <a href="#how-it-works" className="nav-link">How It Works</a>
-              <a href="#content-types" className="nav-link">Features</a>
-              <a href="#use-cases" className="nav-link">Use Cases</a>
+              <a href="#how-it-works" className="nav-link">
+                How It Works
+              </a>
+              <a href="#content-types" className="nav-link">
+                Features
+              </a>
+              <a href="#use-cases" className="nav-link">
+                Use Cases
+              </a>
               <button className="nav-login-btn" onClick={handleGetStarted}>
                 Login
               </button>
@@ -89,16 +94,22 @@ function AccordantLanding({ onShowLogin }) {
               <span className="gradient-text"> Collaborative AI Intelligence</span>
             </h1>
             <p className="hero-description">
-              Accordant AI Council brings together multiple specialized AI personalities
-              that collaborate, debate, and synthesize the best possible answer to your questions.
-              Get multiple perspectives, peer-reviewed quality, and comprehensive solutions for any challenge.
+              Accordant AI Council brings together multiple specialized AI personalities that
+              collaborate, debate, and synthesize the best possible answer to your questions. Get
+              multiple perspectives, peer-reviewed quality, and comprehensive solutions for any
+              challenge.
             </p>
             <div className="hero-cta-group">
               <button className="cta-primary" onClick={handleGetStarted}>
                 Get Started Free
                 <ArrowRight className="cta-icon" />
               </button>
-              <button className="cta-secondary" onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}>
+              <button
+                className="cta-secondary"
+                onClick={() =>
+                  document.getElementById("how-it-works").scrollIntoView({ behavior: "smooth" })
+                }
+              >
                 See How It Works
               </button>
             </div>
@@ -138,8 +149,8 @@ function AccordantLanding({ onShowLogin }) {
               </div>
               <h3 className="step-title">Multiple Perspectives</h3>
               <p className="step-description">
-                Your query goes to multiple specialized AI personalities simultaneously.
-                Each provides their unique perspective—from creative thinking to analytical rigor,
+                Your query goes to multiple specialized AI personalities simultaneously. Each
+                provides their unique perspective—from creative thinking to analytical rigor,
                 strategic planning to tactical execution.
               </p>
             </div>
@@ -153,8 +164,8 @@ function AccordantLanding({ onShowLogin }) {
               </div>
               <h3 className="step-title">Peer Review</h3>
               <p className="step-description">
-                Each AI reviews the others' work anonymously, ranking quality and identifying strengths.
-                This ensures bias-free evaluation and catches what you might miss.
+                Each AI reviews the others' work anonymously, ranking quality and identifying
+                strengths. This ensures bias-free evaluation and catches what you might miss.
               </p>
             </div>
             <div className="process-connector">
@@ -196,9 +207,15 @@ function AccordantLanding({ onShowLogin }) {
                 multiple perspectives and potential outcomes.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Multi-faceted analysis</li>
-                <li><CheckCircle2 className="feature-icon" /> Risk assessment</li>
-                <li><CheckCircle2 className="feature-icon" /> Actionable recommendations</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Multi-faceted analysis
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Risk assessment
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Actionable recommendations
+                </li>
               </ul>
             </div>
             <div className="content-type-card">
@@ -211,9 +228,15 @@ function AccordantLanding({ onShowLogin }) {
                 imagination with practical execution.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Creative ideation</li>
-                <li><CheckCircle2 className="feature-icon" /> Multiple concepts</li>
-                <li><CheckCircle2 className="feature-icon" /> Feasibility analysis</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Creative ideation
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Multiple concepts
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Feasibility analysis
+                </li>
               </ul>
             </div>
             <div className="content-type-card">
@@ -222,13 +245,19 @@ function AccordantLanding({ onShowLogin }) {
               </div>
               <h3 className="card-title">Problem Solving</h3>
               <p className="card-description">
-                Complex problem decomposition, root cause analysis, and systematic solutions
-                that address challenges from multiple angles.
+                Complex problem decomposition, root cause analysis, and systematic solutions that
+                address challenges from multiple angles.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Root cause analysis</li>
-                <li><CheckCircle2 className="feature-icon" /> Solution evaluation</li>
-                <li><CheckCircle2 className="feature-icon" /> Implementation planning</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Root cause analysis
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Solution evaluation
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Implementation planning
+                </li>
               </ul>
             </div>
             <div className="content-type-card">
@@ -241,9 +270,15 @@ function AccordantLanding({ onShowLogin }) {
                 implementation strategies backed by multiple expert perspectives.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Code quality review</li>
-                <li><CheckCircle2 className="feature-icon" /> Architecture patterns</li>
-                <li><CheckCircle2 className="feature-icon" /> Best practices</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Code quality review
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Architecture patterns
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Best practices
+                </li>
               </ul>
             </div>
             <div className="content-type-card">
@@ -252,13 +287,19 @@ function AccordantLanding({ onShowLogin }) {
               </div>
               <h3 className="card-title">Research & Analysis</h3>
               <p className="card-description">
-                Comprehensive research synthesis, data analysis, and evidence-based insights
-                that combine multiple sources and methodologies.
+                Comprehensive research synthesis, data analysis, and evidence-based insights that
+                combine multiple sources and methodologies.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Multi-source synthesis</li>
-                <li><CheckCircle2 className="feature-icon" /> Data interpretation</li>
-                <li><CheckCircle2 className="feature-icon" /> Evidence evaluation</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Multi-source synthesis
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Data interpretation
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Evidence evaluation
+                </li>
               </ul>
             </div>
             <div className="content-type-card">
@@ -271,9 +312,15 @@ function AccordantLanding({ onShowLogin }) {
                 recommendations that consider multiple factors and stakeholders.
               </p>
               <ul className="card-features">
-                <li><CheckCircle2 className="feature-icon" /> Pros/cons analysis</li>
-                <li><CheckCircle2 className="feature-icon" /> Scenario planning</li>
-                <li><CheckCircle2 className="feature-icon" /> Stakeholder considerations</li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Pros/cons analysis
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Scenario planning
+                </li>
+                <li>
+                  <CheckCircle2 className="feature-icon" /> Stakeholder considerations
+                </li>
               </ul>
             </div>
           </div>
@@ -287,8 +334,8 @@ function AccordantLanding({ onShowLogin }) {
             <div className="benefits-text">
               <h2 className="section-title">Why Choose Accordant Council?</h2>
               <p className="section-subtitle">
-                Get the collective intelligence of multiple AI specialists working together,
-                not just one AI trying to do everything.
+                Get the collective intelligence of multiple AI specialists working together, not
+                just one AI trying to do everything.
               </p>
               <div className="benefits-list">
                 <div className="benefit-item">
@@ -296,8 +343,8 @@ function AccordantLanding({ onShowLogin }) {
                   <div className="benefit-content">
                     <h3 className="benefit-title">Multiple Perspectives</h3>
                     <p className="benefit-description">
-                      Each AI personality brings unique expertise—creative thinking, analytical rigor,
-                      strategic planning, tactical execution, and more.
+                      Each AI personality brings unique expertise—creative thinking, analytical
+                      rigor, strategic planning, tactical execution, and more.
                     </p>
                   </div>
                 </div>
@@ -306,8 +353,8 @@ function AccordantLanding({ onShowLogin }) {
                   <div className="benefit-content">
                     <h3 className="benefit-title">Quality Assurance</h3>
                     <p className="benefit-description">
-                      Peer review process catches errors, identifies gaps, and ensures
-                      your answers meet the highest standards of accuracy and completeness.
+                      Peer review process catches errors, identifies gaps, and ensures your answers
+                      meet the highest standards of accuracy and completeness.
                     </p>
                   </div>
                 </div>
@@ -326,8 +373,8 @@ function AccordantLanding({ onShowLogin }) {
                   <div className="benefit-content">
                     <h3 className="benefit-title">Versatile Application</h3>
                     <p className="benefit-description">
-                      Adapt solutions across contexts and domains while maintaining consistency
-                      and applying domain-specific best practices.
+                      Adapt solutions across contexts and domains while maintaining consistency and
+                      applying domain-specific best practices.
                     </p>
                   </div>
                 </div>
@@ -381,24 +428,24 @@ function AccordantLanding({ onShowLogin }) {
               <PenTool className="use-case-icon" />
               <h3 className="use-case-title">Knowledge Workers</h3>
               <p className="use-case-description">
-                Get comprehensive answers to complex questions without sacrificing quality.
-                Leverage multiple AI perspectives on every challenge.
+                Get comprehensive answers to complex questions without sacrificing quality. Leverage
+                multiple AI perspectives on every challenge.
               </p>
             </div>
             <div className="use-case-card">
               <TrendingUp className="use-case-icon" />
               <h3 className="use-case-title">Business Teams</h3>
               <p className="use-case-description">
-                Make informed decisions with comprehensive analysis and multiple perspectives
-                while maintaining strategic consistency.
+                Make informed decisions with comprehensive analysis and multiple perspectives while
+                maintaining strategic consistency.
               </p>
             </div>
             <div className="use-case-card">
               <Rocket className="use-case-icon" />
               <h3 className="use-case-title">Startups</h3>
               <p className="use-case-description">
-                Make strategic decisions with limited resources.
-                Get enterprise-level analysis without the enterprise budget.
+                Make strategic decisions with limited resources. Get enterprise-level analysis
+                without the enterprise budget.
               </p>
             </div>
             <div className="use-case-card">
@@ -413,16 +460,16 @@ function AccordantLanding({ onShowLogin }) {
               <Globe className="use-case-icon" />
               <h3 className="use-case-title">Enterprises</h3>
               <p className="use-case-description">
-                Enhance decision-making processes with comprehensive analysis,
-                strategic planning, and multi-perspective problem-solving.
+                Enhance decision-making processes with comprehensive analysis, strategic planning,
+                and multi-perspective problem-solving.
               </p>
             </div>
             <div className="use-case-card">
               <PlayCircle className="use-case-icon" />
               <h3 className="use-case-title">Researchers</h3>
               <p className="use-case-description">
-                Synthesize complex information, evaluate multiple sources, and develop
-                comprehensive insights across diverse domains.
+                Synthesize complex information, evaluate multiple sources, and develop comprehensive
+                insights across diverse domains.
               </p>
             </div>
           </div>
@@ -435,8 +482,8 @@ function AccordantLanding({ onShowLogin }) {
           <div className="cta-content">
             <h2 className="cta-title">Ready to Get Better Answers?</h2>
             <p className="cta-description">
-              Join professionals, teams, and organizations who are using Accordant Council
-              to make better decisions and solve complex challenges.
+              Join professionals, teams, and organizations who are using Accordant Council to make
+              better decisions and solve complex challenges.
             </p>
             <form className="cta-form" onSubmit={handleEmailSubmit}>
               <div className="form-group">
@@ -472,11 +519,21 @@ function AccordantLanding({ onShowLogin }) {
             </div>
 
             <div className="footer-links">
-              <a href="#how-it-works" className="footer-link">How It Works</a>
-              <a href="/help" className="footer-link">User Manual</a>
-              <a href="/faq" className="footer-link">FAQ</a>
-              <a href="/privacy" className="footer-link">Privacy Policy</a>
-              <a href="/terms" className="footer-link">Terms of Use</a>
+              <a href="#how-it-works" className="footer-link">
+                How It Works
+              </a>
+              <a href="/help" className="footer-link">
+                User Manual
+              </a>
+              <a href="/faq" className="footer-link">
+                FAQ
+              </a>
+              <a href="/privacy" className="footer-link">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="footer-link">
+                Terms of Use
+              </a>
             </div>
           </div>
         </div>
@@ -488,23 +545,21 @@ function AccordantLanding({ onShowLogin }) {
       </footer>
 
       {/* Login Modal */}
-      {
-        showLoginModal && (
-          <div className="login-modal-overlay" onClick={() => setShowLoginModal(false)}>
-            <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-              <button
-                className="login-modal-close"
-                onClick={() => setShowLoginModal(false)}
-                aria-label="Close login"
-              >
-                <X className="close-icon" />
-              </button>
-              <Login />
-            </div>
+      {showLoginModal && (
+        <div className="login-modal-overlay" onClick={() => setShowLoginModal(false)}>
+          <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="login-modal-close"
+              onClick={() => setShowLoginModal(false)}
+              aria-label="Close login"
+            >
+              <X className="close-icon" />
+            </button>
+            <Login />
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   );
 }
 

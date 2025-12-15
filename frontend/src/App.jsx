@@ -124,7 +124,7 @@ function Dashboard() {
         const normalizedType = eventType?.trim();
 
         switch (normalizedType) {
-          case "stage1_start":
+          case "stage1_start": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -132,8 +132,9 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
-          case "stage1_complete":
+          case "stage1_complete": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -142,8 +143,9 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
-          case "stage2_start":
+          case "stage2_start": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -151,8 +153,9 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
-          case "stage2_complete":
+          case "stage2_complete": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -162,8 +165,9 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
-          case "stage3_start":
+          case "stage3_start": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -171,8 +175,9 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
-          case "stage3_complete":
+          case "stage3_complete": {
             setCurrentConversation((prev) => {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
@@ -181,6 +186,7 @@ function Dashboard() {
               return { ...prev, messages };
             });
             break;
+          }
 
           case "stage_start":
             // Generic stage_start event - we already handle specific stage starts above
@@ -205,12 +211,13 @@ function Dashboard() {
             setIsLoading(false);
             break;
 
-          default:
+          default: {
             // Silently ignore stage_start events (handled above) and only log truly unknown events
             const isStageStart = normalizedType === "stage_start" || eventType === "stage_start";
             if (!isStageStart) {
               console.debug("Unknown event type:", eventType, event);
             }
+          }
         }
       });
     } catch (error) {
@@ -225,16 +232,15 @@ function Dashboard() {
   };
 
   // --- Routing Logic for Docs ---
-  const [docRoute, setDocRoute] = useState(null);
-
-  useEffect(() => {
+  const [docRoute, setDocRoute] = useState(() => {
     // Simple path check on load
     const path = window.location.pathname;
-    if (path === "/privacy") setDocRoute({ id: "privacy", title: "Privacy Policy" });
-    else if (path === "/terms") setDocRoute({ id: "terms", title: "Terms of Use" });
-    else if (path === "/faq") setDocRoute({ id: "faq", title: "FAQ" });
-    else if (path === "/help") setDocRoute({ id: "manual", title: "User Manual" });
-  }, []);
+    if (path === "/privacy") return { id: "privacy", title: "Privacy Policy" };
+    if (path === "/terms") return { id: "terms", title: "Terms of Use" };
+    if (path === "/faq") return { id: "faq", title: "FAQ" };
+    if (path === "/help") return { id: "manual", title: "User Manual" };
+    return null;
+  });
 
   const handleBackToApp = () => {
     setDocRoute(null);
@@ -245,7 +251,7 @@ function Dashboard() {
     try {
       await api.deleteConversation(id);
       // Remove from list
-      setConversations(conversations.filter(c => c.id !== id));
+      setConversations(conversations.filter((c) => c.id !== id));
       // If current was deleted, clear selection
       if (currentConversationId === id) {
         setCurrentConversationId(null);
@@ -288,7 +294,6 @@ function Dashboard() {
         onLogout={logout}
       />
       <div className="main-content">
-
         {view === "chat" && (
           <ChatInterface
             conversation={currentConversation}

@@ -1,9 +1,9 @@
 /**
  * ModelSelector Component
- * 
+ *
  * A reusable dropdown component for selecting LLM models.
  * Displays model name and ID, and shows override warnings when applicable.
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} props.value - Currently selected model ID
  * @param {Array<{id: string, name: string}>} props.models - List of available models
@@ -12,11 +12,20 @@
  * @param {string} [props.effectiveModel] - Effective model ID (from env/config override)
  * @param {boolean} [props.showOverrideWarning=true] - Whether to show override warning
  */
-function ModelSelector({ value, models, onChange, label, effectiveModel, showOverrideWarning = true, id, name }) {
+function ModelSelector({
+  value,
+  models,
+  onChange,
+  label,
+  effectiveModel,
+  showOverrideWarning = true,
+  id,
+  name,
+}) {
   const isOverridden = showOverrideWarning && effectiveModel && value !== effectiveModel;
   // Generate id from label if not provided
-  const selectId = id || `model-selector-${label.toLowerCase().replace(/\s+/g, '-')}`;
-  const selectName = name || `model-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const selectId = id || `model-selector-${label.toLowerCase().replace(/\s+/g, "-")}`;
+  const selectName = name || `model-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
     <div className="form-group model-config">
@@ -38,4 +47,3 @@ function ModelSelector({ value, models, onChange, label, effectiveModel, showOve
 }
 
 export default ModelSelector;
-

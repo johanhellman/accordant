@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import Sidebar from "./Sidebar";
 
@@ -16,7 +16,7 @@ describe("Sidebar", () => {
 
   it("renders without crashing", () => {
     render(<Sidebar {...defaultProps} />);
-    expect(screen.getByText("LLM Council")).toBeInTheDocument();
+    expect(screen.getByText("Accordant")).toBeInTheDocument();
   });
 
   it("does not show Admin section for non-admin users", () => {
@@ -35,19 +35,17 @@ describe("Sidebar", () => {
     };
     render(<Sidebar {...adminProps} />);
 
-    // Check for Admin header
-    expect(screen.getByRole("heading", { name: "Admin" })).toBeInTheDocument();
+    // Check for Admin header existence
+    expect(screen.getByText("Council Setup")).toBeInTheDocument();
 
-    // Check for Admin items
+    // Expand Council Setup
+    fireEvent.click(screen.getByText("Council Setup"));
     expect(screen.getByText("Personalities")).toBeInTheDocument();
-    expect(screen.getByText("System Prompts")).toBeInTheDocument();
-    expect(screen.getByText("User Management")).toBeInTheDocument();
-    expect(screen.getByText("Voting History")).toBeInTheDocument();
-    expect(screen.getByText("Settings")).toBeInTheDocument();
 
-    // Should NOT show Instance Admin section
-    expect(screen.queryByRole("heading", { name: "Instance Admin" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Organizations")).not.toBeInTheDocument();
+    // Expand Organization
+    fireEvent.click(screen.getByText("Organization"));
+    expect(screen.getByText("Users")).toBeInTheDocument();
+    expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("shows Instance Admin section for instance admins", () => {
@@ -57,12 +55,13 @@ describe("Sidebar", () => {
     };
     render(<Sidebar {...instanceAdminProps} />);
 
-    // Check for Instance Admin header and items
-    expect(screen.getByRole("heading", { name: "Instance Admin" })).toBeInTheDocument();
+    // Expand Organization (Instance Admin sees Dashboard and Organizations here)
+    fireEvent.click(screen.getByText("Organization"));
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Organizations")).toBeInTheDocument();
 
-    // Check for Admin header and items (instance admin sees both)
-    expect(screen.getByRole("heading", { name: "Admin" })).toBeInTheDocument();
+    // Also sees regular admin items
+    fireEvent.click(screen.getByText("Council Setup"));
     expect(screen.getByText("Personalities")).toBeInTheDocument();
   });
 

@@ -18,7 +18,7 @@
 }
 
 .stage-title::before {
-  content: '';
+  content: "";
   width: 4px;
   height: 20px;
   background: var(--gradient-primary);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { api } from "../api";
+
 import Logo from "./Logo";
 import "./Login.css";
 
@@ -23,7 +23,7 @@ const Login = ({ onBackToLanding }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login, register, refreshUser } = useAuth();
+  const { login, register } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

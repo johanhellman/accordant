@@ -209,8 +209,6 @@
   align-items: stretch;
 }
 
-
-
 .action-buttons {
   display: flex;
   justify-content: flex-start;
@@ -356,11 +354,11 @@
   border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: var(--success-color);
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   transform: translateX(20px);
 }
 
@@ -424,7 +422,6 @@ input:checked+.slider:before {
   align-items: center;
   gap: 8px;
 }
-
 
 .editor-content {
   padding: 24px;
@@ -593,4 +590,5 @@ button.secondary:hover {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;}
+  min-height: 0;
+}
