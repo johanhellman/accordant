@@ -191,7 +191,6 @@
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translate(0, 0) scale(1);
@@ -243,7 +242,6 @@
 }
 
 /* .gradient-text moved to index.css */
-
 
 .hero-description {
   font-size: clamp(1rem, 2vw, 1.25rem);
@@ -725,7 +723,7 @@ section {
 }
 
 .cta-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
@@ -736,8 +734,15 @@ section {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.2); opacity: 0.5; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
 }
 
 .cta-content {

@@ -4,12 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// Mock import.meta.env before importing api
-vi.stubGlobal("import.meta", {
-  env: {
-    VITE_API_BASE: "http://localhost:8001",
-  },
-});
+// vi.stubGlobal("import.meta", { env: { VITE_API_BASE: "http://localhost:8001" } });
 
 import { api } from "./api";
 
@@ -37,7 +32,7 @@ describe("API Client", () => {
       const result = await api.getCurrentUser();
 
       expect(result).toEqual(mockUser);
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8001/api/auth/me", {
+      expect(mockFetch).toHaveBeenCalledWith("/api/auth/me", {
         headers: {
           "Content-Type": "application/json",
         },
@@ -69,7 +64,7 @@ describe("API Client", () => {
       const result = await api.listConversations();
 
       expect(result).toEqual(mockConversations);
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8001/api/conversations", {
+      expect(mockFetch).toHaveBeenCalledWith("/api/conversations", {
         headers: {
           "Content-Type": "application/json",
         },
@@ -102,7 +97,7 @@ describe("API Client", () => {
       const result = await api.createConversation();
 
       expect(result).toEqual(mockConversation);
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8001/api/conversations", {
+      expect(mockFetch).toHaveBeenCalledWith("/api/conversations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,14 +133,11 @@ describe("API Client", () => {
       const result = await api.getConversation(conversationId);
 
       expect(result).toEqual(mockConversation);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `http://localhost:8001/api/conversations/${conversationId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      expect(mockFetch).toHaveBeenCalledWith(`/api/conversations/${conversationId}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     });
 
     it("should throw error on failed request", async () => {
@@ -179,16 +171,13 @@ describe("API Client", () => {
       const result = await api.sendMessage(conversationId, content);
 
       expect(result).toEqual(mockResponse);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `http://localhost:8001/api/conversations/${conversationId}/message`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content }),
-        }
-      );
+      expect(mockFetch).toHaveBeenCalledWith(`/api/conversations/${conversationId}/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
+      });
     });
 
     it("should throw error on failed request", async () => {
@@ -240,7 +229,7 @@ describe("API Client", () => {
       await api.sendMessageStream(conversationId, content, onEvent);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `http://localhost:8001/api/conversations/${conversationId}/message/stream`,
+        `/api/conversations/${conversationId}/message/stream`,
         {
           method: "POST",
           headers: {

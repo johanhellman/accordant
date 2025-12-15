@@ -88,11 +88,8 @@ export default function UserManagement() {
   // Filter Logic
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all"
-      ? true
-      : roleFilter === "admin"
-        ? user.is_admin
-        : !user.is_admin;
+    const matchesRole =
+      roleFilter === "all" ? true : roleFilter === "admin" ? user.is_admin : !user.is_admin;
     return matchesSearch && matchesRole;
   });
 
@@ -139,7 +136,11 @@ export default function UserManagement() {
           </thead>
           <tbody>
             {filteredUsers.length === 0 ? (
-              <tr><td colSpan="4" className="no-data">No users found</td></tr>
+              <tr>
+                <td colSpan="4" className="no-data">
+                  No users found
+                </td>
+              </tr>
             ) : (
               filteredUsers.map((user) => (
                 <tr key={user.id}>
@@ -212,7 +213,9 @@ export default function UserManagement() {
                     <td className="code-cell">{invite.code}</td>
                     <td>{new Date(invite.expires_at).toLocaleDateString()}</td>
                     <td>
-                      <span className={`status-dot ${invite.is_active ? "active" : "inactive"}`}></span>
+                      <span
+                        className={`status-dot ${invite.is_active ? "active" : "inactive"}`}
+                      ></span>
                       {invite.is_active ? "Active" : "Expired"}
                     </td>
                   </tr>
@@ -235,15 +238,26 @@ export default function UserManagement() {
           <div className="modal-content danger-modal">
             <div className="modal-header">
               <h3>Remove User?</h3>
-              <button className="close-btn" onClick={() => setDeletingUser(null)}><X size={20} /></button>
+              <button className="close-btn" onClick={() => setDeletingUser(null)}>
+                <X size={20} />
+              </button>
             </div>
             <div className="modal-body">
-              <p>Are you sure you want to remove <strong>{deletingUser.username}</strong> from the organization?</p>
-              <p className="subtext">They will maintain their account but lose access to this workspace.</p>
+              <p>
+                Are you sure you want to remove <strong>{deletingUser.username}</strong> from the
+                organization?
+              </p>
+              <p className="subtext">
+                They will maintain their account but lose access to this workspace.
+              </p>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setDeletingUser(null)}>Cancel</button>
-              <button className="btn btn-danger" onClick={handleConfirmDelete}>Confirm Removal</button>
+              <button className="btn btn-secondary" onClick={() => setDeletingUser(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleConfirmDelete}>
+                Confirm Removal
+              </button>
             </div>
           </div>
         </div>

@@ -37,8 +37,9 @@ export default function Sidebar({
           conversations.map((conv) => (
             <div
               key={conv.id}
-              className={`conversation-item ${conv.id === currentConversationId && currentView === "chat" ? "active" : ""
-                }`}
+              className={`conversation-item ${
+                conv.id === currentConversationId && currentView === "chat" ? "active" : ""
+              }`}
               onClick={() => onSelectConversation(conv.id)}
             >
               <div className="conversation-title">{conv.title || "New Session"}</div>
@@ -77,10 +78,7 @@ export default function Sidebar({
           {/* Organization Settings - Collapsible */}
           {isAdmin && (
             <div className="nav-group">
-              <div
-                className="nav-group-header"
-                onClick={() => setOrgExpanded(!orgExpanded)}
-              >
+              <div className="nav-group-header" onClick={() => setOrgExpanded(!orgExpanded)}>
                 {orgExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 <Users size={16} />
                 <span>Organization</span>

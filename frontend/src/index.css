@@ -193,8 +193,6 @@
   background-color: var(--color-bg-primary);
 }
 
-
-
 button {
   border-radius: var(--radius-md);
   border: 1px solid transparent;

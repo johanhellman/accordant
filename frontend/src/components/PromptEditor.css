@@ -388,8 +388,6 @@
   background: transparent;
 }
 
-
-
 .section-editor .editor-wrapper {
   max-height: none;
   flex: 1;
@@ -399,7 +397,7 @@
 }
 
 /* Ensure the react-simple-code-editor container grows */
-.section-editor .editor-wrapper>div {
+.section-editor .editor-wrapper > div {
   display: flex;
   flex: 1;
 }

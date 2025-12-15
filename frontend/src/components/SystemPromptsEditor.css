@@ -5,7 +5,11 @@
   max-width: 100%;
   /* Enforce full width */
   background: #f9f9f9;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* Sidebar Styles */
@@ -84,13 +88,10 @@
   /* Very light orange background */
 }
 
-
-
 .system-prompts-content.global-scope .section-content {
   border-top: 4px solid #f6ad55;
   /* Orange top border */
 }
-
 
 .section-content {
   background: white;
@@ -188,7 +189,7 @@ label {
   color: #444;
   line-height: 1.5;
   border: 1px solid #e1e4e8;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
   overflow-x: auto;
   max-width: 100%;
   white-space: pre-wrap;

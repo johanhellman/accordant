@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../api';
-import './PersonalityManager.css';
-import PersonalityEditor from './PersonalityEditor';
-import SystemPromptsEditor from './SystemPromptsEditor';
-import LeagueTable from './LeagueTable';
-import EvolutionPanel from './EvolutionPanel';
-import VotingHistory from './VotingHistory';
+import React, { useState, useEffect } from "react";
+import { api } from "../api";
+import "./PersonalityManager.css";
+import PersonalityEditor from "./PersonalityEditor";
+import SystemPromptsEditor from "./SystemPromptsEditor";
+import LeagueTable from "./LeagueTable";
+import EvolutionPanel from "./EvolutionPanel";
+import VotingHistory from "./VotingHistory";
 
 const PersonalityManager = () => {
   const [personalities, setPersonalities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('personalities'); // personalities, league, evolution, system-prompts
-  const [scope, setScope] = useState('org'); // 'org' or 'global'
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterSource, setFilterSource] = useState('all');
+  const [activeTab, setActiveTab] = useState("personalities"); // personalities, league, evolution, system-prompts
+  const [scope, setScope] = useState("org"); // 'org' or 'global'
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterSource, setFilterSource] = useState("all");
   const [activePersonality, setActivePersonality] = useState(null);
   const [isInstanceAdmin, setIsInstanceAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,11 +22,11 @@ const PersonalityManager = () => {
   // New Personality State
   const [isCreating, setIsCreating] = useState(false);
   const [newPersonality, setNewPersonality] = useState({
-    name: '',
-    description: '',
-    model: '',
+    name: "",
+    description: "",
+    model: "",
     temperature: 0.7,
-    personality_prompt: ''
+    personality_prompt: "",
   });
 
   useEffect(() => {
@@ -46,13 +46,12 @@ const PersonalityManager = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = scope === 'global'
-        ? await api.listDefaultPersonalities()
-        : await api.listPersonalities();
+      const data =
+        scope === "global" ? await api.listDefaultPersonalities() : await api.listPersonalities();
       setPersonalities(data);
       setError(null);
     } catch (err) {
-      setError('Failed to load personalities');
+      setError("Failed to load personalities");
       console.error(err);
     } finally {
       setLoading(false);
@@ -70,32 +69,40 @@ const PersonalityManager = () => {
         return;
       }
 
-      const id = newPersonality.name.toLowerCase().replace(/\s+/g, '-');
-      if (personalities.some(p => p.id === id)) {
+      const id = newPersonality.name.toLowerCase().replace(/\s+/g, "-");
+      if (personalities.some((p) => p.id === id)) {
         alert("A personality with this name (ID) already exists.");
         return;
       }
 
-      if (scope === 'global') {
+      if (scope === "global") {
         await api.createDefaultPersonality({
           ...newPersonality,
           id,
-          personality_prompt: typeof newPersonality.personality_prompt === 'string'
-            ? newPersonality.personality_prompt
-            : {}
+          personality_prompt:
+            typeof newPersonality.personality_prompt === "string"
+              ? newPersonality.personality_prompt
+              : {},
         });
       } else {
         await api.createPersonality({
           ...newPersonality,
           id,
-          personality_prompt: typeof newPersonality.personality_prompt === 'string'
-            ? newPersonality.personality_prompt
-            : {}
+          personality_prompt:
+            typeof newPersonality.personality_prompt === "string"
+              ? newPersonality.personality_prompt
+              : {},
         });
       }
 
       setIsCreating(false);
-      setNewPersonality({ name: '', description: '', model: '', temperature: 0.7, personality_prompt: '' });
+      setNewPersonality({
+        name: "",
+        description: "",
+        model: "",
+        temperature: 0.7,
+        personality_prompt: "",
+      });
       loadData();
     } catch (err) {
       setError(err.message);
@@ -103,9 +110,9 @@ const PersonalityManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this personality?')) return;
+    if (!window.confirm("Are you sure you want to delete this personality?")) return;
     try {
-      if (scope === 'global') {
+      if (scope === "global") {
         await api.deleteDefaultPersonality(id);
       } else {
         await api.deletePersonality(id);
@@ -121,7 +128,7 @@ const PersonalityManager = () => {
       ...newPersonality,
       name: template.name,
       description: template.description,
-      personality_prompt: template.prompt
+      personality_prompt: template.prompt,
     });
   };
 
@@ -134,14 +141,15 @@ const PersonalityManager = () => {
     e.stopPropagation();
     try {
       const updated = { ...p, enabled: !p.enabled };
-      if (scope === 'global') {
+      if (scope === "global") {
         await api.updateDefaultPersonality(p.id, updated);
       } else {
         await api.updatePersonality(p.id, updated);
       }
       // Optimistic update
-      setPersonalities(personalities.map(pers => pers.id === p.id ? updated : pers));
+      setPersonalities(personalities.map((pers) => (pers.id === p.id ? updated : pers)));
     } catch (err) {
+      console.error(err);
       setError("Failed to update status");
       loadData(); // Revert on failure
     }
@@ -159,7 +167,9 @@ const PersonalityManager = () => {
   if (isEditing && activePersonality) {
     return (
       <div className="manager-container">
-        <button className="back-btn" onClick={closeEditor}>← Back to List</button>
+        <button className="back-btn" onClick={closeEditor}>
+          ← Back to List
+        </button>
         <PersonalityEditor
           personalityId={activePersonality.id}
           onSave={closeEditor}
@@ -176,18 +186,15 @@ const PersonalityManager = () => {
         <div>
           <h2>Council Personalities</h2>
           {isInstanceAdmin && (
-            <div className="scope-selector" style={{ marginTop: '10px' }}>
+            <div className="scope-selector" style={{ marginTop: "10px" }}>
               <label>Editing Scope:</label>
               <div className="scope-buttons">
-                <button
-                  className={scope === 'org' ? 'active' : ''}
-                  onClick={() => setScope('org')}
-                >
+                <button className={scope === "org" ? "active" : ""} onClick={() => setScope("org")}>
                   Organization
                 </button>
                 <button
-                  className={scope === 'global' ? 'active' : ''}
-                  onClick={() => setScope('global')}
+                  className={scope === "global" ? "active" : ""}
+                  onClick={() => setScope("global")}
                 >
                   Global Defaults
                 </button>
@@ -195,27 +202,26 @@ const PersonalityManager = () => {
             </div>
           )}
         </div>
-
       </div>
 
       <div className="manager-tabs">
         <div className="manager-tabs">
           <div className="tab-group">
             <button
-              className={`tab-btn ${activeTab === 'personalities' ? 'active' : ''}`}
-              onClick={() => setActiveTab('personalities')}
+              className={`tab-btn ${activeTab === "personalities" ? "active" : ""}`}
+              onClick={() => setActiveTab("personalities")}
             >
               Personalities
             </button>
             <button
-              className={`tab-btn ${activeTab === 'evolution' ? 'active' : ''}`}
-              onClick={() => setActiveTab('evolution')}
+              className={`tab-btn ${activeTab === "evolution" ? "active" : ""}`}
+              onClick={() => setActiveTab("evolution")}
             >
               Evolution
             </button>
             <button
-              className={`tab-btn ${activeTab === 'system-prompts' ? 'active' : ''}`}
-              onClick={() => setActiveTab('system-prompts')}
+              className={`tab-btn ${activeTab === "system-prompts" ? "active" : ""}`}
+              onClick={() => setActiveTab("system-prompts")}
             >
               System Prompts
             </button>
@@ -223,14 +229,14 @@ const PersonalityManager = () => {
           <div className="tab-separator"></div>
           <div className="tab-group">
             <button
-              className={`tab-btn ${activeTab === 'league' ? 'active' : ''}`}
-              onClick={() => setActiveTab('league')}
+              className={`tab-btn ${activeTab === "league" ? "active" : ""}`}
+              onClick={() => setActiveTab("league")}
             >
               League Table
             </button>
             <button
-              className={`tab-btn ${activeTab === 'voting-history' ? 'active' : ''}`}
-              onClick={() => setActiveTab('voting-history')}
+              className={`tab-btn ${activeTab === "voting-history" ? "active" : ""}`}
+              onClick={() => setActiveTab("voting-history")}
             >
               Voting History
             </button>
@@ -240,23 +246,34 @@ const PersonalityManager = () => {
 
       {error && <div className="error-banner">{error}</div>}
 
-      {scope === 'global' && (
+      {scope === "global" && (
         <div className="global-scope-banner">
-          ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit these settings.
+          ⚠️ You are editing Global Defaults. Changes will affect ALL organizations that inherit
+          these settings.
         </div>
       )}
 
       <div className="tab-content">
-        {activeTab === 'personalities' && (
+        {activeTab === "personalities" && (
           <div className="personalities-grid">
             <div className="grid-actions">
               <div className="filters">
-                <select id="pm-filter-status" name="filterStatus" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <select
+                  id="pm-filter-status"
+                  name="filterStatus"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
                   <option value="all">All Status</option>
                   <option value="enabled">Enabled</option>
                   <option value="disabled">Disabled</option>
                 </select>
-                <select id="pm-filter-source" name="filterSource" value={filterSource} onChange={(e) => setFilterSource(e.target.value)}>
+                <select
+                  id="pm-filter-source"
+                  name="filterSource"
+                  value={filterSource}
+                  onChange={(e) => setFilterSource(e.target.value)}
+                >
                   <option value="all">All Sources</option>
                   <option value="system">System</option>
                   <option value="custom">Custom</option>
@@ -266,75 +283,83 @@ const PersonalityManager = () => {
                 + Add Personality
               </button>
             </div>
-            {personalities.filter(p => {
-              if (filterStatus === 'enabled' && p.enabled === false) return false;
-              if (filterStatus === 'disabled' && p.enabled !== false) return false;
-              if (filterSource === 'system' && p.source !== 'system') return false;
-              if (filterSource === 'custom' && p.source === 'system') return false;
-              return true;
-            }).map(p => (
-              <div key={p.id} className="personality-card">
-                <div className="card-header">
-                  <div className="card-meta">
-                    <h3>{p.name}</h3>
-                    <span className="model-badge">{p.model}</span>
+            {personalities
+              .filter((p) => {
+                if (filterStatus === "enabled" && p.enabled === false) return false;
+                if (filterStatus === "disabled" && p.enabled !== false) return false;
+                if (filterSource === "system" && p.source !== "system") return false;
+                if (filterSource === "custom" && p.source === "system") return false;
+                return true;
+              })
+              .map((p) => (
+                <div key={p.id} className="personality-card">
+                  <div className="card-header">
+                    <div className="card-meta">
+                      <h3>{p.name}</h3>
+                      <span className="model-badge">{p.model}</span>
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <p className="description">{p.description}</p>
+                    <div className="tags">
+                      {p.source === "system" && <span className="tag system">System</span>}
+                      {p.source === "custom" && <span className="tag custom">Custom</span>}
+                    </div>
+                  </div>
+                  <div className="card-actions">
+                    <div className="action-buttons">
+                      <button
+                        onClick={() => openEditor(p)}
+                        className={p.source === "system" ? "view-shadow-btn" : "edit-btn"}
+                      >
+                        {p.source === "system" ? "View / Shadow" : "Edit"}
+                      </button>
+                      {p.source !== "system" && (
+                        <button
+                          className="p-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(p.id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                    <div className="enable-toggle">
+                      <label
+                        className="toggle-switch"
+                        htmlFor={`enable-toggle-${p.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          id={`enable-toggle-${p.id}`}
+                          name={`enableToggle-${p.id}`}
+                          type="checkbox"
+                          checked={p.enabled !== false}
+                          onChange={(e) => handleToggleEnabled(e, p)}
+                        />
+                        <span className="slider round"></span>
+                      </label>
+                      <span className="toggle-label">
+                        {p.enabled !== false ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="card-body">
-                  <p className="description">{p.description}</p>
-                  <div className="tags">
-                    {p.source === 'system' && <span className="tag system">System</span>}
-                    {p.source === 'custom' && <span className="tag custom">Custom</span>}
-                  </div>
-                </div>
-                <div className="card-actions">
-                  <div className="action-buttons">
-                    <button onClick={() => openEditor(p)} className={p.source === 'system' ? 'view-shadow-btn' : 'edit-btn'}>
-                      {p.source === 'system' ? 'View / Shadow' : 'Edit'}
-                    </button>
-                    {p.source !== 'system' && (
-                      <button className="p-delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>Delete</button>
-                    )}
-                  </div>
-                  <div className="enable-toggle">
-                    <label className="toggle-switch" htmlFor={`enable-toggle-${p.id}`} onClick={(e) => e.stopPropagation()}>
-                      <input
-                        id={`enable-toggle-${p.id}`}
-                        name={`enableToggle-${p.id}`}
-                        type="checkbox"
-                        checked={p.enabled !== false}
-                        onChange={(e) => handleToggleEnabled(e, p)}
-                      />
-                      <span className="slider round"></span>
-                    </label>
-                    <span className="toggle-label">{p.enabled !== false ? 'Enabled' : 'Disabled'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
 
-        {activeTab === 'league' && (
-          <LeagueTable isInstanceAdmin={isInstanceAdmin} />
+        {activeTab === "league" && <LeagueTable isInstanceAdmin={isInstanceAdmin} />}
+
+        {activeTab === "evolution" && (
+          <EvolutionPanel personalities={personalities} onRefresh={loadData} />
         )}
 
-        {activeTab === 'evolution' && (
-          <EvolutionPanel
-            personalities={personalities}
-            onRefresh={loadData}
-          />
-        )}
+        {activeTab === "system-prompts" && <SystemPromptsEditor scope={scope} />}
 
-        {activeTab === 'system-prompts' && (
-          <SystemPromptsEditor
-            scope={scope}
-          />
-        )}
-
-        {activeTab === 'voting-history' && (
-          <VotingHistory />
-        )}
+        {activeTab === "voting-history" && <VotingHistory />}
       </div>
 
       {/* Create Modal */}
@@ -346,16 +371,28 @@ const PersonalityManager = () => {
             <div className="template-selector">
               <small>Quick Start Templates:</small>
               <div className="template-buttons">
-                <button onClick={() => handleUseTemplate({
-                  name: "The Skeptic",
-                  description: "Questions assumptions and looks for edge cases.",
-                  prompt: "You are The Skeptic. Your goal is to identify potential flaws..."
-                })}>Skeptic</button>
-                <button onClick={() => handleUseTemplate({
-                  name: "The Optimist",
-                  description: "Focuses on potential benefits and positive outcomes.",
-                  prompt: "You are The Optimist. Your goal is to highlight opportunities..."
-                })}>Optimist</button>
+                <button
+                  onClick={() =>
+                    handleUseTemplate({
+                      name: "The Skeptic",
+                      description: "Questions assumptions and looks for edge cases.",
+                      prompt: "You are The Skeptic. Your goal is to identify potential flaws...",
+                    })
+                  }
+                >
+                  Skeptic
+                </button>
+                <button
+                  onClick={() =>
+                    handleUseTemplate({
+                      name: "The Optimist",
+                      description: "Focuses on potential benefits and positive outcomes.",
+                      prompt: "You are The Optimist. Your goal is to highlight opportunities...",
+                    })
+                  }
+                >
+                  Optimist
+                </button>
               </div>
             </div>
 
@@ -365,7 +402,7 @@ const PersonalityManager = () => {
                 id="new-personality-name"
                 name="newPersonalityName"
                 value={newPersonality.name}
-                onChange={e => setNewPersonality({ ...newPersonality, name: e.target.value })}
+                onChange={(e) => setNewPersonality({ ...newPersonality, name: e.target.value })}
                 placeholder="e.g. The Analyst"
               />
             </div>
@@ -375,7 +412,9 @@ const PersonalityManager = () => {
                 id="new-personality-description"
                 name="newPersonalityDescription"
                 value={newPersonality.description}
-                onChange={e => setNewPersonality({ ...newPersonality, description: e.target.value })}
+                onChange={(e) =>
+                  setNewPersonality({ ...newPersonality, description: e.target.value })
+                }
                 placeholder="Brief description of their role..."
               />
             </div>
@@ -385,7 +424,7 @@ const PersonalityManager = () => {
                 id="new-personality-model"
                 name="newPersonalityModel"
                 value={newPersonality.model}
-                onChange={e => setNewPersonality({ ...newPersonality, model: e.target.value })}
+                onChange={(e) => setNewPersonality({ ...newPersonality, model: e.target.value })}
               >
                 <option value="">Select a Model...</option>
                 <option value="gemini/gemini-2.5-pro">Gemini 2.5 Pro</option>
@@ -401,7 +440,9 @@ const PersonalityManager = () => {
 
             <div className="modal-actions">
               <button onClick={() => setIsCreating(false)}>Cancel</button>
-              <button className="primary" onClick={handleCreate}>Create Personality</button>
+              <button className="primary" onClick={handleCreate}>
+                Create Personality
+              </button>
             </div>
           </div>
         </div>

@@ -14,16 +14,14 @@ const SECTIONS = [
   { id: "title", label: "Title Generation (Utility)", icon: PenTool },
 ];
 
-
-
 const InheritanceToggle = ({ label, configValue, onToggle }) => {
-  const checkboxId = `inherit-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  const checkboxId = `inherit-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
     <div className="inheritance-toggle">
       <label className="toggle-label" htmlFor={checkboxId}>
         <input
           id={checkboxId}
-          name={`inherit${label.replace(/\s+/g, '')}`}
+          name={`inherit${label.replace(/\s+/g, "")}`}
           type="checkbox"
           checked={configValue.is_default}
           onChange={(e) => onToggle(e.target.checked)}
@@ -40,16 +38,10 @@ const ScopeSelector = ({ scope, onChange }) => (
   <div className="scope-selector">
     <label>Editing Scope:</label>
     <div className="scope-buttons">
-      <button
-        className={scope === 'org' ? 'active' : ''}
-        onClick={() => onChange('org')}
-      >
+      <button className={scope === "org" ? "active" : ""} onClick={() => onChange("org")}>
         🏢 Organization
       </button>
-      <button
-        className={scope === 'global' ? 'active' : ''}
-        onClick={() => onChange('global')}
-      >
+      <button className={scope === "global" ? "active" : ""} onClick={() => onChange("global")}>
         🌍 Global Defaults
       </button>
     </div>
@@ -63,32 +55,16 @@ function SystemPromptsEditor({ scope }) {
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("base");
 
-  // Removed internal scope state
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    checkAdmin();
-  }, []);
-
   useEffect(() => {
     loadData();
-  }, [scope]); // Reload when scope changes
-
-  const checkAdmin = async () => {
-    try {
-      const user = await api.getCurrentUser();
-      setIsAdmin(user.is_instance_admin);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  }, [scope]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
       const [c, mList] = await Promise.all([
-        scope === 'global' ? api.getDefaultSystemPrompts() : api.getSystemPrompts(),
-        api.listModels()
+        scope === "global" ? api.getDefaultSystemPrompts() : api.getSystemPrompts(),
+        api.listModels(),
       ]);
       setConfig(c);
       setModels(mList.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id)));
@@ -102,7 +78,7 @@ function SystemPromptsEditor({ scope }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      if (scope === 'global') {
+      if (scope === "global") {
         await api.updateDefaultSystemPrompts(config);
         alert("Global defaults updated successfully!");
       } else {
@@ -115,7 +91,6 @@ function SystemPromptsEditor({ scope }) {
       setIsSaving(false);
     }
   };
-
 
   if (isLoading) return <div className="loading">Loading configuration...</div>;
 
@@ -130,14 +105,17 @@ function SystemPromptsEditor({ scope }) {
             </div>
 
             <div className="form-group">
-              {scope === 'org' && (
+              {scope === "org" && (
                 <InheritanceToggle
                   label="Base System Prompt"
                   configValue={config.base_system_prompt}
                   onToggle={(newIsDefault) => {
                     setConfig({
                       ...config,
-                      base_system_prompt: { ...config.base_system_prompt, is_default: newIsDefault }
+                      base_system_prompt: {
+                        ...config.base_system_prompt,
+                        is_default: newIsDefault,
+                      },
                     });
                   }}
                 />
@@ -145,12 +123,18 @@ function SystemPromptsEditor({ scope }) {
               <PromptEditor
                 label="Base System Prompt"
                 value={config.base_system_prompt.value}
-                onChange={(val) => setConfig({
-                  ...config,
-                  base_system_prompt: { ...config.base_system_prompt, value: val, is_default: false }
-                })}
+                onChange={(val) =>
+                  setConfig({
+                    ...config,
+                    base_system_prompt: {
+                      ...config.base_system_prompt,
+                      value: val,
+                      is_default: false,
+                    },
+                  })
+                }
                 rows={12}
-                disabled={scope === 'org' && config.base_system_prompt.is_default}
+                disabled={scope === "org" && config.base_system_prompt.is_default}
               />
             </div>
             <div className="actions">
@@ -165,9 +149,7 @@ function SystemPromptsEditor({ scope }) {
           <div className="section-content fade-in">
             <div className="section-header">
               <h3>Voting Instructions (Stage 2)</h3>
-              <p className="section-desc">
-                Instructions for the model on how to evaluate peers.
-              </p>
+              <p className="section-desc">Instructions for the model on how to evaluate peers.</p>
             </div>
             <div className="config-group">
               <ModelSelector
@@ -186,22 +168,31 @@ function SystemPromptsEditor({ scope }) {
               <div className="form-group">
                 <label>Enforced Context (Prepend)</label>
                 <div className="enforced-text">
-                  You are evaluating different responses to the following question:<br /><br />
-                  Question: &#123;user_query&#125;<br /><br />
-                  Here are the responses from &#123;peer_text&#125;:<br /><br />
+                  You are evaluating different responses to the following question:
+                  <br />
+                  <br />
+                  Question: &#123;user_query&#125;
+                  <br />
+                  <br />
+                  Here are the responses from &#123;peer_text&#125;:
+                  <br />
+                  <br />
                   &#123;responses_text&#125;
                 </div>
               </div>
 
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Ranking Instructions"
                     configValue={config.ranking.prompt}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, is_default: newIsDefault } }
+                        ranking: {
+                          ...config.ranking,
+                          prompt: { ...config.ranking.prompt, is_default: newIsDefault },
+                        },
                       });
                     }}
                   />
@@ -213,11 +204,14 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      ranking: { ...config.ranking, prompt: { ...config.ranking.prompt, value: val, is_default: false } },
+                      ranking: {
+                        ...config.ranking,
+                        prompt: { ...config.ranking.prompt, value: val, is_default: false },
+                      },
                     })
                   }
                   rows={8}
-                  disabled={scope === 'org' && config.ranking.prompt.is_default}
+                  disabled={scope === "org" && config.ranking.prompt.is_default}
                 />
               </div>
 
@@ -278,14 +272,17 @@ function SystemPromptsEditor({ scope }) {
               />
 
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Chairman Prompt"
                     configValue={config.chairman.prompt}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, is_default: newIsDefault } }
+                        chairman: {
+                          ...config.chairman,
+                          prompt: { ...config.chairman.prompt, is_default: newIsDefault },
+                        },
                       });
                     }}
                   />
@@ -296,12 +293,15 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      chairman: { ...config.chairman, prompt: { ...config.chairman.prompt, value: val, is_default: false } },
+                      chairman: {
+                        ...config.chairman,
+                        prompt: { ...config.chairman.prompt, value: val, is_default: false },
+                      },
                     })
                   }
                   rows={12}
                   requiredVariables={["{user_query}", "{stage1_text}", "{voting_details_text}"]}
-                  disabled={scope === 'org' && config.chairman.prompt.is_default}
+                  disabled={scope === "org" && config.chairman.prompt.is_default}
                 />
               </div>
             </div>
@@ -319,20 +319,24 @@ function SystemPromptsEditor({ scope }) {
             <div className="section-header">
               <h3>Enforced Response Structure (Stage 1)</h3>
               <p className="section-desc">
-                These instructions are appended to EVERY personality prompt to ensure consistent output format.
+                These instructions are appended to EVERY personality prompt to ensure consistent
+                output format.
               </p>
             </div>
 
             <div className="config-group">
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Response Structure"
                     configValue={config.stage1_response_structure}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        stage1_response_structure: { ...config.stage1_response_structure, is_default: newIsDefault }
+                        stage1_response_structure: {
+                          ...config.stage1_response_structure,
+                          is_default: newIsDefault,
+                        },
                       });
                     }}
                   />
@@ -344,23 +348,30 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      stage1_response_structure: { ...config.stage1_response_structure, value: val, is_default: false },
+                      stage1_response_structure: {
+                        ...config.stage1_response_structure,
+                        value: val,
+                        is_default: false,
+                      },
                     })
                   }
                   rows={8}
-                  disabled={scope === 'org' && config.stage1_response_structure.is_default}
+                  disabled={scope === "org" && config.stage1_response_structure.is_default}
                 />
               </div>
 
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Meta Structure"
                     configValue={config.stage1_meta_structure}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        stage1_meta_structure: { ...config.stage1_meta_structure, is_default: newIsDefault }
+                        stage1_meta_structure: {
+                          ...config.stage1_meta_structure,
+                          is_default: newIsDefault,
+                        },
                       });
                     }}
                   />
@@ -372,11 +383,15 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      stage1_meta_structure: { ...config.stage1_meta_structure, value: val, is_default: false },
+                      stage1_meta_structure: {
+                        ...config.stage1_meta_structure,
+                        value: val,
+                        is_default: false,
+                      },
                     })
                   }
                   rows={6}
-                  disabled={scope === 'org' && config.stage1_meta_structure.is_default}
+                  disabled={scope === "org" && config.stage1_meta_structure.is_default}
                 />
               </div>
             </div>
@@ -410,14 +425,17 @@ function SystemPromptsEditor({ scope }) {
               />
 
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Title Prompt"
                     configValue={config.title_generation.prompt}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, is_default: newIsDefault } }
+                        title_generation: {
+                          ...config.title_generation,
+                          prompt: { ...config.title_generation.prompt, is_default: newIsDefault },
+                        },
                       });
                     }}
                   />
@@ -428,12 +446,19 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      title_generation: { ...config.title_generation, prompt: { ...config.title_generation.prompt, value: val, is_default: false } },
+                      title_generation: {
+                        ...config.title_generation,
+                        prompt: {
+                          ...config.title_generation.prompt,
+                          value: val,
+                          is_default: false,
+                        },
+                      },
                     })
                   }
                   rows={4}
                   requiredVariables={["{user_query}"]}
-                  disabled={scope === 'org' && config.title_generation.prompt.is_default}
+                  disabled={scope === "org" && config.title_generation.prompt.is_default}
                 />
               </div>
             </div>
@@ -456,14 +481,14 @@ function SystemPromptsEditor({ scope }) {
 
             <div className="config-group">
               <div className="form-group">
-                {scope === 'org' && (
+                {scope === "org" && (
                   <InheritanceToggle
                     label="Evolution Prompt"
                     configValue={config.evolution_prompt}
                     onToggle={(newIsDefault) => {
                       setConfig({
                         ...config,
-                        evolution_prompt: { ...config.evolution_prompt, is_default: newIsDefault }
+                        evolution_prompt: { ...config.evolution_prompt, is_default: newIsDefault },
                       });
                     }}
                   />
@@ -474,12 +499,16 @@ function SystemPromptsEditor({ scope }) {
                   onChange={(val) =>
                     setConfig({
                       ...config,
-                      evolution_prompt: { ...config.evolution_prompt, value: val, is_default: false },
+                      evolution_prompt: {
+                        ...config.evolution_prompt,
+                        value: val,
+                        is_default: false,
+                      },
                     })
                   }
                   rows={16}
                   requiredVariables={["{parent_count}", "{offspring_name}", "{parent_data}"]}
-                  disabled={scope === 'org' && config.evolution_prompt.is_default}
+                  disabled={scope === "org" && config.evolution_prompt.is_default}
                 />
               </div>
             </div>
@@ -518,7 +547,7 @@ function SystemPromptsEditor({ scope }) {
           })}
         </nav>
       </div>
-      <div className={`system-prompts-content ${scope === 'global' ? 'global-scope' : ''}`}>
+      <div className={`system-prompts-content ${scope === "global" ? "global-scope" : ""}`}>
         {renderContent()}
       </div>
     </div>

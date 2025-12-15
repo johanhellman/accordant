@@ -79,7 +79,8 @@ export default function OrganizationManagement() {
     try {
       const updates = {};
       if (editForm.name && editForm.name !== editingOrg.name) updates.name = editForm.name;
-      if (editForm.owner_username && editForm.owner_username !== editingOrg.owner_username) updates.owner_username = editForm.owner_username;
+      if (editForm.owner_username && editForm.owner_username !== editingOrg.owner_username)
+        updates.owner_username = editForm.owner_username;
       if (editForm.api_key) updates.api_key = editForm.api_key;
       if (editForm.base_url) updates.base_url = editForm.base_url;
 
@@ -161,7 +162,9 @@ export default function OrganizationManagement() {
                       <span className="status-badge not-configured">No Key</span>
                     )}
                     {org.api_config?.base_url && (
-                      <span className="base-url-tag" title={org.api_config.base_url}>Custom URL</span>
+                      <span className="base-url-tag" title={org.api_config.base_url}>
+                        Custom URL
+                      </span>
                     )}
                   </td>
                   <td>
@@ -238,8 +241,12 @@ export default function OrganizationManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditingOrg(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveEdit}>Save Changes</button>
+              <button className="btn btn-secondary" onClick={() => setEditingOrg(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleSaveEdit}>
+                Save Changes
+              </button>
             </div>
           </div>
         </div>
@@ -250,14 +257,18 @@ export default function OrganizationManagement() {
         <div className="modal-overlay">
           <div className="modal-content danger-modal">
             <div className="modal-header">
-              <h3 className="danger-text"><ShieldAlert size={24} /> Delete Organization?</h3>
+              <h3 className="danger-text">
+                <ShieldAlert size={24} /> Delete Organization?
+              </h3>
             </div>
             <div className="modal-body">
               <p>
                 Are you sure you want to delete <strong>{deletingOrg.name}</strong>?
               </p>
               <div className="warning-box">
-                <p>This action is <strong>irreversible</strong>.</p>
+                <p>
+                  This action is <strong>irreversible</strong>.
+                </p>
                 <ul>
                   <li>All users in this organization will be deleted.</li>
                   <li>All conversation history (tenant database) will be wiped.</li>
@@ -266,8 +277,12 @@ export default function OrganizationManagement() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setDeletingOrg(null)}>Cancel</button>
-              <button className="btn btn-danger" onClick={handleConfirmDelete}>Confirm Delete</button>
+              <button className="btn btn-secondary" onClick={() => setDeletingOrg(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleConfirmDelete}>
+                Confirm Delete
+              </button>
             </div>
           </div>
         </div>
