@@ -23,7 +23,7 @@ def clean_data():
     # Clean
     from backend import models
     from backend.database import SystemSessionLocal
-    
+
     with SystemSessionLocal() as db:
         db.query(models.User).delete()
         db.commit()

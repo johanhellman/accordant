@@ -22,6 +22,7 @@ MOCK_PERSONALITY = {
     "ui": {"avatar": "default", "color": "#000000"},
 }
 
+
 @pytest.fixture(autouse=True)
 def mock_global_personalities(monkeypatch, tmp_path):
     """Mock global defaults directory to be empty."""
@@ -30,6 +31,7 @@ def mock_global_personalities(monkeypatch, tmp_path):
     (defaults_dir / "personalities").mkdir()
     monkeypatch.setattr("backend.config.personalities.DEFAULTS_DIR", str(defaults_dir))
     return defaults_dir
+
 
 MOCK_SYSTEM_PROMPTS = {
     "base_system_prompt": "Base prompt",
@@ -63,10 +65,10 @@ def auth_headers(tmp_path, monkeypatch):
 
     # Register admin (first user is admin, creates org atomically)
     reg_payload = {
-        "username": "admin", 
-        "password": "password", 
-        "mode": "create_org", 
-        "org_name": "Test Organization"
+        "username": "admin",
+        "password": "password",
+        "mode": "create_org",
+        "org_name": "Test Organization",
     }
     resp = client.post("/api/auth/register", json=reg_payload)
     assert resp.status_code == 200, f"Register failed: {resp.text}"
@@ -154,8 +156,14 @@ def test_get_system_prompts(mock_data_root, auth_headers):
         assert response.status_code == 200
         data = response.json()
         assert data["base_system_prompt"]["value"] == "Base prompt"
-        assert data["chairman"]["prompt"]["value"] == "Chairman for {user_query} using {stage1_text} and {voting_details_text}"
-        assert data["ranking"]["prompt"]["value"] == "Rank {responses_text} for {user_query} from {peer_text}"
+        assert (
+            data["chairman"]["prompt"]["value"]
+            == "Chairman for {user_query} using {stage1_text} and {voting_details_text}"
+        )
+        assert (
+            data["ranking"]["prompt"]["value"]
+            == "Rank {responses_text} for {user_query} from {peer_text}"
+        )
 
 
 def test_get_system_prompts_no_file(mock_data_root, auth_headers):
@@ -408,7 +416,9 @@ def test_list_models_error(mock_data_root, auth_headers):
 
     with (
         patch("backend.admin_routes.get_org_api_config", return_value=("key", "url")),
-        patch("backend.admin_routes.get_available_models", side_effect=ValueError("Invalid API key")),
+        patch(
+            "backend.admin_routes.get_available_models", side_effect=ValueError("Invalid API key")
+        ),
     ):
         response = client.get("/api/models", headers=headers)
         assert response.status_code == 400
@@ -562,7 +572,7 @@ def test_get_system_prompts_legacy_format(mock_data_root, auth_headers):
 def test_update_system_prompts_missing_tags(mock_data_root, auth_headers):
     """Test update_system_prompts validates required tags."""
     headers, org_id = auth_headers
-    orgs_dir = mock_data_root / "organizations"
+    mock_data_root / "organizations"
 
     invalid_config = MOCK_SYSTEM_PROMPTS.copy()
     invalid_config["chairman"]["prompt"] = "Missing {user_query} tag"

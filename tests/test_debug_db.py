@@ -1,7 +1,5 @@
-
-from backend.database import SystemBase
 from sqlalchemy import inspect
-import backend.models
+
 
 def test_tables_exist(system_engine):
     inspector = inspect(system_engine)

@@ -4,8 +4,6 @@ These tests cover edge cases and code paths that may not be fully covered
 by existing tests to improve overall coverage.
 """
 
-import pytest
-
 from backend.council_helpers import (
     FINAL_RANKING_MARKER,
     RESPONSE_LABEL_PREFIX,
@@ -167,7 +165,10 @@ class TestBuildLLMHistoryEdgeCases:
         result = build_llm_history(messages)
 
         assert len(result) == 2
-        assert result[1]["content"] == "PART 1: REPORT\n\nTable\n\nPART 2 FINAL ANSWER\n\nThis is the answer."
+        assert (
+            result[1]["content"]
+            == "PART 1: REPORT\n\nTable\n\nPART 2 FINAL ANSWER\n\nThis is the answer."
+        )
 
     def test_build_llm_history_part2_multiple_colons(self):
         """Test parsing PART 2: FINAL ANSWER with multiple colons."""
@@ -412,7 +413,9 @@ class TestBuildRankingPromptEdgeCases:
         responses_text = "Response A: Answer"
         custom_template = "Rank {user_query} {responses_text} from {peer_text}"
 
-        result = build_ranking_prompt(user_query, responses_text, prompt_template=custom_template, exclude_self=True)
+        result = build_ranking_prompt(
+            user_query, responses_text, prompt_template=custom_template, exclude_self=True
+        )
 
         assert user_query in result
         assert responses_text in result

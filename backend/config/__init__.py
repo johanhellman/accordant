@@ -18,7 +18,6 @@ from .paths import (
 from .paths import (
     validate_file_path as validate_file_path,
 )
-
 from .personalities import (
     get_active_personalities as get_active_personalities,
 )

@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 
 from backend.llm_service import get_available_models
@@ -167,9 +166,7 @@ async def test_get_available_models_generic_url_stripping():
             mock_client.get.return_value = mock_response
 
             # Base URL with /chat/completions
-            await get_available_models(
-                "fake-key", "https://api.example.com/v1/chat/completions"
-            )
+            await get_available_models("fake-key", "https://api.example.com/v1/chat/completions")
 
             # Verify URL was constructed correctly
             call_args = mock_client.get.call_args
@@ -210,4 +207,3 @@ async def test_get_available_models_cache_ttl_boundary():
             # Should fetch new models
             assert models[0]["id"] == "new-model"
             mock_client.get.assert_called_once()
-

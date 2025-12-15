@@ -3,7 +3,7 @@
 These tests directly test the implementation functions to ensure full code coverage.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -527,7 +527,9 @@ async def test_stage3_synthesize_final_chairman_failure(mock_system_prompts, moc
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_includes_voting_details(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_includes_voting_details(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final includes voting details in prompt."""
     user_query = "What is Python?"
     stage1_results = [
@@ -586,7 +588,9 @@ async def test_stage3_synthesize_final_includes_voting_details(mock_system_promp
 
 
 @pytest.mark.asyncio
-async def test_run_full_council_success(mock_personalities, mock_system_prompts, mock_models_config):
+async def test_run_full_council_success(
+    mock_personalities, mock_system_prompts, mock_models_config
+):
     """Test run_full_council successfully orchestrates all 3 stages."""
     user_query = "What is Python?"
     messages = None
@@ -732,7 +736,9 @@ async def test_stage1_personality_mode_missing_content_key(mock_personalities, m
 
 
 @pytest.mark.asyncio
-async def test_stage2_personality_mode_empty_stage1_results(mock_personalities, mock_system_prompts):
+async def test_stage2_personality_mode_empty_stage1_results(
+    mock_personalities, mock_system_prompts
+):
     """Test _stage2_personality_mode handles empty stage1_results."""
     user_query = "What is Python?"
     stage1_results = []
@@ -878,7 +884,9 @@ async def test_stage2_collect_rankings_missing_personality_fields():
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_empty_stage1_results(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_empty_stage1_results(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final handles empty stage1_results."""
     user_query = "What is Python?"
     stage1_results = []
@@ -930,7 +938,9 @@ async def test_stage3_synthesize_final_empty_stage1_results(mock_system_prompts,
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_empty_stage2_results(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_empty_stage2_results(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final handles empty stage2_results."""
     user_query = "What is Python?"
     stage1_results = [
@@ -982,7 +992,9 @@ async def test_stage3_synthesize_final_empty_stage2_results(mock_system_prompts,
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_empty_parsed_ranking(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_empty_parsed_ranking(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final handles empty parsed_ranking."""
     user_query = "What is Python?"
     stage1_results = [
@@ -1042,7 +1054,9 @@ async def test_stage3_synthesize_final_empty_parsed_ranking(mock_system_prompts,
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_missing_parsed_ranking_key(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_missing_parsed_ranking_key(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final handles missing parsed_ranking key."""
     user_query = "What is Python?"
     stage1_results = [
@@ -1093,7 +1107,9 @@ async def test_stage3_synthesize_final_missing_parsed_ranking_key(mock_system_pr
 
 
 @pytest.mark.asyncio
-async def test_stage3_synthesize_final_missing_personality_name(mock_system_prompts, mock_models_config):
+async def test_stage3_synthesize_final_missing_personality_name(
+    mock_system_prompts, mock_models_config
+):
     """Test stage3_synthesize_final handles missing personality_name in stage1_results."""
     user_query = "What is Python?"
     stage1_results = [
@@ -1195,7 +1211,9 @@ async def test_stage3_synthesize_final_missing_content_key(mock_system_prompts, 
 
 
 @pytest.mark.asyncio
-async def test_run_full_council_partial_stage2_failure(mock_personalities, mock_system_prompts, mock_models_config):
+async def test_run_full_council_partial_stage2_failure(
+    mock_personalities, mock_system_prompts, mock_models_config
+):
     """Test run_full_council handles partial Stage 2 failures."""
     user_query = "What is Python?"
     messages = None
@@ -1248,7 +1266,9 @@ async def test_run_full_council_partial_stage2_failure(mock_personalities, mock_
 
 
 @pytest.mark.asyncio
-async def test_run_full_council_stage3_failure_after_success(mock_personalities, mock_system_prompts, mock_models_config):
+async def test_run_full_council_stage3_failure_after_success(
+    mock_personalities, mock_system_prompts, mock_models_config
+):
     """Test run_full_council handles Stage 3 failure after successful Stage 1 and 2."""
     user_query = "What is Python?"
     messages = None
@@ -1301,4 +1321,3 @@ async def test_run_full_council_stage3_failure_after_success(mock_personalities,
         assert len(stage2_results) == 2
         assert "Error: Unable to generate final synthesis" in stage3_result["response"]
         assert stage3_result["model"] == "gemini/gemini-pro"
-

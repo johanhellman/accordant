@@ -1,0 +1,200 @@
+
+> accordant-frontend@0.3.0 test
+> vitest src/api.test.js --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.15 [39m[90m/Users/johanhellman/Projects/LLM Experiments/accordant/frontend[39m
+
+ [31m❯[39m src/api.test.js [2m([22m[2m12 tests[22m[2m | [22m[31m12 failed[39m[2m)[22m[32m 8[2mms[22m[39m
+[31m       [31m×[31m should fetch current user details[39m[32m 3[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 2[2mms[22m[39m
+[31m       [31m×[31m should fetch and return conversations list[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should create a new conversation[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should fetch a specific conversation[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should send a message and return response[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should stream messages and call onEvent for each event[39m[32m 0[2mms[22m[39m
+[31m       [31m×[31m should throw error on failed request[39m[32m 0[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 12 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mgetCurrentUser[2m > [22mshould fetch current user details
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m request src/api.js:[2m25:3[22m[39m
+    [90m 23| [39m  }[33m;[39m
+    [90m 24| [39m
+    [90m 25| [39m  [35mif[39m (authToken) {
+    [90m   | [39m  [31m^[39m
+    [90m 26| [39m    headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m 27| [39m  }
+[90m [2m❯[22m Object.getCurrentUser src/api.js:[2m123:12[22m[39m
+[90m [2m❯[22m src/api.test.js:[2m32:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mgetCurrentUser[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to get current user' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to get current user"[39m
+Received: [31m"authToken is not defined"[39m
+
+[36m [2m❯[22m src/api.test.js:[2m48:7[22m[39m
+    [90m 46| [39m      })[33m;[39m
+    [90m 47| [39m
+    [90m 48| [39m      await expect(api.getCurrentUser()).rejects.toThrow("Failed to ge…
+    [90m   | [39m      [31m^[39m
+    [90m 49| [39m    })[33m;[39m
+    [90m 50| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mlistConversations[2m > [22mshould fetch and return conversations list
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m request src/api.js:[2m25:3[22m[39m
+    [90m 23| [39m  }[33m;[39m
+    [90m 24| [39m
+    [90m 25| [39m  [35mif[39m (authToken) {
+    [90m   | [39m  [31m^[39m
+    [90m 26| [39m    headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m 27| [39m  }
+[90m [2m❯[22m Object.listConversations src/api.js:[2m137:12[22m[39m
+[90m [2m❯[22m src/api.test.js:[2m64:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mlistConversations[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to list conversations' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to list conversations"[39m
+Received: [31m"authToken is not defined"[39m
+
+[36m [2m❯[22m src/api.test.js:[2m80:7[22m[39m
+    [90m 78| [39m      })[33m;[39m
+    [90m 79| [39m
+    [90m 80| [39m      await expect(api.listConversations()).rejects.toThrow("Failed to…
+    [90m   | [39m      [31m^[39m
+    [90m 81| [39m    })[33m;[39m
+    [90m 82| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mcreateConversation[2m > [22mshould create a new conversation
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m request src/api.js:[2m25:3[22m[39m
+    [90m 23| [39m  }[33m;[39m
+    [90m 24| [39m
+    [90m 25| [39m  [35mif[39m (authToken) {
+    [90m   | [39m  [31m^[39m
+    [90m 26| [39m    headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m 27| [39m  }
+[90m [2m❯[22m Object.createConversation src/api.js:[2m144:12[22m[39m
+[90m [2m❯[22m src/api.test.js:[2m97:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mcreateConversation[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to create conversation' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to create conversation"[39m
+Received: [31m"authToken is not defined"[39m
+
+[36m [2m❯[22m src/api.test.js:[2m115:7[22m[39m
+    [90m113| [39m      })[33m;[39m
+    [90m114| [39m
+    [90m115| [39m      await expect(api.createConversation()).rejects.toThrow("Failed t…
+    [90m   | [39m      [31m^[39m
+    [90m116| [39m    })[33m;[39m
+    [90m117| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mgetConversation[2m > [22mshould fetch a specific conversation
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m request src/api.js:[2m25:3[22m[39m
+    [90m 23| [39m  }[33m;[39m
+    [90m 24| [39m
+    [90m 25| [39m  [35mif[39m (authToken) {
+    [90m   | [39m  [31m^[39m
+    [90m 26| [39m    headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m 27| [39m  }
+[90m [2m❯[22m Object.getConversation src/api.js:[2m154:12[22m[39m
+[90m [2m❯[22m src/api.test.js:[2m133:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22mgetConversation[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to get conversation' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to get conversation"[39m
+Received: [31m"authToken is not defined"[39m
+
+[36m [2m❯[22m src/api.test.js:[2m149:7[22m[39m
+    [90m147| [39m      })[33m;[39m
+    [90m148| [39m
+    [90m149| [39m      await expect(api.getConversation("non-existent")).rejects.toThro…
+    [90m   | [39m      [31m^[39m
+    [90m150| [39m        [32m"Failed to get conversation"[39m
+    [90m151| [39m      )[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22msendMessage[2m > [22mshould send a message and return response
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m request src/api.js:[2m25:3[22m[39m
+    [90m 23| [39m  }[33m;[39m
+    [90m 24| [39m
+    [90m 25| [39m  [35mif[39m (authToken) {
+    [90m   | [39m  [31m^[39m
+    [90m 26| [39m    headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m 27| [39m  }
+[90m [2m❯[22m Object.sendMessage src/api.js:[2m161:12[22m[39m
+[90m [2m❯[22m src/api.test.js:[2m171:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22msendMessage[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to send message' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to send message"[39m
+Received: [31m"authToken is not defined"[39m
+
+[36m [2m❯[22m src/api.test.js:[2m189:7[22m[39m
+    [90m187| [39m      })[33m;[39m
+    [90m188| [39m
+    [90m189| [39m      await expect(api.sendMessage("test-id", "Hello")).rejects.toThro…
+    [90m   | [39m      [31m^[39m
+    [90m190| [39m    })[33m;[39m
+    [90m191| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22msendMessageStream[2m > [22mshould stream messages and call onEvent for each event
+[31m[1mReferenceError[22m: authToken is not defined[39m
+[36m [2m❯[22m Object.sendMessageStream src/api.js:[2m178:5[22m[39m
+    [90m176| [39m      [32m"Content-Type"[39m[33m:[39m [32m"application/json"[39m[33m,[39m
+    [90m177| [39m    }[33m;[39m
+    [90m178| [39m    [35mif[39m (authToken) {
+    [90m   | [39m    [31m^[39m
+    [90m179| [39m      headers[[32m"Authorization"[39m] [33m=[39m [32m`Bearer [39m[36m${[39mauthToken[36m}[39m[32m`[39m[33m;[39m
+    [90m180| [39m    }
+[90m [2m❯[22m src/api.test.js:[2m229:17[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/api.test.js[2m > [22mAPI Client[2m > [22msendMessageStream[2m > [22mshould throw error on failed request
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Failed to send message' but got 'authToken is not defined'[39m
+
+Expected: [32m"Failed to send message"[39m
+Received: [31m"authToken is not defined"[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m12 failed[39m[22m[90m (12)[39m
+[2m   Start at [22m 21:10:28
+[2m   Duration [22m 393ms[2m (transform 27ms, setup 55ms, import 22ms, tests 8ms, environment 212ms)[22m
+

@@ -64,10 +64,7 @@ def test_validate_file_path_normalizes_path():
     """Test validate_file_path normalizes path separators."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Use mixed separators (if on Windows)
-        if os.sep == "\\":
-            path = "subdir\\file.txt"
-        else:
-            path = "subdir/file.txt"
+        path = "subdir\\file.txt" if os.sep == "\\" else "subdir/file.txt"
 
         result = validate_file_path(path, base_dir=tmpdir)
 
@@ -184,4 +181,3 @@ def test_validate_file_path_parent_directory():
 
         # Should be normalized to base directory
         assert os.path.commonpath([tmpdir, result]) == tmpdir
-

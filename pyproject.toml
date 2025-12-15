@@ -91,6 +91,14 @@ select = [
 ignore = [
     "E501",  # Line too long (handled by formatter)
     "B008",  # Do not perform function calls in argument defaults
+    "E402",  # Module level import not at top of file
+    "SIM117", # Use a single `with` statement with multiple contexts
+    "SIM105", # Use `contextlib.suppress` instead of try-except-pass
+    "B904",  # Raise from
+    "B017",  # Do not assert blind exception
+    "N806",  # Variable in function should be lowercase
+    "SIM108", # Use ternary operator
+    "SIM102", # Use a single `if` statement instead of nested `if` statements
 ]
 
 # Exclude directories

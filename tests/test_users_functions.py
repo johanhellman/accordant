@@ -22,7 +22,9 @@ class TestUserFunctions:
     def test_update_user_role_success(self, temp_data_dir):
         """Test update_user_role successfully updates user's admin status."""
         # Create first user (will be admin automatically)
-        first_user = UserInDB(id="user0", username="firstuser", password_hash="hash", is_admin=False)
+        first_user = UserInDB(
+            id="user0", username="firstuser", password_hash="hash", is_admin=False
+        )
         create_user(first_user)
 
         # Create second user (will not be admin)
@@ -94,4 +96,3 @@ class TestUserFunctions:
         # Verify final state
         retrieved = get_user("testuser")
         assert retrieved.is_admin is True
-

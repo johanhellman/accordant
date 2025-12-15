@@ -5,7 +5,6 @@ These tests cover edge cases that may not be fully covered by existing tests.
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 
 from backend.openrouter import query_model, query_models_parallel
@@ -40,7 +39,7 @@ class TestQueryModelResponseParsingEdgeCases:
 
                 # Should handle IndexError gracefully
                 try:
-                    result = await query_model(model, messages, api_key=api_key, base_url=base_url)
+                    await query_model(model, messages, api_key=api_key, base_url=base_url)
                     # If exception is caught, result should be None
                     # If exception propagates, that's also valid
                 except (IndexError, KeyError):
@@ -73,7 +72,7 @@ class TestQueryModelResponseParsingEdgeCases:
 
                 # Should handle KeyError gracefully
                 try:
-                    result = await query_model(model, messages, api_key=api_key, base_url=base_url)
+                    await query_model(model, messages, api_key=api_key, base_url=base_url)
                     # If exception is caught, result should be None
                 except (KeyError, IndexError):
                     # Exception handling is acceptable
@@ -105,7 +104,7 @@ class TestQueryModelResponseParsingEdgeCases:
 
                 # Should handle KeyError gracefully
                 try:
-                    result = await query_model(model, messages, api_key=api_key, base_url=base_url)
+                    await query_model(model, messages, api_key=api_key, base_url=base_url)
                     # If exception is caught, result should be None
                 except KeyError:
                     # Exception handling is acceptable
@@ -328,7 +327,9 @@ class TestQueryModelsParallelEdgeCases:
             return {"content": "Response from model1"}
 
         with patch("backend.openrouter.query_model", side_effect=mock_query_model):
-            result = await query_models_parallel(models, messages, api_key=api_key, base_url=base_url)
+            result = await query_models_parallel(
+                models, messages, api_key=api_key, base_url=base_url
+            )
 
             assert len(result) == 1
             assert result["model1"]["content"] == "Response from model1"
@@ -346,7 +347,9 @@ class TestQueryModelsParallelEdgeCases:
             return {"content": f"Response from {model}"}
 
         with patch("backend.openrouter.query_model", side_effect=mock_query_model):
-            result = await query_models_parallel(models, messages, api_key=api_key, base_url=base_url)
+            result = await query_models_parallel(
+                models, messages, api_key=api_key, base_url=base_url
+            )
 
             assert len(result) == 50
             for i in range(50):
@@ -358,10 +361,9 @@ class TestGetSemaphoreEdgeCases:
 
     def test_get_semaphore_reuse(self):
         """Test get_semaphore reuses existing semaphore."""
-        from backend.openrouter import get_semaphore
-
         # Reset global semaphore
         import backend.openrouter
+        from backend.openrouter import get_semaphore
 
         backend.openrouter._SEMAPHORE = None
 
@@ -375,10 +377,9 @@ class TestGetSemaphoreEdgeCases:
 
     def test_get_semaphore_initialization(self):
         """Test get_semaphore initializes semaphore correctly."""
-        from backend.openrouter import get_semaphore, MAX_CONCURRENT_REQUESTS
-
         # Reset global semaphore
         import backend.openrouter
+        from backend.openrouter import MAX_CONCURRENT_REQUESTS, get_semaphore
 
         backend.openrouter._SEMAPHORE = None
 

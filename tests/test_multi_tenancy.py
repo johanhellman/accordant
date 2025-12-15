@@ -3,12 +3,12 @@ import shutil
 
 import pytest
 
+from backend import models
+from backend.database import SystemSessionLocal
 from backend.invitations import create_invitation, get_invitation, use_invitation
 from backend.organizations import ORGS_DATA_DIR, OrganizationCreate, create_org, get_org
 from backend.security import decrypt_value, encrypt_value
 from backend.users import UserInDB, get_user, update_user_org
-from backend.database import SystemSessionLocal
-from backend import models
 
 
 # Test Fixture to setup/teardown data
@@ -36,7 +36,7 @@ def setup_data():
         db.query(models.User).delete()
         db.query(models.Organization).delete()
         db.commit()
-        
+
     if os.path.exists(ORGS_DATA_DIR):
         shutil.rmtree(ORGS_DATA_DIR)
 
@@ -120,20 +120,16 @@ def test_user_org_update(setup_data):
     # 1. Create User
     user = UserInDB(id="u1", username="testuser", password_hash="hash", org_id="org1")
     # Manually save user since we're testing backend logic directly
-    from backend.users import _save_users # This usage is valid if _save_users existed, but it doesn't.
-    # We saw in previous step that test_multi_user also used _save_users and failed. 
+    # We saw in previous step that test_multi_user also used _save_users and failed.
     # We must replace this logic with DB save.
-    
+
     # Logic to manually save user:
     # We can just use create_user or direct DB add.
     # The test creates user "u1" then updates it.
-    
+
     with SystemSessionLocal() as db:
         db_user = models.User(
-            id=user.id,
-            username=user.username,
-            password_hash=user.password_hash,
-            org_id=user.org_id
+            id=user.id, username=user.username, password_hash=user.password_hash, org_id=user.org_id
         )
         db.add(db_user)
         db.commit()

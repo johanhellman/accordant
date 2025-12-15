@@ -13,10 +13,11 @@ from .models import Vote
 
 logger = logging.getLogger(__name__)
 
+
 def record_votes(
     conversation_id: str,
     stage2_results: list[dict[str, Any]],
-    label_to_model: dict[str, Any], # dict[str, dict]
+    label_to_model: dict[str, Any],  # dict[str, dict]
     conversation_title: str = "Unknown",
     turn_number: int = 1,
     user_id: str = None,
@@ -38,8 +39,8 @@ def record_votes(
         for result in stage2_results:
             voter_model = result.get("model", "unknown")
             # Fallback for ID if stage2 result structure hasn't fully propagated in tests
-            voter_personality_id = result.get("personality_id") 
-            
+            voter_personality_id = result.get("personality_id")
+
             parsed_ranking = result.get("parsed_ranking", [])
             reasoning_text = result.get("ranking", "")
 
@@ -49,23 +50,28 @@ def record_votes(
                 if target_info:
                     # target_info is now {id: ..., name: ..., model: ...}
                     candidate_id = target_info.get("id") if isinstance(target_info, dict) else None
-                    candidate_name = target_info.get("name") if isinstance(target_info, dict) else str(target_info)
-                    candidate_model = target_info.get("model") if isinstance(target_info, dict) else candidate_name
+                    candidate_name = (
+                        target_info.get("name")
+                        if isinstance(target_info, dict)
+                        else str(target_info)
+                    )
+                    candidate_model = (
+                        target_info.get("model")
+                        if isinstance(target_info, dict)
+                        else candidate_name
+                    )
 
                     vote = Vote(
                         id=str(uuid.uuid4()),
                         conversation_id=conversation_id,
                         turn_number=turn_number,
-                        
                         voter_model=voter_model,
                         voter_personality_id=voter_personality_id,
-                        
                         candidate_model=candidate_model,
                         candidate_personality_id=candidate_id,
-                        
                         rank=rank,
                         label=label,
-                        reasoning=reasoning_text 
+                        reasoning=reasoning_text,
                     )
                     votes_to_insert.append(vote)
 
@@ -81,6 +87,7 @@ def record_votes(
         db.rollback()
     finally:
         db.close()
+
 
 # Legacy loader function - kept for interface compatibility but now empty/deprecated
 # The new ranking_service queries the DB directly.

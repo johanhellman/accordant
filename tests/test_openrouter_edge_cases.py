@@ -103,8 +103,9 @@ async def test_query_model_max_retries_exceeded():
             # Always raise error
             mock_client.post.side_effect = mock_error
 
-            with patch("backend.openrouter.LLM_MAX_RETRIES", 3), patch(
-                "asyncio.sleep", new_callable=AsyncMock
+            with (
+                patch("backend.openrouter.LLM_MAX_RETRIES", 3),
+                patch("asyncio.sleep", new_callable=AsyncMock),
             ):
                 result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
@@ -347,4 +348,3 @@ def test_get_semaphore_creates_once():
 
     # Should return the same instance
     assert semaphore1 is semaphore2
-

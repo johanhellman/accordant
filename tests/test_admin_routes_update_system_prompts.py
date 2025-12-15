@@ -8,8 +8,7 @@ These tests cover the complex logic in update_system_prompts including:
 - Non-dict incoming_data handling
 """
 
-import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import yaml
@@ -48,14 +47,20 @@ class TestUpdateSystemPromptsIsDefaultToggle:
 
         # Update with is_default=True to revert to default
         update_config = {
-            "base_system_prompt": {"value": "Should be ignored", "is_default": True, "source": "default"},
+            "base_system_prompt": {
+                "value": "Should be ignored",
+                "is_default": True,
+                "source": "default",
+            },
         }
 
         with (
             patch("backend.admin_routes.get_org_config_dir", return_value=str(config_dir)),
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
-            mock_get.return_value = {"base_system_prompt": {"value": "Default prompt", "is_default": True}}
+            mock_get.return_value = {
+                "base_system_prompt": {"value": "Default prompt", "is_default": True}
+            }
 
             await update_system_prompts(update_config, current_user=admin_user)
 
@@ -76,14 +81,20 @@ class TestUpdateSystemPromptsIsDefaultToggle:
 
         # Update with is_default=False to set custom value
         update_config = {
-            "base_system_prompt": {"value": "Custom org prompt", "is_default": False, "source": "custom"},
+            "base_system_prompt": {
+                "value": "Custom org prompt",
+                "is_default": False,
+                "source": "custom",
+            },
         }
 
         with (
             patch("backend.admin_routes.get_org_config_dir", return_value=str(config_dir)),
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
-            mock_get.return_value = {"base_system_prompt": {"value": "Custom org prompt", "is_default": False}}
+            mock_get.return_value = {
+                "base_system_prompt": {"value": "Custom org prompt", "is_default": False}
+            }
 
             await update_system_prompts(update_config, current_user=admin_user)
 
@@ -113,7 +124,9 @@ class TestUpdateSystemPromptsIsDefaultToggle:
             patch("backend.admin_routes.get_org_config_dir", return_value=str(config_dir)),
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
-            mock_get.return_value = {"base_system_prompt": {"value": "Initial", "is_default": False}}
+            mock_get.return_value = {
+                "base_system_prompt": {"value": "Initial", "is_default": False}
+            }
 
             await update_system_prompts(update_config, current_user=admin_user)
 
@@ -138,7 +151,11 @@ class TestUpdateSystemPromptsNestedComponents:
 
         update_config = {
             "chairman": {
-                "prompt": {"value": "Custom chairman prompt", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Custom chairman prompt",
+                    "is_default": False,
+                    "source": "custom",
+                },
             },
         }
 
@@ -211,7 +228,9 @@ class TestUpdateSystemPromptsNestedComponents:
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
             mock_get.return_value = {
-                "title_generation": {"prompt": {"value": "Custom title prompt", "is_default": False}}
+                "title_generation": {
+                    "prompt": {"value": "Custom title prompt", "is_default": False}
+                }
             }
 
             await update_system_prompts(update_config, current_user=admin_user)
@@ -234,7 +253,11 @@ class TestUpdateSystemPromptsNestedComponents:
 
         update_config = {
             "ranking": {
-                "prompt": {"value": "Custom ranking prompt", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Custom ranking prompt",
+                    "is_default": False,
+                    "source": "custom",
+                },
             },
         }
 
@@ -345,7 +368,9 @@ class TestUpdateSystemPromptsEdgeCases:
             patch("backend.admin_routes.get_org_config_dir", return_value=str(config_dir)),
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
-            mock_get.return_value = {"base_system_prompt": {"value": "Initial", "is_default": False}}
+            mock_get.return_value = {
+                "base_system_prompt": {"value": "Initial", "is_default": False}
+            }
 
             await update_system_prompts(update_config, current_user=admin_user)
 
@@ -422,9 +447,21 @@ class TestUpdateSystemPromptsEdgeCases:
         config_file.touch()
 
         update_config = {
-            "base_system_prompt": {"value": "Updated base", "is_default": False, "source": "custom"},
-            "stage1_response_structure": {"value": "Updated structure", "is_default": False, "source": "custom"},
-            "stage1_meta_structure": {"value": "Updated meta", "is_default": False, "source": "custom"},
+            "base_system_prompt": {
+                "value": "Updated base",
+                "is_default": False,
+                "source": "custom",
+            },
+            "stage1_response_structure": {
+                "value": "Updated structure",
+                "is_default": False,
+                "source": "custom",
+            },
+            "stage1_meta_structure": {
+                "value": "Updated meta",
+                "is_default": False,
+                "source": "custom",
+            },
             "chairman": {
                 "prompt": {"value": "Updated chairman", "is_default": False, "source": "custom"},
                 "model": "chairman-model",

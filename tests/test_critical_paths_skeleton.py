@@ -1207,7 +1207,6 @@ async def test_stage2_collect_rankings_success():
 async def test_stage2_collect_rankings_excludes_self():
     """Test stage2_collect_rankings excludes each personality's own response from ranking."""
     from backend.council import stage2_collect_rankings
-    from backend.council_helpers import RESPONSE_LABEL_PREFIX
 
     stage1_results = [
         {
@@ -1280,7 +1279,7 @@ async def test_stage2_collect_rankings_excludes_self():
         user_msg_2 = next((m for m in captured_messages[1] if m["role"] == "user"), None)
         assert user_msg_1 is not None
         assert user_msg_2 is not None
-        
+
         # One should contain Response A but not Response B (for personality2)
         # One should contain Response B but not Response A (for personality1)
         # Since we can't guarantee order, check that they're different
@@ -1574,7 +1573,9 @@ async def test_stage3_synthesize_final_includes_voting_details():
         # Find the user message with the chairman prompt
         user_message = next((m for m in messages if m["role"] == "user"), None)
         assert user_message is not None
-        assert "voting_details_text" in user_message["content"] or "Voter:" in user_message["content"]
+        assert (
+            "voting_details_text" in user_message["content"] or "Voter:" in user_message["content"]
+        )
 
 
 @pytest.mark.asyncio
@@ -1909,8 +1910,8 @@ async def test_query_model_timeout():
 @pytest.mark.asyncio
 async def test_query_model_max_retries_exceeded():
     """Test query_model returns None after max retries."""
-    from backend.openrouter import query_model
     from backend.config import LLM_MAX_RETRIES
+    from backend.openrouter import query_model
 
     mock_error = httpx.HTTPStatusError(
         "429 Too Many Requests", request=MagicMock(), response=MagicMock(status_code=429)
@@ -2020,9 +2021,7 @@ async def test_query_model_semaphore_concurrency():
     """Test query_model uses semaphore for concurrency control."""
     from backend.openrouter import query_model
 
-    mock_response = {
-        "choices": [{"message": {"content": "Test response"}}]
-    }
+    mock_response = {"choices": [{"message": {"content": "Test response"}}]}
 
     with patch("backend.openrouter.get_semaphore") as mock_semaphore:
         mock_semaphore_instance = AsyncMock()

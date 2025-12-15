@@ -5,7 +5,6 @@ import re
 from collections import defaultdict
 from typing import Any
 
-
 from .schema import MessageDict, Stage2Result
 
 # Constants for magic strings
@@ -109,12 +108,12 @@ def build_message_chain(
 
 
 def build_ranking_prompt(
-    user_query: str, 
-    responses_text: str, 
-    exclude_self: bool = False, 
+    user_query: str,
+    responses_text: str,
+    exclude_self: bool = False,
     prompt_template: str = None,
     enforced_context: str = "",
-    enforced_format: str = ""
+    enforced_format: str = "",
 ) -> str:
     """
     Build the ranking prompt template for Stage 2.
@@ -133,17 +132,13 @@ def build_ranking_prompt(
     peer_text = "your peers (anonymized)" if exclude_self else "different models (anonymized)"
 
     # Use provided template (instructions) or fall back to default instructions (handled by caller passing loaded prompt)
-    instructions = prompt_template if prompt_template else "" 
+    instructions = prompt_template if prompt_template else ""
 
     # Assemble the full prompt: Enforced Context + Custom Instructions + Enforced Format
     # If enforced strings are empty (not loaded), we fallback to hardcoded minimal or assume config is valid.
     # But now we expect them to be passed in.
 
-    full_prompt_template = (
-        f"{enforced_context}\n\n"
-        f"{instructions}\n\n"
-        f"{enforced_format}"
-    )
+    full_prompt_template = f"{enforced_context}\n\n{instructions}\n\n{enforced_format}"
 
     return full_prompt_template.format(
         user_query=user_query,
