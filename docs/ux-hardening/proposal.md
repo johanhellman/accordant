@@ -100,6 +100,11 @@ We have established a baseline of reliability tools without altering the codebas
 2.  **Refactoring**: `api.js` now uses a standardized `request` helper and `ApiError` class.
 3.  **Auth**: Token injection is centralized in the request helper.
 
-### Step 4: E2E Smoke Suite
-1.  Install Playwright.
-2.  Write `login.spec.js`.
+### Step 4: E2E Smoke Suite (Implemented)
+1.  **Status**: [x] Implemented
+2.  **Tooling**: Playwright installed and configured.
+3.  **Tests**: `login.spec.js` covers Landing -> Login -> Register -> Authenticated Empty State.
+4.  **Docs**: Added ADR-020 and updated Developer Guide.
+
+### Step 5: (Next Steps)
+Review metrics and expand test coverage.
