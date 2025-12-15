@@ -100,13 +100,13 @@
   flex: 1;
   padding: 1rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-soft);
   resize: none;
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;
-  background-color: var(--color-bg-primary);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-bg-secondary);
+  transition: all var(--duration-base);
   max-height: 150px;
   overflow-y: auto;
 }
@@ -114,25 +114,28 @@
 .message-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--shadow-glow);
+  background-color: var(--color-bg-primary);
 }
 
 .send-button {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-lg);
-  font-weight: 600;
+  border-radius: var(--radius-soft);
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.1s, opacity 0.2s;
+  transition: all var(--duration-base);
   height: 52px;
   margin-bottom: 2px;
+  box-shadow: var(--shadow-medium);
 }
 
 .send-button:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.35);
+  filter: brightness(1.05);
 }
 
 .send-button:disabled {
@@ -191,16 +194,14 @@
 .message-content {
   background-color: white;
   padding: 1.5rem;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  /* Card-like appearance */
+  border-radius: var(--radius-soft);
+  box-shadow: var(--shadow-soft);
   border: 1px solid var(--color-border);
 }
 
 .user-message .message-content {
-  background-color: #f0f9ff;
-  /* Very light blue for user */
-  border-color: #bae6fd;
+  background: var(--gradient-subtle);
+  border-color: var(--color-primary-border);
 }
 
 /* Markdown Content Styling */
@@ -256,11 +257,12 @@
   gap: 0.75rem;
   padding: 1rem;
   margin: 1rem 0;
-  background-color: #f8fafc;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  background: var(--gradient-subtle);
+  border-radius: var(--radius-soft);
+  border: 1px solid var(--color-primary-border);
   font-size: 0.9rem;
-  color: var(--color-text-secondary);
+  color: var(--color-primary);
+  font-weight: 500;
 }
 
 .spinner {
