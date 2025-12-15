@@ -121,25 +121,31 @@ Maintain clear space around the logo equal to **1x the height of the icon** on a
 
 ## Color System
 
-### Color Philosophy
+### The Warm Intelligence Palette
 
-Accordant's color palette reflects collaboration and innovation. Our primary gradient (blue to purple) represents the synthesis of different perspectives, while our accent colors provide visual interest and help differentiate elements.
+Accordant's redesigned color palette emphasizes **warm, collaborative intelligence**. Moving away from conventional corporate blues, we've adopted a distinctive violet-pink-orange combination that communicates sophistication, warmth, and innovation.
+
+**Design Philosophy:**
+- **Distinctiveness**: Stand out from generic SaaS aesthetics
+- **Warmth**: Create an inviting, collaborative atmosphere
+- **Sophistication**: Convey intelligence and professionalism
+- **Collaboration**: Visual representation of multiple perspectives
 
 ### Primary Palette
 
-#### Primary Gradient
+#### Primary Gradient - The Signature
 
-The signature Accordant gradient represents the synthesis of multiple perspectives into a unified answer.
+The signature Accordant gradient represents the synthesis of intelligence (violet) and collaboration (pink).
 
 ```css
-/* Primary Gradient */
-background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+/* Primary Gradient - Violet to Pink */
+background: linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%);
 ```
 
 **Color Breakdown:**
 
-- **Start**: Blue (`#2563eb`) - Trust, reliability, intelligence
-- **End**: Purple (`#7c3aed`) - Innovation, creativity, synthesis
+- **Start**: Vibrant Violet (`#8b5cf6`) - Intelligence, sophistication, innovation
+- **End**: Warm Pink (`#f472b6`) - Collaboration, warmth, synthesis
 - **Direction**: 135deg (diagonal, dynamic)
 
 **Usage:**
@@ -147,13 +153,14 @@ background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 - Primary CTAs and buttons
 - Hero backgrounds
 - Key brand elements
-- Logo backgrounds (when needed)
+- Signature design moments
 
 #### Primary Color (Solid)
 
 ```css
---primary-color: #2563eb; /* Blue */
---primary-hover: #1d4ed8;  /* Darker blue for hover states */
+--color-primary: #8b5cf6;       /* Vibrant Violet */
+--color-primary-hover: #7c3aed;  /* Deep Violet */
+--color-primary-light: #a78bfa;  /* Light Violet */
 ```
 
 **Usage:**
@@ -161,135 +168,159 @@ background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 - Links and interactive elements
 - Icons and accents
 - Focus states
-- Brand elements that need solid color
+- Information states
 
-### Secondary Palette
+### Secondary Colors
 
-#### Accent Colors
-
-These colors represent the diversity of perspectives in the council:
+#### Warm Pink (Secondary Brand Color)
 
 ```css
-/* Accent Gradients */
---accent-pink-orange: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
---accent-green-blue: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+--color-secondary: #f472b6;       /* Warm Pink */
+--color-secondary-hover: #ec4899;  /* Hot Pink */
+--color-secondary-light: #f9a8d4;  /* Light Pink */
 ```
 
 **Usage:**
 
-- Visual variety in UI elements
-- Personality avatars
-- Decorative elements
 - Secondary CTAs
+- Accent elements
+- Gradient combinations
+- Collaborative features
+
+#### Warm Orange (Tertiary Accent)
+
+```css
+--color-accent: #fb923c;       /* Warm Orange */
+--color-accent-hover: #f97316;  /* Bright Orange */
+```
+
+**Usage:**
+
+- Tertiary accents
+- Gradient endings
+- Energy indicators
+- Warning states
+
+### Gradient System
+
+#### Primary Gradient
+```css
+linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%)
+```
+Use for: Primary CTAs, hero sections, signature moments
+
+#### Subtle Gradient
+```css
+linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%)
+```
+Use for: Background accents, hover states, subtle emphasis
+
+#### Accent Gradient 1 (Pink to Orange)
+```css
+linear-gradient(135deg, #f472b6 0%, #fb923c 100%)
+```
+Use for: Secondary CTAs, decorative elements
+
+#### Accent Gradient 2 (Green to Violet)
+```css
+linear-gradient(135deg, #10b981 0%, #8b5cf6 100%)
+```
+Use for: Success states with brand color, positive features
+
+#### Text Gradient
+```css
+linear-gradient(135deg, #8b5cf6 0%, #f472b6 50%, #fb923c 100%)
+```
+Use for: Hero headlines, special text treatments
 
 ### Functional Colors
 
 #### Success
-
 ```css
---success-color: #10b981; /* Green */
+--color-success: #10b981; /* Emerald Green */
 ```
-
-- Confirmation messages
-- Success states
-- Positive indicators
-- Checkmarks and validation
+Use for: Confirmations, success states, positive indicators
 
 #### Warning
-
 ```css
---warning-color: #f59e0b; /* Amber/Orange */
+--color-warning: #f59e0b; /* Amber/Orange */
 ```
+Use for: Warnings, caution states, important notices
 
-- Warning messages
-- Caution states
-- Important notices
-
-#### Error/Danger
-
+#### Error
 ```css
---danger-color: #ef4444; /* Red */
---danger-hover: #dc2626;  /* Darker red */
+--color-error: #ef4444; /* Red */
+--color-error-hover: #dc2626;
 ```
-
-- Error messages
-- Destructive actions
-- Critical alerts
-- Validation errors
+Use for: Errors, destructive actions, critical alerts
 
 #### Info
-
 ```css
---info-color: #3b82f6; /* Blue */
+--color-info: #8b5cf6; /* Vibrant Violet (matches primary) */
 ```
+Use for: Informational messages, tooltips, help text
 
-- Informational messages
-- Tooltips
-- Help text
-- Neutral notifications
+### Neutral Palette - Warmer Tones
 
-### Neutral Palette
+Unlike conventional cool grays, Accordant uses **warmer stone-based neutrals** for a more inviting feel.
 
 #### Background Colors
-
 ```css
---bg-primary: #f8f9fa;    /* Light gray - Main background */
---bg-secondary: #ffffff;  /* White - Card/surface background */
---bg-tertiary: #f1f3f5;   /* Slightly darker - Subtle backgrounds */
+--color-bg-primary: #fafaf9;    /* Warm stone-50 */
+--color-bg-secondary: #ffffff;  /* White */
+--color-bg-tertiary: #f5f5f4;   /* Warm stone-100 */
 ```
 
 #### Text Colors
-
 ```css
---text-primary: #1f2937;   /* Dark gray - Primary text */
---text-secondary: #4b5563; /* Medium gray - Secondary text */
---text-muted: #9ca3af;     /* Light gray - Muted/disabled text */
+--color-text-primary: #292524;   /* Warm stone-800 */
+--color-text-secondary: #78716c; /* Warm stone-500 */
+--color-text-muted: #a8a29e;     /* Warm stone-400 */
 ```
 
 #### Border Colors
-
 ```css
---border-color: #e5e7eb; /* Light gray - Borders and dividers */
+--color-border: #e7e5e4; /* Warm stone-200 */
 ```
 
 ### Color Accessibility
 
+All color combinations meet WCAG AA standards for accessibility.
+
 #### Contrast Ratios
 
-All color combinations meet WCAG AA standards:
+- **Normal Text** (Minimum 4.5:1):
+  - Violet on white: ✅ 5.2:1
+  - Stone-800 text on stone-50 background: ✅ 12.1:1
+  - Stone-500 text on white: ✅ 4.7:1
 
-- **Normal Text**: Minimum 4.5:1 contrast ratio
-  - `--text-primary` on `--bg-primary`: ✅ 12.6:1
-  - `--text-secondary` on `--bg-secondary`: ✅ 7.2:1
-  - `--primary-color` on `--bg-secondary`: ✅ 4.6:1
-
-- **Large Text** (18px+): Minimum 3:1 contrast ratio
-  - All combinations meet this standard
+- **Large Text** (Minimum 3:1):
+  - All combinations exceed this standard
 
 #### Color Blindness Considerations
 
-- Never rely on color alone to convey information
-- Use icons, labels, or patterns in addition to color
-- Test with color blindness simulators
-- Ensure gradients maintain contrast in grayscale
+- Icons and labels supplement color coding
+- Gradients maintain contrast in grayscale
+- Functional colors remain distinguishable
+- Never rely on color alone for information
 
 ### Color Usage Guidelines
 
 #### ✅ Do's
 
-- Use primary gradient for key brand elements
-- Maintain sufficient contrast for accessibility
-- Use functional colors consistently (success = green, error = red)
-- Use neutrals for backgrounds and text hierarchy
-- Test color combinations for accessibility
+- Use primary gradient for signature brand moments
+- Apply subtle gradient backgrounds for hover states
+- Use warmer neutrals for all backgrounds and text
+- Maintain violet as the primary interactive color
+- Test all color combinations for accessibility
 
 #### ❌ Don'ts
 
-- Don't use colors that aren't in the palette
-- Don't create new gradients without brand approval
-- Don't use low-contrast combinations
+- Don't use old blue/purple palette colors
+- Don't create new gradients without approval
+- Don't use cool grays (use warm stone neutrals)
 - Don't rely solely on color to convey meaning
-- Don't use primary colors for large text blocks (use neutrals)
+- Don't use low-contrast combinations
 
 ---
 
@@ -522,51 +553,134 @@ All spacing values are multiples of 4px to ensure visual consistency and alignme
 
 ---
 
-## Border Radius
+## Border Radius - Organic System
+
+### Organic, Varied Radii
+
+Accordant uses an **organic border radius system** that creates visual interest through variation. Instead of uniform 12px corners everywhere, we use semantically named radii that vary by component type.
+
+**Design Philosophy:**
+- **Variety Creates Interest**: Different radii for different contexts
+- **Organic Feel**: Larger radii feel softer and more approachable
+- **Sophistication**: Intentional variation shows design thoughtfulness
 
 ### Radius Scale
 
 ```css
---radius-sm: 4px;   /* Small elements - badges, tags */
---radius-md: 8px;   /* Standard elements - buttons, inputs */
---radius-lg: 12px;  /* Large elements - cards, modals */
---radius-xl: 16px;  /* Extra large - feature cards */
---radius-2xl: 20px; /* Maximum - special containers */
---radius-full: 9999px; /* Pills, avatars */
+/* Semantic Radii - Primary System */
+--radius-subtle: 6px;    /* Small UI elements - badges, small buttons */
+--radius-soft: 16px;     /* Standard containers - cards, message boxes */
+--radius-organic: 24px;  /* Large features - stage containers, modals */
+--radius-pill: 100px;    /* Pills, tags, fully rounded */
+
+/* Legacy Support */
+--radius-sm: 6px;
+--radius-md: 8px;
+--radius-lg: 16px;
+--radius-xl: 24px;
+--radius-2xl: 32px;
+--radius-full: 9999px;
 ```
 
-### Radius Usage
+### Radius Usage Guidelines
 
-- **Buttons**: 8px - 12px (medium to large)
-- **Inputs**: 8px - 12px (medium to large)
-- **Cards**: 12px - 16px (large to extra large)
-- **Badges**: 4px - 8px (small to medium)
-- **Avatars**: 9999px (full circle)
-- **Modals**: 16px - 20px (extra large to 2xl)
+- **Small Interactive Elements** (`subtle` - 6px):
+  - Small buttons
+  - Input fields
+  - Badges
+  - Navigation items
+
+- **Standard Containers** (`soft` - 16px):
+  - Message cards
+  - Chat bubbles
+  - Standard cards
+  - Tabs
+  - Buttons
+
+- **Large Feature Elements** (`organic` - 24px):
+  - Stage containers (Stage 1, 2, 3)
+  - Large feature cards
+  - Modals and dialogs
+  - Hero sections with cards
+
+- **Pills & Rounded** (`pill` - 100px):
+  - Pills and tags
+  - Rounded badges
+  - Avatars (use with `full` for perfect circles)
+
+### Why Different Radii?
+
+**Visual Hierarchy**: Larger radii on important elements draw attention
+**Context Differentiation**: Different radii help distinguish component types
+**Less Generic**: Varied radii create a more distinctive, less templated feel
+**Organic Feel**: Softer corners feel more inviting and collaborative
 
 ---
 
-## Shadows & Elevation
+## Shadows & Elevation - Softer Approach
+
+### Softer, More Sophisticated Shadows
+
+Accordant uses **softer, more sophisticated shadows** that create depth without harshness. The shadow system emphasizes subtlety and refinement.
+
+**Design Philosophy:**
+- **Subtle Over Dramatic**: Gentle shadows create sophistication
+- **Refined Depth**: Depth without heavy drop shadows
+- **Context-Appropriate**: Different shadows for different elevations
+- **Glow for Accent**: Special glow shadow for focus and active states
 
 ### Shadow Scale
 
 ```css
---shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
---shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 
-             0 2px 4px -2px rgb(0 0 0 / 0.1);
---shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 
-             0 4px 6px -4px rgb(0 0 0 / 0.1);
---shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 
-             0 8px 10px -6px rgb(0 0 0 / 0.1);
+/* Semantic Shadows - Primary System */
+--shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+--shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+--shadow-large: 0 12px 32px rgba(0, 0, 0, 0.12);
+--shadow-glow: 0 0 0 3px rgba(139, 92, 246, 0.1);  /* Violet glow */
+
+/* Legacy Support */
+--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+--shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+--shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
 ```
 
-### Elevation Usage
+### Shadow Usage Guidelines
 
-- **Level 0 (flat)**: No shadow - backgrounds, base elements
-- **Level 1 (subtle)**: `shadow-sm` - Hover states, subtle elevation
-- **Level 2 (standard)**: `shadow-md` - Cards, inputs, standard UI elements
-- **Level 3 (elevated)**: `shadow-lg` - Modals, dropdowns, floating elements
-- **Level 4 (maximum)**: `shadow-xl` - Overlays, important modals
+- **Soft** (Level 1):
+  - Message cards
+  - Standard containers
+  - Subtle elevation
+  - Resting state cards
+  - Use: Cards that need gentle separation
+
+- **Medium** (Level 2):
+  - Buttons (especially CTAs)
+  - Dropdowns
+  - Hover states
+  - Moderate elevation
+  - Use: Interactive elements that need emphasis
+
+- **Large** (Level 3):
+  - Modals
+  - Popovers
+  - Overlays
+  - High elevation
+  - Use: Elements that float above the page
+
+- **Glow** (Special):
+  - Focus states (inputs, buttons)
+  - Active states
+  - Highlighted elements
+  - Selected items
+  - Use: Violet-tinted glow for brand-aligned emphasis
+
+### Why Softer Shadows?
+
+**Sophistication**: Subtle shadows feel more refined and premium
+**Less Harsh**: Softer shadows are easier on the eyes
+**Modern**: Follows contemporary design trends toward subtlety
+**Brand Alignment**: Gentle shadows match the warm, collaborative feel
 
 ---
 

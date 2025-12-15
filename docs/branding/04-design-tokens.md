@@ -21,23 +21,32 @@ Category (e.g., color)
 
 ## Color Tokens
 
+### Warm Intelligence Palette
+
+Accordant uses a distinctive **Warm Intelligence** color palette that emphasizes collaboration, warmth, and sophistication. This palette moves away from conventional corporate blues toward a more inviting violet and pink combination.
+
 ### CSS Custom Properties
 
 ```css
 :root {
-  /* Primary Colors */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: rgba(37, 99, 235, 0.1);
-  --color-primary-border: rgba(37, 99, 235, 0.2);
+  /* Primary - Warm, intelligent violet */
+  --color-primary: #8b5cf6;
+  --color-primary-dark: #7c3aed;
+  --color-primary-light: #a78bfa;
+  --color-primary-hover: #7c3aed;
+  --color-primary-subtle: rgba(139, 92, 246, 0.1);
+  --color-primary-border: rgba(139, 92, 246, 0.2);
 
-  /* Secondary Colors */
-  --color-secondary: #7c3aed;
-  --color-secondary-hover: #6d28d9;
+  /* Secondary - Warm pink for collaboration */
+  --color-secondary: #f472b6;
+  --color-secondary-hover: #ec4899;
+  --color-secondary-light: #f9a8d4;
 
-  /* Accent Colors */
-  --color-accent-pink: #ec4899;
-  --color-accent-orange: #f59e0b;
+  /* Accent - Warm orange */
+  --color-accent: #fb923c;
+  --color-accent-hover: #f97316;
+  --color-accent-pink: #f472b6;
+  --color-accent-orange: #fb923c;
   --color-accent-green: #10b981;
   --color-accent-blue: #3b82f6;
 
@@ -46,20 +55,20 @@ Category (e.g., color)
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-error-hover: #dc2626;
-  --color-info: #3b82f6;
+  --color-info: #8b5cf6;
 
-  /* Neutral Colors - Backgrounds */
-  --color-bg-primary: #f8f9fa;
+  /* Neutral Colors - Warmer grays */
+  --color-bg-primary: #fafaf9;
   --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #f1f3f5;
+  --color-bg-tertiary: #f5f5f4;
 
-  /* Neutral Colors - Text */
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #4b5563;
-  --color-text-muted: #9ca3af;
+  /* Text - Warmer tones */
+  --color-text-primary: #292524;
+  --color-text-secondary: #78716c;
+  --color-text-muted: #a8a29e;
 
-  /* Neutral Colors - Borders */
-  --color-border: #e5e7eb;
+  /* Borders - Warm */
+  --color-border: #e7e5e4;
 }
 ```
 
@@ -67,15 +76,18 @@ Category (e.g., color)
 
 ```css
 :root {
-  /* Primary Gradient */
-  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  
+  /* Primary Gradient - Violet to Pink */
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%);
+
+  /* Subtle Background Gradient */
+  --gradient-subtle: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
+
   /* Accent Gradients */
-  --gradient-accent-1: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
-  --gradient-accent-2: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-  
+  --gradient-accent-1: linear-gradient(135deg, #f472b6 0%, #fb923c 100%);
+  --gradient-accent-2: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%);
+
   /* Text Gradient */
-  --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%);
+  --gradient-text: linear-gradient(135deg, #8b5cf6 0%, #f472b6 50%, #fb923c 100%);
 }
 ```
 
@@ -84,18 +96,23 @@ Category (e.g., color)
 ```typescript
 export const colors = {
   primary: {
-    base: '#2563eb',
-    hover: '#1d4ed8',
-    light: 'rgba(37, 99, 235, 0.1)',
-    border: 'rgba(37, 99, 235, 0.2)',
+    base: '#8b5cf6',
+    dark: '#7c3aed',
+    light: '#a78bfa',
+    hover: '#7c3aed',
+    subtle: 'rgba(139, 92, 246, 0.1)',
+    border: 'rgba(139, 92, 246, 0.2)',
   },
   secondary: {
-    base: '#7c3aed',
-    hover: '#6d28d9',
+    base: '#f472b6',
+    hover: '#ec4899',
+    light: '#f9a8d4',
   },
   accent: {
-    pink: '#ec4899',
-    orange: '#f59e0b',
+    base: '#fb923c',
+    hover: '#f97316',
+    pink: '#f472b6',
+    orange: '#fb923c',
     green: '#10b981',
     blue: '#3b82f6',
   },
@@ -104,28 +121,29 @@ export const colors = {
     warning: '#f59e0b',
     error: '#ef4444',
     errorHover: '#dc2626',
-    info: '#3b82f6',
+    info: '#8b5cf6',
   },
   neutral: {
     bg: {
-      primary: '#f8f9fa',
+      primary: '#fafaf9',
       secondary: '#ffffff',
-      tertiary: '#f1f3f5',
+      tertiary: '#f5f5f4',
     },
     text: {
-      primary: '#1f2937',
-      secondary: '#4b5563',
-      muted: '#9ca3af',
+      primary: '#292524',
+      secondary: '#78716c',
+      muted: '#a8a29e',
     },
-    border: '#e5e7eb',
+    border: '#e7e5e4',
   },
 } as const;
 
 export const gradients = {
-  primary: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-  accent1: 'linear-gradient(135deg, #ec4899 0%, #f59e0b 100%)',
-  accent2: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-  text: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%)',
+  primary: 'linear-gradient(135deg, #8b5cf6 0%, #f472b6 100%)',
+  subtle: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%)',
+  accent1: 'linear-gradient(135deg, #f472b6 0%, #fb923c 100%)',
+  accent2: 'linear-gradient(135deg, #10b981 0%, #8b5cf6 100%)',
+  text: 'linear-gradient(135deg, #8b5cf6 0%, #f472b6 50%, #fb923c 100%)',
 } as const;
 ```
 
@@ -258,28 +276,53 @@ export const spacing = {
 
 ## Border Radius Tokens
 
+### Organic, Varied Radii
+
+Accordant uses an **organic border radius system** that creates visual interest through variation. Rather than uniform rounded corners, we use different radii for different components to create a more sophisticated, less generic feel.
+
 ### CSS Custom Properties
 
 ```css
 :root {
-  --radius-sm: 0.25rem;   /* 4px */
-  --radius-md: 0.5rem;    /* 8px */
-  --radius-lg: 0.75rem;   /* 12px */
-  --radius-xl: 1rem;     /* 16px */
-  --radius-2xl: 1.25rem; /* 20px */
+  /* Semantic Radii - New System */
+  --radius-subtle: 0.375rem;  /* 6px - Small UI elements */
+  --radius-soft: 1rem;        /* 16px - Cards, main containers */
+  --radius-organic: 1.5rem;   /* 24px - Feature elements, large cards */
+  --radius-pill: 100px;       /* Pills, badges */
+
+  /* Legacy Support - Gradual Migration */
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 1rem;       /* 16px */
+  --radius-xl: 1.5rem;     /* 24px */
+  --radius-2xl: 2rem;      /* 32px */
   --radius-full: 9999px;
 }
 ```
+
+### Usage Guidelines
+
+- **--radius-subtle (6px)**: Small buttons, inputs, badges
+- **--radius-soft (16px)**: Standard cards, message boxes, tabs
+- **--radius-organic (24px)**: Large feature cards, stage containers, modals
+- **--radius-pill (100px)**: Pills, tags, rounded badges
 
 ### JavaScript/TypeScript
 
 ```typescript
 export const radius = {
-  sm: '0.25rem',   // 4px
-  md: '0.5rem',    // 8px
-  lg: '0.75rem',   // 12px
-  xl: '1rem',      // 16px
-  '2xl': '1.25rem', // 20px
+  // New organic system
+  subtle: '0.375rem',  // 6px
+  soft: '1rem',        // 16px
+  organic: '1.5rem',   // 24px
+  pill: '100px',
+
+  // Legacy support
+  sm: '0.375rem',   // 6px
+  md: '0.5rem',     // 8px
+  lg: '1rem',       // 16px
+  xl: '1.5rem',     // 24px
+  '2xl': '2rem',    // 32px
   full: '9999px',
 } as const;
 ```
@@ -288,28 +331,50 @@ export const radius = {
 
 ## Shadow Tokens
 
+### Softer, More Sophisticated Shadows
+
+Accordant uses **softer, more sophisticated shadows** that create depth without harshness. The shadow system emphasizes subtlety and refinement over dramatic elevation changes.
+
 ### CSS Custom Properties
 
 ```css
 :root {
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 
-               0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 
-               0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 
-               0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* New Semantic Shadows */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-large: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 0 3px rgba(139, 92, 246, 0.1);  /* Focus/accent glow */
+
+  /* Legacy Support */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 ```
+
+### Usage Guidelines
+
+- **--shadow-soft**: Cards, message containers, subtle elevation
+- **--shadow-medium**: Buttons, dropdowns, moderate elevation
+- **--shadow-large**: Modals, popovers, high elevation
+- **--shadow-glow**: Focus states, active accents, highlights
 
 ### JavaScript/TypeScript
 
 ```typescript
 export const shadows = {
-  sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-  md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-  lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-  xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+  // New semantic shadows
+  soft: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+  medium: '0 4px 12px rgba(0, 0, 0, 0.08)',
+  large: '0 12px 32px rgba(0, 0, 0, 0.12)',
+  glow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+
+  // Legacy support
+  sm: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+  md: '0 4px 12px rgba(0, 0, 0, 0.08)',
+  lg: '0 12px 32px rgba(0, 0, 0, 0.12)',
+  xl: '0 20px 40px rgba(0, 0, 0, 0.15)',
 } as const;
 ```
 
@@ -495,22 +560,32 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563eb',
-          hover: '#1d4ed8',
+          DEFAULT: '#8b5cf6',
+          dark: '#7c3aed',
+          light: '#a78bfa',
+          hover: '#7c3aed',
+        },
+        secondary: {
+          DEFAULT: '#f472b6',
+          hover: '#ec4899',
+          light: '#f9a8d4',
         },
         // ... other colors
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      spacing: {
-        // ... spacing scale
-      },
       borderRadius: {
-        // ... radius scale
+        'subtle': '0.375rem',
+        'soft': '1rem',
+        'organic': '1.5rem',
+        'pill': '100px',
       },
       boxShadow: {
-        // ... shadow scale
+        'soft': '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+        'medium': '0 4px 12px rgba(0, 0, 0, 0.08)',
+        'large': '0 12px 32px rgba(0, 0, 0, 0.12)',
+        'glow': '0 0 0 3px rgba(139, 92, 246, 0.1)',
       },
     },
   },
