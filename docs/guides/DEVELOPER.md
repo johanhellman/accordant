@@ -45,6 +45,7 @@ The project currently uses minimal development tooling by design (see CONTRIBUTI
   - Format: `cd frontend && npm run format`
   - Check: `cd frontend && npm run format:check`
 - **Testing:** Vitest 2.1.8 configured with React Testing Library (test infrastructure ready)
+- **E2E Testing:** Playwright configured (`npm run test:e2e`)
 
 **Combined Commands (via Makefile):**
 
@@ -117,6 +118,7 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 
 - **Backend**: `uv run pytest` (or `uv run pytest --cov=backend --cov-report=html` for coverage reports).
 - **Frontend**: `cd frontend && npm test` (or `npm run test:coverage` for coverage).
+- **E2E (Smoke)**: `cd frontend && npm run test:e2e` (Requires backend running on port 8002).
 
 **Why Tests Are in Project Root:**
 
