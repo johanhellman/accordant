@@ -4,7 +4,7 @@ Complete setup instructions for Accordant LLM Council, including configuration o
 
 ## Prerequisites
 
-- **Python 3.10+** (3.13.2 recommended)
+- **Python 3.14+** (3.14.0 or later required)
 - **Node.js v20+** (v24.10.0 recommended)
 - **[uv](https://docs.astral.sh/uv/)** - Modern Python package manager
 - **npm** - Node.js package manager (comes with Node.js)
