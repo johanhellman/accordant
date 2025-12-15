@@ -26,7 +26,8 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Backend Runtime
-FROM python:3.12-slim
+# Using Python 3.14 as required by pyproject.toml (requires-python = ">=3.14")
+FROM python:3.14-slim
 
 WORKDIR /app
 

@@ -29,7 +29,7 @@
 
 **Backend:**
 
-- **Language**: Python 3.10+ (3.13.2 recommended)
+- **Language**: Python 3.14+ (3.14.0 or later required)
 - **Framework**: FastAPI 0.115.0+
 - **Package Manager**: uv (modern Python package manager)
 - **Test Framework**: pytest 8.0.0+ with pytest-asyncio, pytest-cov, pytest-mock
