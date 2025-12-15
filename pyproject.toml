@@ -1,9 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "accordant"
 version = "0.2.1"
 description = "Accordant"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.124.2",
     "uvicorn[standard]>=0.32.0",
@@ -55,7 +59,7 @@ dev = [
 [tool.ruff]
 # Line length matches .editorconfig
 line-length = 100
-target-version = "py310"
+target-version = "py314"
 
 # Enable formatting
 [tool.ruff.format]
@@ -115,3 +119,8 @@ skips = ["B101", "B106"]  # Skip assert_used (assertions are fine in tests) and 
 severity_level = "medium"
 # Confidence level: low, medium, high
 confidence_level = "medium"
+
+# Setuptools configuration
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
