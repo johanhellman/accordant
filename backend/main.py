@@ -276,7 +276,7 @@ async def get_documentation(doc_id: str):
         "privacy": "docs/legal/PRIVACY_POLICY.md",
         "terms": "docs/legal/TERMS_OF_USE.md",
         "faq": "docs/FAQ.md",  # General FAQ
-        "manual": "docs/USER_MANUAL.md",
+        "manual": "docs/guides/USER_MANUAL.md",
     }
     
     if doc_id not in valid_docs:
