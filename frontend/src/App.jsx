@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { MessageSquare, Settings, HelpCircle, User } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import ChatInterface from "./components/ChatInterface";
 import PersonalityManager from "./components/PersonalityManager";
@@ -309,6 +310,39 @@ function Dashboard() {
             {view === "user-settings" && <UserSettings />}
           </div>
         )}
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-bottom-nav">
+        <div className="mobile-nav-items">
+          <div
+            className={`mobile-nav-item ${view === "chat" ? "active" : ""}`}
+            onClick={() => setView("chat")}
+          >
+            <MessageSquare className="mobile-nav-icon" />
+            <span>Council</span>
+          </div>
+          {(user?.is_admin || user?.is_instance_admin) && (
+            <div
+              className={`mobile-nav-item ${["personalities", "users", "settings", "dashboard", "organizations"].includes(view) ? "active" : ""}`}
+              onClick={() => setView(user?.is_instance_admin ? "dashboard" : "personalities")}
+            >
+              <Settings className="mobile-nav-icon" />
+              <span>Settings</span>
+            </div>
+          )}
+          <a href="/help" className="mobile-nav-item">
+            <HelpCircle className="mobile-nav-icon" />
+            <span>Help</span>
+          </a>
+          <div
+            className={`mobile-nav-item ${view === "user-settings" ? "active" : ""}`}
+            onClick={() => setView("user-settings")}
+          >
+            <User className="mobile-nav-icon" />
+            <span>Account</span>
+          </div>
+        </div>
       </div>
     </div>
   );
