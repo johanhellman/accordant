@@ -95,9 +95,10 @@ We have established a baseline of reliability tools without altering the codebas
 - Fixed numerous React hook dependencies and unused variable warnings.
 - Resolved "dead code" in `SystemPromptsEditor.jsx` ensuring cleaner maintenance.
 - Fixed `UserManagement` and `Sidebar` tests to be robust against implementation details (using semantic roles and `within` scoping).
-### Step 3: Stabilize Shared Primitives
-1.  Refactor [`api.js`](file:///Users/johanhellman/Projects/LLM%20Experiments/accordant/frontend/src/api.js) error handling to a helper function `handleResponse(res)`.
-2.  Ensure `authToken` management is robust.
+### Step 3: Stabilize Shared Primitives (Implemented)
+1.  **Status**: [x] Implemented
+2.  **Refactoring**: `api.js` now uses a standardized `request` helper and `ApiError` class.
+3.  **Auth**: Token injection is centralized in the request helper.
 
 ### Step 4: E2E Smoke Suite
 1.  Install Playwright.
