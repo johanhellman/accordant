@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from backend import storage
 from backend.streaming import run_council_generator
 
 
@@ -41,12 +40,20 @@ class TestStreaming:
 
         # Mock all stage functions
         with (
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
-            patch("backend.streaming.stage2_collect_rankings", new_callable=AsyncMock) as mock_stage2,
-            patch("backend.streaming.stage3_synthesize_final", new_callable=AsyncMock) as mock_stage3,
-            patch("backend.streaming.generate_conversation_title", new_callable=AsyncMock) as mock_title,
+            patch(
+                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
+            ) as mock_stage1,
+            patch(
+                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
+            ) as mock_stage2,
+            patch(
+                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
+            ) as mock_stage3,
+            patch(
+                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
+            ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.record_votes") as mock_record_votes,
+            patch("backend.streaming.record_votes"),
             patch("backend.streaming.add_user_message") as mock_add_user,
             patch("backend.streaming.add_assistant_message") as mock_add_assistant,
             patch("backend.streaming.update_conversation_title") as mock_update_title,
@@ -123,17 +130,32 @@ class TestStreaming:
 
         # Mock all stage functions
         with (
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
-            patch("backend.streaming.stage2_collect_rankings", new_callable=AsyncMock) as mock_stage2,
-            patch("backend.streaming.stage3_synthesize_final", new_callable=AsyncMock) as mock_stage3,
-            patch("backend.streaming.generate_conversation_title", new_callable=AsyncMock) as mock_title,
+            patch(
+                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
+            ) as mock_stage1,
+            patch(
+                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
+            ) as mock_stage2,
+            patch(
+                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
+            ) as mock_stage3,
+            patch(
+                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
+            ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.record_votes") as mock_record_votes,
-            patch("backend.streaming.add_user_message") as mock_add_user,
-            patch("backend.streaming.add_assistant_message") as mock_add_assistant,
+            patch("backend.streaming.record_votes"),
+            patch("backend.streaming.add_user_message"),
+            patch("backend.streaming.add_assistant_message"),
             patch("backend.streaming.update_conversation_title") as mock_update_title,
         ):
-            mock_stage1.return_value = [{"model": "m1", "response": "Response", "personality_id": "p1", "personality_name": "P1"}]
+            mock_stage1.return_value = [
+                {
+                    "model": "m1",
+                    "response": "Response",
+                    "personality_id": "p1",
+                    "personality_name": "P1",
+                }
+            ]
             mock_stage2.return_value = ([], {})
             mock_stage3.return_value = {"model": "chairman", "response": "Final"}
             mock_calc_rankings.return_value = []
@@ -169,8 +191,10 @@ class TestStreaming:
 
         # Mock add_user_message to succeed, but stage1 to raise exception
         with (
-            patch("backend.streaming.add_user_message") as mock_add_user,
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
+            patch("backend.streaming.add_user_message"),
+            patch(
+                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
+            ) as mock_stage1,
         ):
             mock_stage1.side_effect = Exception("Test error")
 
@@ -208,13 +232,21 @@ class TestStreaming:
         }
 
         with (
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
-            patch("backend.streaming.stage2_collect_rankings", new_callable=AsyncMock) as mock_stage2,
-            patch("backend.streaming.stage3_synthesize_final", new_callable=AsyncMock) as mock_stage3,
-            patch("backend.streaming.generate_conversation_title", new_callable=AsyncMock) as mock_title,
+            patch(
+                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
+            ) as mock_stage1,
+            patch(
+                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
+            ) as mock_stage2,
+            patch(
+                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
+            ) as mock_stage3,
+            patch(
+                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
+            ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.add_user_message") as mock_add_user,
-            patch("backend.streaming.add_assistant_message") as mock_add_assistant,
+            patch("backend.streaming.add_user_message"),
+            patch("backend.streaming.add_assistant_message"),
         ):
             mock_stage1.return_value = []  # Empty results
             mock_stage2.return_value = ([], {})
@@ -249,18 +281,40 @@ class TestStreaming:
         }
 
         with (
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
-            patch("backend.streaming.stage2_collect_rankings", new_callable=AsyncMock) as mock_stage2,
-            patch("backend.streaming.stage3_synthesize_final", new_callable=AsyncMock) as mock_stage3,
-            patch("backend.streaming.generate_conversation_title", new_callable=AsyncMock) as mock_title,
+            patch(
+                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
+            ) as mock_stage1,
+            patch(
+                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
+            ) as mock_stage2,
+            patch(
+                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
+            ) as mock_stage3,
+            patch(
+                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
+            ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
             patch("backend.streaming.record_votes") as mock_record_votes,
-            patch("backend.streaming.add_user_message") as mock_add_user,
-            patch("backend.streaming.add_assistant_message") as mock_add_assistant,
+            patch("backend.streaming.add_user_message"),
+            patch("backend.streaming.add_assistant_message"),
         ):
-            mock_stage1.return_value = [{"model": "m1", "response": "Response", "personality_id": "p1", "personality_name": "P1"}]
+            mock_stage1.return_value = [
+                {
+                    "model": "m1",
+                    "response": "Response",
+                    "personality_id": "p1",
+                    "personality_name": "P1",
+                }
+            ]
             mock_stage2.return_value = (
-                [{"model": "m1", "personality_name": "P1", "ranking": "Rank", "parsed_ranking": ["A"]}],
+                [
+                    {
+                        "model": "m1",
+                        "personality_name": "P1",
+                        "ranking": "Rank",
+                        "parsed_ranking": ["A"],
+                    }
+                ],
                 {"A": "P1"},
             )
             mock_stage3.return_value = {"model": "chairman", "response": "Final"}
@@ -280,5 +334,6 @@ class TestStreaming:
             # record_votes(conversation_id, stage2_results, label_to_model, conversation_title=..., turn_number=..., user_id=..., org_id=...)
             assert call_args[0][0] == conv_id  # conversation_id
             # conversation_title is passed as keyword arg: conversation_title=conversation_history.get("title", "Unknown")
-            assert call_args[1]["conversation_title"] == "Test Title"  # conversation_title (as keyword arg)
-
+            assert (
+                call_args[1]["conversation_title"] == "Test Title"
+            )  # conversation_title (as keyword arg)

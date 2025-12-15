@@ -62,7 +62,9 @@ class TestStage2PersonalityModeEdgeCases:
     """Additional edge case tests for _stage2_personality_mode."""
 
     @pytest.mark.asyncio
-    async def test_stage2_personality_mode_all_responses_filtered_out(self, mock_personalities, mock_system_prompts):
+    async def test_stage2_personality_mode_all_responses_filtered_out(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage2_personality_mode when all stage1_results are filtered out."""
         user_query = "What is Python?"
         # All responses belong to personality1, so personality2 will see empty filtered_responses_text
@@ -87,7 +89,9 @@ class TestStage2PersonalityModeEdgeCases:
 
         mock_ranking_responses = [
             {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"},  # personality1 sees Response B
-            {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"},  # personality2 sees nothing, but still gets a response
+            {
+                "content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"
+            },  # personality2 sees nothing, but still gets a response
         ]
 
         with (
@@ -106,7 +110,9 @@ class TestStage2PersonalityModeEdgeCases:
             assert len(label_to_model) == 2
 
     @pytest.mark.asyncio
-    async def test_stage2_personality_mode_empty_filtered_responses(self, mock_personalities, mock_system_prompts):
+    async def test_stage2_personality_mode_empty_filtered_responses(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage2_personality_mode when filtered_responses_text is empty."""
         user_query = "What is Python?"
         # Single response from personality1, so personality2 sees it, but personality1 sees nothing
@@ -143,7 +149,9 @@ class TestStage2PersonalityModeEdgeCases:
             assert len(stage2_results) == 2
 
     @pytest.mark.asyncio
-    async def test_stage2_personality_mode_query_exception(self, mock_personalities, mock_system_prompts):
+    async def test_stage2_personality_mode_query_exception(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage2_personality_mode handles exceptions from query_model."""
         user_query = "What is Python?"
         stage1_results = [
@@ -187,7 +195,9 @@ class TestStage2PersonalityModeEdgeCases:
                 pass
 
     @pytest.mark.asyncio
-    async def test_stage2_personality_mode_many_stage1_results(self, mock_personalities, mock_system_prompts):
+    async def test_stage2_personality_mode_many_stage1_results(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage2_personality_mode with many stage1_results (more than 26)."""
         user_query = "What is Python?"
         # Create 30 stage1_results (more than 26 letters)
@@ -228,7 +238,9 @@ class TestStage2PersonalityModeEdgeCases:
             assert len(label_to_model) == 30  # Should have labels for all 30 results
 
     @pytest.mark.asyncio
-    async def test_stage2_personality_mode_no_matching_personality_id(self, mock_personalities, mock_system_prompts):
+    async def test_stage2_personality_mode_no_matching_personality_id(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage2_personality_mode when stage1_results have personality_id that doesn't match any active personality."""
         user_query = "What is Python?"
         # stage1_results with personality_id that doesn't match any active personality
@@ -271,7 +283,9 @@ class TestStage1PersonalityModeEdgeCases:
     """Additional edge case tests for _stage1_personality_mode."""
 
     @pytest.mark.asyncio
-    async def test_stage1_personality_mode_no_temperature(self, mock_personalities, mock_system_prompts):
+    async def test_stage1_personality_mode_no_temperature(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage1_personality_mode when personality has no temperature field."""
         user_query = "What is Python?"
         history_context = []
@@ -331,7 +345,9 @@ class TestStage1PersonalityModeEdgeCases:
             assert results == []
 
     @pytest.mark.asyncio
-    async def test_stage1_personality_mode_mixed_temperature_values(self, mock_personalities, mock_system_prompts):
+    async def test_stage1_personality_mode_mixed_temperature_values(
+        self, mock_personalities, mock_system_prompts
+    ):
         """Test _stage1_personality_mode with personalities having different temperature values."""
         user_query = "What is Python?"
         history_context = []
@@ -370,7 +386,9 @@ class TestStage1PersonalityModeEdgeCases:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=personalities_mixed_temp),
+            patch(
+                "backend.council.get_active_personalities", return_value=personalities_mixed_temp
+            ),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
         ):
@@ -392,7 +410,9 @@ class TestStage3SynthesizeFinalEdgeCases:
     """Additional edge case tests for stage3_synthesize_final."""
 
     @pytest.mark.asyncio
-    async def test_stage3_synthesize_final_empty_voting_details(self, mock_system_prompts, mock_models_config):
+    async def test_stage3_synthesize_final_empty_voting_details(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test stage3_synthesize_final handles empty voting_details_text."""
         user_query = "What is Python?"
         stage1_results = [
@@ -451,7 +471,9 @@ class TestStage3SynthesizeFinalEdgeCases:
             assert "Voter: Personality 1" in chairman_prompt
 
     @pytest.mark.asyncio
-    async def test_stage3_synthesize_final_missing_label_in_label_to_model(self, mock_system_prompts, mock_models_config):
+    async def test_stage3_synthesize_final_missing_label_in_label_to_model(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test stage3_synthesize_final handles missing labels in label_to_model."""
         user_query = "What is Python?"
         stage1_results = [
@@ -467,7 +489,10 @@ class TestStage3SynthesizeFinalEdgeCases:
                 "model": "openai/gpt-4",
                 "personality_name": "Personality 1",
                 "ranking": f"Ranking: {RESPONSE_LABEL_PREFIX}A",
-                "parsed_ranking": [f"{RESPONSE_LABEL_PREFIX}A", f"{RESPONSE_LABEL_PREFIX}B"],  # B not in label_to_model
+                "parsed_ranking": [
+                    f"{RESPONSE_LABEL_PREFIX}A",
+                    f"{RESPONSE_LABEL_PREFIX}B",
+                ],  # B not in label_to_model
             },
         ]
         label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}  # Missing B
@@ -511,7 +536,9 @@ class TestStage3SynthesizeFinalEdgeCases:
             assert "Unknown" in chairman_prompt or f"{RESPONSE_LABEL_PREFIX}B" in chairman_prompt
 
     @pytest.mark.asyncio
-    async def test_stage3_synthesize_final_stage2_results_missing_model(self, mock_system_prompts, mock_models_config):
+    async def test_stage3_synthesize_final_stage2_results_missing_model(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test stage3_synthesize_final handles stage2_results missing model field."""
         user_query = "What is Python?"
         stage1_results = [
@@ -564,7 +591,9 @@ class TestGenerateConversationTitleEdgeCases:
     """Additional edge case tests for generate_conversation_title."""
 
     @pytest.mark.asyncio
-    async def test_generate_conversation_title_whitespace_stripping(self, mock_system_prompts, mock_models_config):
+    async def test_generate_conversation_title_whitespace_stripping(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test generate_conversation_title handles whitespace-only content after stripping."""
         org_id = "test-org"
         user_query = "Test query"
@@ -577,12 +606,16 @@ class TestGenerateConversationTitleEdgeCases:
             # Response with only whitespace after stripping quotes
             mock_query.return_value = {"content": '   "   "   '}
 
-            title = await generate_conversation_title(user_query, org_id, "fake-key", "https://fake.url")
+            title = await generate_conversation_title(
+                user_query, org_id, "fake-key", "https://fake.url"
+            )
 
             assert title == "New Conversation"
 
     @pytest.mark.asyncio
-    async def test_generate_conversation_title_newline_only(self, mock_system_prompts, mock_models_config):
+    async def test_generate_conversation_title_newline_only(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test generate_conversation_title handles newline-only content."""
         org_id = "test-org"
         user_query = "Test query"
@@ -594,12 +627,16 @@ class TestGenerateConversationTitleEdgeCases:
         ):
             mock_query.return_value = {"content": "\n\n\n"}
 
-            title = await generate_conversation_title(user_query, org_id, "fake-key", "https://fake.url")
+            title = await generate_conversation_title(
+                user_query, org_id, "fake-key", "https://fake.url"
+            )
 
             assert title == "New Conversation"
 
     @pytest.mark.asyncio
-    async def test_generate_conversation_title_single_quote(self, mock_system_prompts, mock_models_config):
+    async def test_generate_conversation_title_single_quote(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test generate_conversation_title handles single quote characters."""
         org_id = "test-org"
         user_query = "Test query"
@@ -611,7 +648,9 @@ class TestGenerateConversationTitleEdgeCases:
         ):
             mock_query.return_value = {"content": "'Quoted Title'"}
 
-            title = await generate_conversation_title(user_query, org_id, "fake-key", "https://fake.url")
+            title = await generate_conversation_title(
+                user_query, org_id, "fake-key", "https://fake.url"
+            )
 
             # Should strip single quotes
             assert title == "Quoted Title"
@@ -619,7 +658,9 @@ class TestGenerateConversationTitleEdgeCases:
             assert not title.endswith("'")
 
     @pytest.mark.asyncio
-    async def test_generate_conversation_title_mixed_quotes(self, mock_system_prompts, mock_models_config):
+    async def test_generate_conversation_title_mixed_quotes(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test generate_conversation_title handles mixed quote types."""
         org_id = "test-org"
         user_query = "Test query"
@@ -629,15 +670,19 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
         ):
-            mock_query.return_value = {"content": '"Title with \'nested\' quotes"'}
+            mock_query.return_value = {"content": "\"Title with 'nested' quotes\""}
 
-            title = await generate_conversation_title(user_query, org_id, "fake-key", "https://fake.url")
+            title = await generate_conversation_title(
+                user_query, org_id, "fake-key", "https://fake.url"
+            )
 
             # Should strip outer quotes but preserve inner quotes
             assert "nested" in title
 
     @pytest.mark.asyncio
-    async def test_generate_conversation_title_very_long_title(self, mock_system_prompts, mock_models_config):
+    async def test_generate_conversation_title_very_long_title(
+        self, mock_system_prompts, mock_models_config
+    ):
         """Test generate_conversation_title truncates very long titles."""
         org_id = "test-org"
         user_query = "Test query"
@@ -650,7 +695,9 @@ class TestGenerateConversationTitleEdgeCases:
         ):
             mock_query.return_value = {"content": very_long_title}
 
-            title = await generate_conversation_title(user_query, org_id, "fake-key", "https://fake.url")
+            title = await generate_conversation_title(
+                user_query, org_id, "fake-key", "https://fake.url"
+            )
 
             assert len(title) == 50
             assert title.endswith("...")

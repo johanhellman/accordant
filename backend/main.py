@@ -15,29 +15,30 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 # Register MIME types explicitly to ensure correct content types are served
 # This is critical for CSS and JS files to be properly recognized by browsers
-mimetypes.add_type('text/css', '.css')
-mimetypes.add_type('application/javascript', '.js')
-mimetypes.add_type('application/javascript', '.mjs')
-mimetypes.add_type('application/json', '.json')
-mimetypes.add_type('image/svg+xml', '.svg')
-mimetypes.add_type('image/png', '.png')
-mimetypes.add_type('image/jpeg', '.jpg')
-mimetypes.add_type('image/jpeg', '.jpeg')
-mimetypes.add_type('image/gif', '.gif')
-mimetypes.add_type('image/webp', '.webp')
-mimetypes.add_type('font/woff', '.woff')
-mimetypes.add_type('font/woff2', '.woff2')
-mimetypes.add_type('font/ttf', '.ttf')
-mimetypes.add_type('font/otf', '.otf')
-mimetypes.add_type('application/x-font-ttf', '.ttf')
-mimetypes.add_type('application/font-woff', '.woff')
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("application/javascript", ".mjs")
+mimetypes.add_type("application/json", ".json")
+mimetypes.add_type("image/svg+xml", ".svg")
+mimetypes.add_type("image/png", ".png")
+mimetypes.add_type("image/jpeg", ".jpg")
+mimetypes.add_type("image/jpeg", ".jpeg")
+mimetypes.add_type("image/gif", ".gif")
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("font/woff", ".woff")
+mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("font/ttf", ".ttf")
+mimetypes.add_type("font/otf", ".otf")
+mimetypes.add_type("application/x-font-ttf", ".ttf")
+mimetypes.add_type("application/font-woff", ".woff")
 
-from . import admin_routes, admin_users_routes, org_routes, storage
+from . import admin_routes, admin_users_routes, models, org_routes, storage
 from .database import get_system_db, system_engine
-from . import models
 
 # Create tables on startup (System DB only - Tenants created on demand)
 models.SystemBase.metadata.create_all(bind=system_engine)
+
+from sqlalchemy.orm import Session
 
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -53,19 +54,18 @@ from .council import (
     run_full_council,
 )
 from .logging_config import setup_logging
-from .organizations import get_org_api_config, list_orgs
+from .organizations import get_org_api_config
 from .schema import (
+    ChangePasswordRequest,
     Conversation,
     ConversationMetadata,
     CreateConversationRequest,
-    SendMessageRequest,
     RegistrationRequest,
-    ChangePasswordRequest
+    SendMessageRequest,
 )
 from .streaming import run_council_generator
-from .users import User, UserCreate, UserInDB, UserResponse, create_user, get_user
+from .users import User, UserResponse, get_user
 from .voting_history import record_votes
-from sqlalchemy.orm import Session
 
 # --- Helper Functions ---
 
@@ -194,19 +194,22 @@ if os.getenv("ENVIRONMENT", "").lower() in ("production", "prod") and (
 # Must be added before static files are mounted
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
 class StaticCacheMiddleware(BaseHTTPMiddleware):
     """Add cache-control and CORS headers to static asset responses."""
-    
+
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        
+
         # Add cache headers and CORS headers for static assets (CSS, JS, images, fonts)
         if request.url.path.startswith("/assets/"):
             # Vite builds assets with content hashes, so we can cache aggressively
             # Cache for 1 year, but require revalidation (stale-while-revalidate)
-            response.headers["Cache-Control"] = "public, max-age=31536000, stale-while-revalidate=86400"
+            response.headers["Cache-Control"] = (
+                "public, max-age=31536000, stale-while-revalidate=86400"
+            )
             response.headers["X-Content-Type-Options"] = "nosniff"
-            
+
             # Add CORS headers for module scripts with crossorigin attribute
             # Required for ES modules loaded with crossorigin="anonymous"
             origin = request.headers.get("origin")
@@ -218,7 +221,7 @@ class StaticCacheMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "*"
-        
+
         return response
 
 
@@ -229,42 +232,45 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - COEP: Relax to unsafe-none to allow external scripts (analytics)
     - CSP: Restrict scripts to self and trusted domains
     """
+
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        
+
         # 1. Permissions-Policy
         # Disable FLoC (interest-cohort) which causes console warnings
         response.headers["Permissions-Policy"] = "interest-cohort=()"
-        
+
         # 2. Cross-Origin-Embedder-Policy (COEP)
-        # Must be unsafe-none to allow loading resources from other origins 
+        # Must be unsafe-none to allow loading resources from other origins
         # that don't send CORP headers (like many analytics scripts)
         response.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
-        
+
         # 3. Content-Security-Policy (CSP)
         # Prudent domain whitelisting
         # Get allowed analytics domain from env
         analytics_domain = os.getenv("VITE_PLAUSIBLE_DOMAIN") or os.getenv("PLAUSIBLE_DOMAIN")
-        
+
         # Base script-src: 'self' and 'unsafe-inline' (needed for some React/Vite inlines)
         script_src = ["'self'", "'unsafe-inline'"]
-        
+
         if analytics_domain:
             # Add the analytics domain to the whitelist
             script_src.append(f"https://{analytics_domain}")
-            
+
         csp_value = f"script-src {' '.join(script_src)}; object-src 'none'; base-uri 'self';"
         response.headers["Content-Security-Policy"] = csp_value
-        
+
         return response
+
 
 # Register SecurityHeadersMiddleware BEFORE StaticCacheMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StaticCacheMiddleware)
 
 
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 
 @app.get("/api/docs/{doc_id}")
 async def get_documentation(doc_id: str):
@@ -278,25 +284,27 @@ async def get_documentation(doc_id: str):
         "faq": "docs/FAQ.md",  # General FAQ
         "manual": "docs/guides/USER_MANUAL.md",
     }
-    
+
     if doc_id not in valid_docs:
         raise HTTPException(status_code=404, detail="Document not found")
-        
+
     file_path = os.path.join(os.getcwd(), valid_docs[doc_id])
-    
+
     if not os.path.exists(file_path):
         # Fallback for dev environment or if files moved
-        # Try finding them relative to where main.py is if cwd is different? 
+        # Try finding them relative to where main.py is if cwd is different?
         # But os.getcwd() usually works for this project structure.
         logger.error(f"Documentation file not found: {file_path}")
         raise HTTPException(status_code=404, detail="Document content missing")
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
-        
+
     return {"content": content}
 
+
 # ... (Auth Routes and others) ...
+
 
 @app.get("/api/health")
 async def health_check():
@@ -305,11 +313,10 @@ async def health_check():
     Checks backend responsiveness and storage writability.
     """
     import time
-    from pathlib import Path
     from datetime import datetime
 
     start_time = time.time()
-    
+
     # Check storage
     storage_status = "ok"
     writable = False
@@ -329,12 +336,11 @@ async def health_check():
     process_time = (time.time() - start_time) * 1000
 
     status_overall = "healthy" if writable else "unhealthy"
-    
+
     # Service Unavailable if unhealthy
     if status_overall == "unhealthy":
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Service unhealthy"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service unhealthy"
         )
 
     return {
@@ -343,18 +349,15 @@ async def health_check():
         "version": "0.3.0",  # Should ideally match config
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "checks": {
-            "backend": {
-                "status": "ok",
-                "response_time_ms": round(process_time, 2)
-            },
+            "backend": {"status": "ok", "response_time_ms": round(process_time, 2)},
             "storage": {
                 "status": storage_status,
                 "writable": writable,
                 "data_dir": data_dir,
-                "type": "sqlite"
-            }
+                "type": "sqlite",
+            },
         },
-        "response_time_ms": round(process_time, 2)
+        "response_time_ms": round(process_time, 2),
     }
 
 
@@ -367,7 +370,7 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_syst
     Atomic registration of User and Organization.
     Prevents orphaned users by wrapping both creations in a single transaction.
     """
-    
+
     # 1. Validation
     existing_user = get_user(reg_data.username, db=db)
     if existing_user:
@@ -376,77 +379,76 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_syst
         )
 
     if reg_data.mode == "create_org" and not reg_data.org_name:
-         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Organization name required for creation"
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization name required for creation",
         )
-         
+
     # 2. Preparation
     user_id = str(uuid.uuid4())
     hashed_password = get_password_hash(reg_data.password)
-    
+
     try:
         # 3. Execution (Atomic)
         # We use explicit begin/commit matching schema in main dependencies, or explicit logical blocks
-        
+
         # Determine Admin Status
         # If this is the VERY FIRST user in the system, they become Instance Admin
         user_count = db.query(models.User).count()
-        is_first_user = (user_count == 0)
-        
+        is_first_user = user_count == 0
+
         new_org = None
         org_id = None
-        
+
         if reg_data.mode == "create_org":
             # Create User (temporarily without Org)
             db_user = models.User(
                 id=user_id,
                 username=reg_data.username,
                 password_hash=hashed_password,
-                is_admin=True, # Creating org makes you admin of it
+                is_admin=True,  # Creating org makes you admin of it
                 is_instance_admin=is_first_user,
-                org_id=None 
+                org_id=None,
             )
             db.add(db_user)
-            db.flush() # User now "exists" in transaction with ID
-            
+            db.flush()  # User now "exists" in transaction with ID
+
             # Create Org
             org_id = str(uuid.uuid4())
             new_org = models.Organization(
-                id=org_id,
-                name=reg_data.org_name,
-                owner_id=user_id,
-                settings={},
-                api_config={}
+                id=org_id, name=reg_data.org_name, owner_id=user_id, settings={}, api_config={}
             )
             db.add(new_org)
             db.flush()
-            
+
             # Link User to Org
             db_user.org_id = org_id
-            
+
             # Ensure physical directories exist (Personalities etc)
             # The Tenant DB will be created on first access (get_tenant_session)
             # But we still create the data folders for file-artifacts
             org_dir = os.path.join("data", "organizations", org_id)
             os.makedirs(os.path.join(org_dir, "personalities"), exist_ok=True)
             os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
-            
+
         elif reg_data.mode == "join_org":
-             # Placeholder for invite logic
-             raise HTTPException(status_code=501, detail="Join organization via invite not yet implemented")
-             
+            # Placeholder for invite logic
+            raise HTTPException(
+                status_code=501, detail="Join organization via invite not yet implemented"
+            )
+
         # Commit Transaction
         db.commit()
-        
+
         logger.info(f"Registered user {reg_data.username} and org {org_id} atomically.")
-        
+
         # 4. Token Generation
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": reg_data.username}, expires_delta=access_token_expires
         )
         return {"access_token": access_token, "token_type": "bearer"}
-        
+
     except Exception as e:
         db.rollback()
         logger.error(f"Registration failed: {e}")
@@ -454,7 +456,9 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_syst
 
 
 @app.post("/api/auth/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)
+):
     """Login to get access token."""
     user = get_user(form_data.username, db=db)
     if not user or not verify_password(form_data.password, user.password_hash):
@@ -474,25 +478,25 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 async def change_password(
     request: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_system_db)
+    db: Session = Depends(get_system_db),
 ):
     """Change the current user's password."""
     # 1. Verify current password
     user_in_db = get_user(current_user.username, db=db)
     if not user_in_db or not verify_password(request.current_password, user_in_db.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect current password"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect current password"
         )
-    
+
     # 2. Update password
     new_hash = get_password_hash(request.new_password)
     from .users import update_user_password
+
     success = update_user_password(current_user.id, new_hash)
-    
+
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update password")
-        
+
     logger.info(f"User {current_user.username} changed their password.")
     return {"status": "success", "message": "Password updated successfully"}
 
@@ -522,35 +526,36 @@ async def export_data(current_user: User = Depends(get_current_user)):
         "org_id": current_user.org_id,
         "roles": {
             "is_admin": current_user.is_admin,
-            "is_instance_admin": current_user.is_instance_admin
+            "is_instance_admin": current_user.is_instance_admin,
         },
-        "exported_at": datetime.utcnow().isoformat()
+        "exported_at": datetime.utcnow().isoformat(),
     }
-    
+
     # 2. Get All Conversations (Full Content)
     conv_metadata = storage.list_conversations(current_user.id, current_user.org_id)
     full_conversations = []
-    
+
     for meta in conv_metadata:
         conv_id = meta["id"]
         full_conv = storage.get_conversation(conv_id, current_user.org_id)
         if full_conv:
             full_conversations.append(full_conv)
-            
+
     export_package = {
         "user_profile": profile,
         "conversations": full_conversations,
-        "version": "1.0"
+        "version": "1.0",
     }
-    
-    filename = f"accordant_export_{current_user.username}_{datetime.utcnow().strftime('%Y%m%d')}.json"
-    
-    from fastapi.responses import JSONResponse
-    return JSONResponse(
-        content=export_package,
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+
+    filename = (
+        f"accordant_export_{current_user.username}_{datetime.utcnow().strftime('%Y%m%d')}.json"
     )
 
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(
+        content=export_package, headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @app.delete("/api/users/me")
@@ -562,26 +567,26 @@ async def delete_account(current_user: User = Depends(get_current_user)):
     try:
         # 1. Delete all conversations
         deleted_convs = storage.delete_user_conversations(current_user.id, current_user.org_id)
-        
+
         # 2. Delete user record
         from .users import delete_user
+
         success = delete_user(current_user.id)
-        
+
         if not success:
-             raise HTTPException(status_code=500, detail="Failed to delete user record")
-             
-        logger.info(f"User {current_user.username} deleted account. Removed {deleted_convs} conversations.")
+            raise HTTPException(status_code=500, detail="Failed to delete user record")
+
+        logger.info(
+            f"User {current_user.username} deleted account. Removed {deleted_convs} conversations."
+        )
         return {
             "status": "success",
             "message": "Account and all data deleted permanently",
-            "data_removed": {
-                "conversations": deleted_convs,
-                "account": True
-            }
+            "data_removed": {"conversations": deleted_convs, "account": True},
         }
     except Exception as e:
-         logger.error(f"Error deleting account for {current_user.username}: {e}")
-         raise HTTPException(status_code=500, detail="Failed to process account deletion")
+        logger.error(f"Error deleting account for {current_user.username}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process account deletion")
 
 
 @app.get("/api/admin/stats/voting")
@@ -637,7 +642,7 @@ async def delete_conversation(conversation_id: str, current_user: User = Depends
     # Verify ownership or admin status
     if conversation.get("user_id") != current_user.id and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized to delete this conversation")
-        
+
     storage.delete_conversation(conversation_id, org_id=current_user.org_id)
     return {"status": "success", "message": "Conversation deleted"}
 
@@ -761,35 +766,35 @@ async def send_message_stream(
 static_dir = os.getenv("STATIC_DIR", "frontend/dist")
 if os.path.isdir(static_dir):
     logger.info(f"Serving static files from {static_dir}")
-    
+
     # Mount static assets directory
     # Cache headers are added via StaticCacheMiddleware (defined above)
     app.mount("/assets", StaticFiles(directory=f"{static_dir}/assets"), name="assets")
-    
+
     # Root route for SPA - must be defined before catch-all
     @app.get("/")
     async def root():
         """Serve the index page for the SPA."""
         return FileResponse(os.path.join(static_dir, "index.html"))
-    
+
     # Catch-all for SPA routes (must be last route - after all API routes)
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Don't intercept API routes (they should have matched above, but just in case of 404s)
         if full_path.startswith("api/"):
-             raise HTTPException(status_code=404, detail="API endpoint not found")
-        
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+
         # Check if file exists in root of dist (e.g. favicon.ico, vite.svg)
         file_path = os.path.join(static_dir, full_path)
         if os.path.isfile(file_path):
             logger.debug(f"Serving static file: {full_path}")
             return FileResponse(file_path)
-            
+
         # Otherwise serve index.html for SPA routing
         return FileResponse(os.path.join(static_dir, "index.html"))
 else:
     logger.warning(f"Static directory {static_dir} not found. Running in API-only mode.")
-    
+
     @app.get("/")
     async def root():
         """Retrieve health info if static not served."""

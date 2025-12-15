@@ -5,10 +5,10 @@ import logging
 from typing import Any
 
 from .config.personalities import (
+    format_personality_prompt,
     get_active_personalities,
     load_org_models_config,
     load_org_system_prompts,
-    format_personality_prompt,
 )
 
 # Re-export for backward compatibility
@@ -180,7 +180,7 @@ async def _stage2_personality_mode(
         f"{RESPONSE_LABEL_PREFIX}{label}": {
             "name": result.get("personality_name", result["model"]),
             "id": result.get("personality_id"),
-            "model": result["model"]
+            "model": result["model"],
         }
         for label, result in zip(labels, stage1_results, strict=True)
     }
@@ -204,7 +204,7 @@ async def _stage2_personality_mode(
             exclude_self=True,
             prompt_template=prompts.get("ranking_prompt"),
             enforced_context=prompts.get("ranking_enforced_context", ""),
-            enforced_format=prompts.get("ranking_enforced_format", "")
+            enforced_format=prompts.get("ranking_enforced_format", ""),
         )
 
         # Construct system prompt
@@ -314,7 +314,7 @@ async def stage3_synthesize_final(
     user_query: str,
     stage1_results: list[Stage1Result],
     stage2_results: list[Stage2Result],
-    label_to_model: dict[str, dict[str, Any]], # Updated to be dict of dicts
+    label_to_model: dict[str, dict[str, Any]],  # Updated to be dict of dicts
     messages: list[dict[str, Any]] | None = None,
     org_id: str = None,
     api_key: str = None,
@@ -356,8 +356,12 @@ async def stage3_synthesize_final(
         for i, label in enumerate(rankings, 1):
             # Resolve label to personality name if available
             target_info_obj = label_to_model.get(label, {})
-            target_name = target_info_obj.get("name", "Unknown") if isinstance(target_info_obj, dict) else target_info_obj
-            
+            target_name = (
+                target_info_obj.get("name", "Unknown")
+                if isinstance(target_info_obj, dict)
+                else target_info_obj
+            )
+
             vote_line += f"   {i}. {target_name} ({label})\n"
         voting_details.append(vote_line)
 
@@ -420,10 +424,7 @@ async def generate_conversation_title(
         return "New Conversation"
 
     content = response.get("content")
-    if content is None:
-        title = "New Conversation"
-    else:
-        title = content.strip()
+    title = "New Conversation" if content is None else content.strip()
 
     # Clean up the title - remove quotes, limit length
     title = title.strip("\"'")

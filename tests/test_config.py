@@ -7,14 +7,14 @@ import pytest
 import yaml
 
 from backend.config.personalities import (
-    _load_defaults,
-    get_active_personalities,
-    load_org_system_prompts,
-    load_org_models_config,
-    get_org_personalities_dir,
-    get_org_config_dir,
-    _load_org_config_file,
     _get_nested_config_value,
+    _load_defaults,
+    _load_org_config_file,
+    get_active_personalities,
+    get_org_config_dir,
+    get_org_personalities_dir,
+    load_org_models_config,
+    load_org_system_prompts,
 )
 
 
@@ -105,14 +105,18 @@ class TestPersonalityLoading:
 
         defaults = _load_defaults()
         assert prompts["base_system_prompt"] == defaults.get("base_system_prompt", "")
-        assert prompts["chairman_prompt"] == _get_nested_config_value(defaults, "chairman", "prompt", "")
+        assert prompts["chairman_prompt"] == _get_nested_config_value(
+            defaults, "chairman", "prompt", ""
+        )
         # Note: ranking prompt key logic might vary, checking main key
         # In load_org_system_prompts, it uses default_ranking for ranking_prompt
         default_ranking = defaults.get("ranking_prompt", "")
         if not default_ranking:
-             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
+            default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
         assert prompts["ranking_prompt"]["value"] == default_ranking
-        assert prompts["title_prompt"] == _get_nested_config_value(defaults, "title_generation", "prompt", "")
+        assert prompts["title_prompt"] == _get_nested_config_value(
+            defaults, "title_generation", "prompt", ""
+        )
 
     def test_get_active_personalities_invalid_yaml(self, temp_org_dir, caplog):
         """Test handling of invalid YAML files."""
@@ -122,7 +126,7 @@ class TestPersonalityLoading:
         with open(os.path.join(personalities_dir, "invalid.yaml"), "w") as f:
             f.write("invalid: yaml: content: [unclosed")
 
-        active = get_active_personalities(org_id)
+        get_active_personalities(org_id)
 
         # Should skip invalid file and return empty list (or other valid personalities)
         # Error should be logged
@@ -134,9 +138,7 @@ class TestPersonalityLoading:
 
         # Create personality without id field
         with open(os.path.join(personalities_dir, "no_id.yaml"), "w") as f:
-            yaml.dump(
-                {"name": "Personality Without ID", "model": "test/model", "enabled": True}, f
-            )
+            yaml.dump({"name": "Personality Without ID", "model": "test/model", "enabled": True}, f)
 
         active = get_active_personalities(org_id)
 
@@ -149,7 +151,9 @@ class TestPersonalityLoading:
 
         # Create personality without enabled field (should default to enabled)
         with open(os.path.join(personalities_dir, "default_enabled.yaml"), "w") as f:
-            yaml.dump({"id": "default_enabled", "name": "Default Enabled", "model": "test/model"}, f)
+            yaml.dump(
+                {"id": "default_enabled", "name": "Default Enabled", "model": "test/model"}, f
+            )
 
         active = get_active_personalities(org_id)
 
@@ -168,7 +172,13 @@ class TestPersonalityLoading:
         # Create valid personality
         with open(os.path.join(personalities_dir, "valid.yaml"), "w") as f:
             yaml.dump(
-                {"id": "valid", "name": "Valid Personality", "model": "test/model", "enabled": True}, f
+                {
+                    "id": "valid",
+                    "name": "Valid Personality",
+                    "model": "test/model",
+                    "enabled": True,
+                },
+                f,
             )
 
         active = get_active_personalities(org_id)
@@ -193,7 +203,6 @@ class TestPersonalityLoading:
 
     def test_load_org_system_prompts_invalid_yaml(self, temp_org_dir, caplog):
         """Test handling of invalid YAML in system-prompts.yaml."""
-        from backend.config.personalities import _load_org_config_file
 
         _, org_id, _, config_dir = temp_org_dir
 
@@ -209,7 +218,6 @@ class TestPersonalityLoading:
 
     def test_load_org_system_prompts_file_read_error(self, temp_org_dir, monkeypatch, caplog):
         """Test handling of file read errors."""
-        from backend.config.personalities import _load_org_config_file
 
         _, org_id, _, config_dir = temp_org_dir
 
@@ -223,7 +231,7 @@ class TestPersonalityLoading:
 
         def mock_open(*args, **kwargs):
             if args[0] == system_prompts_file:
-                raise IOError("Permission denied")
+                raise OSError("Permission denied")
             return original_open(*args, **kwargs)
 
         monkeypatch.setattr("builtins.open", mock_open)
@@ -282,8 +290,8 @@ class TestPersonalityLoading:
         defaults = _load_defaults()
         default_ranking = defaults.get("ranking_prompt", "")
         if not default_ranking:
-             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
-             
+            default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
+
         assert prompts["ranking_prompt"]["value"] == default_ranking
 
 

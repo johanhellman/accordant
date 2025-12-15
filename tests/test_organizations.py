@@ -3,16 +3,18 @@
 import os
 import tempfile
 from unittest.mock import patch
+
 import pytest
+
 from backend.organizations import (
     OrganizationCreate,
     create_org,
     get_org,
     get_org_api_config,
-    list_orgs,
     update_org,
 )
-from backend.security import decrypt_value, encrypt_value
+from backend.security import encrypt_value
+
 
 class TestOrganizations:
     """Tests for organization management functions."""
@@ -35,7 +37,7 @@ class TestOrganizations:
         # Ensure we pass NO db session so it creates its own (which is patched to be our test fixture engine)
         # OR we can pass system_db_session. backend code handles both.
         # Let's rely on the patched SystemSessionLocal to test that path.
-        org = create_org(org_create, owner_id="user1") 
+        org = create_org(org_create, owner_id="user1")
 
         # Set encrypted API config
         encrypted_key = encrypt_value("test-api-key-123")
@@ -63,7 +65,9 @@ class TestOrganizations:
         update_org(org.id, org_updates)
 
         # Force default URL to be known value regardless of env
-        with patch("backend.config.OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions"):
+        with patch(
+            "backend.config.OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions"
+        ):
             api_key, base_url = get_org_api_config(org.id)
 
             assert api_key == "test-api-key-123"
@@ -74,8 +78,12 @@ class TestOrganizations:
         org_create = OrganizationCreate(name="Test Org")
         org = create_org(org_create, owner_id="user1")
 
-        with patch("backend.config.OPENROUTER_API_KEY", "global-key-123"), \
-             patch("backend.config.OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions"):
+        with (
+            patch("backend.config.OPENROUTER_API_KEY", "global-key-123"),
+            patch(
+                "backend.config.OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions"
+            ),
+        ):
             api_key, base_url = get_org_api_config(org.id)
 
             assert api_key == "global-key-123"
@@ -101,10 +109,10 @@ class TestOrganizations:
             # My previous test assertion was: match="LLM API Key not configured".
             # If the code changed or I misread, I should adjust test.
             # Code line 179: pass # Caller handles...
-            
+
             api_key, base_url = get_org_api_config(org.id)
             assert api_key is None
-            
+
             # Wait, the previous test expected ValueError. Did I see the code correctly?
             # backend/organizations.py line 179: pass.
             # So it does NOT raise.
@@ -175,4 +183,3 @@ class TestOrganizations:
         assert updated_org.api_config is not None
         assert updated_org.api_config["api_key"] == encrypted_key
         assert updated_org.api_config["base_url"] == "https://new.api.com/v1"
-

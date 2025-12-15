@@ -6,14 +6,13 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from .config import PROJECT_ROOT
 from . import models
-from .database import SystemSessionLocal as SessionLocal # Aliased for minimal diff, or strict rename? 
-# Better to use SystemSessionLocal explicitly for clarity.
+from .config import PROJECT_ROOT
 
+# Better to use SystemSessionLocal explicitly for clarity.
 from .database import SystemSessionLocal
 
 logger = logging.getLogger(__name__)
@@ -34,9 +33,11 @@ class Organization(BaseModel):
     class Config:
         from_attributes = True
 
+
 class OrganizationCreate(BaseModel):
     name: str
     owner_email: str | None = None
+
 
 class OrganizationInDB(Organization):
     pass
@@ -50,10 +51,11 @@ def ensure_orgs_dir():
 def get_org(org_id: str, db: Session = None) -> OrganizationInDB | None:
     """Get an organization by ID."""
     if db:
-       return _get_org_with_session(db, org_id)
-        
+        return _get_org_with_session(db, org_id)
+
     with SystemSessionLocal() as session:
         return _get_org_with_session(session, org_id)
+
 
 def _get_org_with_session(db: Session, org_id: str) -> OrganizationInDB | None:
     org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
@@ -62,10 +64,12 @@ def _get_org_with_session(db: Session, org_id: str) -> OrganizationInDB | None:
     return None
 
 
-def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session = None) -> OrganizationInDB:
+def create_org(
+    org_create: OrganizationCreate, owner_id: str = None, db: Session = None
+) -> OrganizationInDB:
     """Create a new organization."""
     # Logic: DB Entry (System DB) + File Folder logic (for personalities/config)
-    
+
     is_ephemeral = False
     if db is None:
         db = SystemSessionLocal()
@@ -74,14 +78,10 @@ def create_org(org_create: OrganizationCreate, owner_id: str = None, db: Session
     try:
         org_id = str(uuid.uuid4())
         new_org = models.Organization(
-            id=org_id,
-            name=org_create.name,
-            owner_id=owner_id,
-            settings={},
-            api_config={}
+            id=org_id, name=org_create.name, owner_id=owner_id, settings={}, api_config={}
         )
         db.add(new_org)
-        
+
         if is_ephemeral:
             db.commit()
             db.refresh(new_org)
@@ -114,14 +114,14 @@ def list_orgs() -> list[OrganizationDetails]:
     with SystemSessionLocal() as db:
         orgs = db.query(models.Organization).all()
         users = db.query(models.User).all()
-        
+
         # Helper maps
         user_map = {u.id: u.username for u in users}
         org_user_counts = {}
         for u in users:
             if u.org_id:
                 org_user_counts[u.org_id] = org_user_counts.get(u.org_id, 0) + 1
-        
+
         results = []
         for o in orgs:
             details = OrganizationDetails.from_orm(o)
@@ -129,7 +129,7 @@ def list_orgs() -> list[OrganizationDetails]:
             if o.owner_id:
                 details.owner_username = user_map.get(o.owner_id)
             results.append(details)
-            
+
         return results
 
 
@@ -139,11 +139,11 @@ def update_org(org_id: str, updates: dict[str, Any]) -> OrganizationInDB | None:
         org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
         if not org:
             return None
-            
+
         for key, value in updates.items():
             if hasattr(org, key):
                 setattr(org, key, value)
-        
+
         db.commit()
         db.refresh(org)
         return OrganizationInDB.from_orm(org)
@@ -162,7 +162,7 @@ def get_org_api_config(org_id: str) -> tuple[str, str]:
         raise ValueError("Organization not found")
 
     api_config = org.api_config or {}
-    
+
     # 1. Determine API Key
     api_key = None
     if api_config.get("api_key"):
@@ -170,18 +170,17 @@ def get_org_api_config(org_id: str) -> tuple[str, str]:
             api_key = decrypt_value(api_config["api_key"])
         except Exception:
             raise ValueError("Failed to decrypt organization API key. Please update settings.")
-            
+
     if not api_key:
         api_key = OPENROUTER_API_KEY
 
     if not api_key:
-         # Simplified error for dev environment?
-         pass # Caller handles nulls if needed, or raises later.
-
+        # Simplified error for dev environment?
+        pass  # Caller handles nulls if needed, or raises later.
 
     # 2. Determine Base URL
     base_url = api_config.get("base_url") or OPENROUTER_API_URL
-    
+
     return api_key, base_url
 
 
@@ -191,16 +190,16 @@ def delete_org(org_id: str) -> bool:
     THIS IS IRREVERSIBLE.
     """
     import shutil
-    
+
     # 1. Database Cleanup (System DB)
     with SystemSessionLocal() as db:
         org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
         if not org:
             return False
-            
+
         # Delete associated users first explicitly (to be safe)
         db.query(models.User).filter(models.User.org_id == org_id).delete()
-        
+
         # Delete the organization
         db.delete(org)
         db.commit()
@@ -215,5 +214,5 @@ def delete_org(org_id: str) -> bool:
         except Exception as e:
             logger.error(f"Failed to delete organization directory {org_dir}: {e}")
             # We don't return False here because DB part succeeded, but it's messy.
-            
+
     return True

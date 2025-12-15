@@ -2,12 +2,10 @@
 
 import os
 import tempfile
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from backend import invitations, organizations, users
 from backend.main import app
 
 
@@ -46,7 +44,11 @@ class TestOrgRoutes:
 
         # Create org and admin user
         admin_headers = self.get_auth_headers(client, username="admin", password="admin")
-        org_resp = client.post("/api/organizations/", json={"name": "Test Org", "owner_email": "admin@test.com"}, headers=admin_headers)
+        org_resp = client.post(
+            "/api/organizations/",
+            json={"name": "Test Org", "owner_email": "admin@test.com"},
+            headers=admin_headers,
+        )
         org_id = org_resp.json()["id"]
 
         # Create invitation as admin
@@ -57,7 +59,9 @@ class TestOrgRoutes:
         user_headers = self.get_auth_headers(client, username="newuser", password="newpass")
 
         # Join organization
-        response = client.post("/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers)
+        response = client.post(
+            "/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -74,7 +78,9 @@ class TestOrgRoutes:
         client = TestClient(app)
         headers = self.get_auth_headers(client)
 
-        response = client.post("/api/organizations/join", json={"invite_code": "invalid-code"}, headers=headers)
+        response = client.post(
+            "/api/organizations/join", json={"invite_code": "invalid-code"}, headers=headers
+        )
 
         assert response.status_code == 404
         assert "Invalid invitation code" in response.json()["detail"]
@@ -85,7 +91,11 @@ class TestOrgRoutes:
 
         # Create org and admin user
         admin_headers = self.get_auth_headers(client, username="admin", password="admin")
-        client.post("/api/organizations/", json={"name": "Test Org", "owner_email": "admin@test.com"}, headers=admin_headers)
+        client.post(
+            "/api/organizations/",
+            json={"name": "Test Org", "owner_email": "admin@test.com"},
+            headers=admin_headers,
+        )
 
         # Create invitation
         invite_resp = client.post("/api/organizations/invitations", headers=admin_headers)
@@ -93,16 +103,22 @@ class TestOrgRoutes:
 
         # Mark invitation as used/expired
         from backend.invitations import get_invitation, use_invitation
+
         invitation = get_invitation(invite_code)
         if invitation:
             use_invitation(invite_code, "some-user-id")
 
         # Try to join with expired code
         user_headers = self.get_auth_headers(client, username="newuser", password="newpass")
-        response = client.post("/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers)
+        response = client.post(
+            "/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers
+        )
 
         assert response.status_code == 400
-        assert "expired" in response.json()["detail"].lower() or "already used" in response.json()["detail"].lower()
+        assert (
+            "expired" in response.json()["detail"].lower()
+            or "already used" in response.json()["detail"].lower()
+        )
 
     def test_join_organization_updates_user_org(self, temp_data_dir):
         """Test join_organization updates user's org_id."""
@@ -110,7 +126,11 @@ class TestOrgRoutes:
 
         # Create org and admin user
         admin_headers = self.get_auth_headers(client, username="admin", password="admin")
-        org_resp = client.post("/api/organizations/", json={"name": "Test Org", "owner_email": "admin@test.com"}, headers=admin_headers)
+        org_resp = client.post(
+            "/api/organizations/",
+            json={"name": "Test Org", "owner_email": "admin@test.com"},
+            headers=admin_headers,
+        )
         org_id = org_resp.json()["id"]
 
         # Create invitation
@@ -125,11 +145,12 @@ class TestOrgRoutes:
         initial_org_id = me_before.json().get("org_id")
 
         # Join organization
-        response = client.post("/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers)
+        response = client.post(
+            "/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers
+        )
         assert response.status_code == 200
 
         # Verify user's org_id was updated
         me_after = client.get("/api/auth/me", headers=user_headers)
         assert me_after.json()["org_id"] == org_id
         assert me_after.json()["org_id"] != initial_org_id
-

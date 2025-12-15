@@ -41,7 +41,15 @@ class TestConversationEndpoints:
     def get_auth_headers(self, client, username="testuser", password="password"):
         """Helper to register and login, returning auth headers."""
         # Register
-        resp = client.post("/api/auth/register", json={"username": username, "password": password, "mode": "create_org", "org_name": f"{username}_org"})
+        resp = client.post(
+            "/api/auth/register",
+            json={
+                "username": username,
+                "password": password,
+                "mode": "create_org",
+                "org_name": f"{username}_org",
+            },
+        )
         assert resp.status_code == 200, f"Registration failed: {resp.text}"
         # Login
         response = client.post("/api/auth/token", data={"username": username, "password": password})
@@ -174,13 +182,30 @@ class TestConversationEndpoints:
             patch("backend.main.get_org_api_config") as mock_api_config,
         ):
             mock_run.return_value = (
-                [{"model": "m1", "response": "Response", "personality_id": None, "personality_name": "m1"}],
-                [{"model": "m1", "personality_name": "m1", "ranking": "Rank", "parsed_ranking": ["A"]}],
+                [
+                    {
+                        "model": "m1",
+                        "response": "Response",
+                        "personality_id": None,
+                        "personality_name": "m1",
+                    }
+                ],
+                [
+                    {
+                        "model": "m1",
+                        "personality_name": "m1",
+                        "ranking": "Rank",
+                        "parsed_ranking": ["A"],
+                    }
+                ],
                 {"model": "chairman", "response": "Final"},
                 {"label_to_model": {"A": "m1"}, "aggregate_rankings": []},
             )
             mock_title.return_value = "Test Title"
-            mock_api_config.return_value = ("test-key", "https://openrouter.ai/api/v1/chat/completions")
+            mock_api_config.return_value = (
+                "test-key",
+                "https://openrouter.ai/api/v1/chat/completions",
+            )
 
             client.post(
                 f"/api/conversations/{conv_id}/message",
@@ -245,7 +270,15 @@ class TestMessageEndpoints:
     def get_auth_headers(self, client, username="testuser", password="password"):
         """Helper to register and login, returning auth headers."""
         # Register
-        resp = client.post("/api/auth/register", json={"username": username, "password": password, "mode": "create_org", "org_name": f"{username}_org"})
+        resp = client.post(
+            "/api/auth/register",
+            json={
+                "username": username,
+                "password": password,
+                "mode": "create_org",
+                "org_name": f"{username}_org",
+            },
+        )
         assert resp.status_code == 200, f"Registration failed: {resp.text}"
         # Login
         response = client.post("/api/auth/token", data={"username": username, "password": password})
@@ -440,7 +473,9 @@ class TestMessageEndpoints:
         conv_id = create_resp.json()["id"]
 
         # Mock get_org_api_config to raise ValueError
-        with patch("backend.main.get_org_api_config", side_effect=ValueError("API key not configured")):
+        with patch(
+            "backend.main.get_org_api_config", side_effect=ValueError("API key not configured")
+        ):
             response = client.post(
                 f"/api/conversations/{conv_id}/message",
                 json={"content": "What is Python?"},
@@ -449,7 +484,9 @@ class TestMessageEndpoints:
 
             # FastAPI will convert unhandled ValueError to 500 Internal Server Error
             # Verify that an error occurred (status code >= 400)
-            assert response.status_code >= 400, f"Expected error status, got {response.status_code}: {response.text[:200]}"
+            assert response.status_code >= 400, (
+                f"Expected error status, got {response.status_code}: {response.text[:200]}"
+            )
 
     def test_send_message_stream_first_message(self, temp_data_dir, mock_council_functions):
         """Test streaming first message with title generation."""

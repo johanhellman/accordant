@@ -1,7 +1,5 @@
 """Tests for security.py encryption functions."""
 
-import os
-
 import pytest
 from cryptography.fernet import Fernet
 
@@ -97,4 +95,3 @@ class TestSecurity:
         # But both decrypt to the same value
         assert decrypt_value(encrypted1) == plaintext
         assert decrypt_value(encrypted2) == plaintext
-

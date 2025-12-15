@@ -1,7 +1,5 @@
 """Edge case tests for security.py to improve coverage."""
 
-import os
-
 import pytest
 from cryptography.fernet import Fernet
 
@@ -120,4 +118,3 @@ def test_decrypt_value_empty_after_strip(encryption_key):
     """Test decrypt_value handles strings that become empty after strip."""
     result = decrypt_value("")
     assert result == ""
-

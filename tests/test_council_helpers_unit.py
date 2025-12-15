@@ -7,8 +7,6 @@ by test coverage metrics.
 import datetime
 from unittest.mock import patch
 
-import pytest
-
 from backend.council_helpers import (
     build_llm_history,
     build_message_chain,
@@ -244,9 +242,11 @@ class TestBuildLlmHistory:
         messages = []
         for i in range(25):  # 25 messages = 12.5 turns, more than default max_turns=10
             if i % 2 == 0:
-                messages.append({"role": "user", "content": f"Question {i//2 + 1}"})
+                messages.append({"role": "user", "content": f"Question {i // 2 + 1}"})
             else:
-                messages.append({"role": "assistant", "stage3": {"response": f"Answer {i//2 + 1}"}})
+                messages.append(
+                    {"role": "assistant", "stage3": {"response": f"Answer {i // 2 + 1}"}}
+                )
 
         result = build_llm_history(messages, max_turns=10)
 
@@ -272,7 +272,9 @@ class TestBuildLlmHistory:
             {"role": "user", "content": "Question"},
             {
                 "role": "assistant",
-                "stage3": {"response": "PART 1: Analysis\n\nPART 2: FINAL ANSWER: This is the final answer"},
+                "stage3": {
+                    "response": "PART 1: Analysis\n\nPART 2: FINAL ANSWER: This is the final answer"
+                },
             },
         ]
 

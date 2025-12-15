@@ -1,8 +1,9 @@
 """Tests for storage.py file operations (MIGRATED TO SQLITE)."""
 
 import pytest
-from sqlalchemy import text
-from backend import storage, models
+
+from backend import models, storage
+
 
 class TestStorageOperations:
     """Tests for storage module functions using SQLite."""
@@ -58,9 +59,13 @@ class TestStorageOperations:
         assert len(conversation["messages"]) == 1
         assert conversation["messages"][0]["role"] == "user"
         assert conversation["messages"][0]["content"] == "Hello, world!"
-        
+
         # Verify DB
-        msg_db = tenant_db_session.query(models.Message).filter_by(conversation_id=conversation_id).first()
+        msg_db = (
+            tenant_db_session.query(models.Message)
+            .filter_by(conversation_id=conversation_id)
+            .first()
+        )
         assert msg_db.content == "Hello, world!"
 
     def test_add_user_message_nonexistent_conversation(self, tenant_db_session):
@@ -112,7 +117,7 @@ class TestStorageOperations:
         # (Though create_conversation is fast, timestamps might be identical, sorting might be unstable if not ensuring delays)
         # But SQLite datetime default is second precision usually or string... SQLAlchemy 'default' is Python side usually?
         # models.py says: default=datetime.utcnow. That is distinct execution time.
-        
+
         assert conversations[0]["created_at"] >= conversations[1]["created_at"]
         assert conversations[1]["created_at"] >= conversations[2]["created_at"]
 
@@ -141,7 +146,7 @@ class TestStorageOperations:
         """Test that updating title of non-existent conversation does nothing (or raises if designed so)."""
         # storage.py doesn't raise, just checks 'if conv:'.
         storage.update_conversation_title("non-existent", "New Title", "org1")
-        pass # Should not raise
+        pass  # Should not raise
 
     def test_multiple_messages(self, tenant_db_session):
         """Test adding multiple messages to a conversation."""
@@ -202,7 +207,7 @@ class TestStorageOperations:
         conversation["title"] = "Updated Title"
         # Adding messages here won't persist if using save_conversation for messages
         # because the implementation ignores messages in save_conversation
-        
+
         storage.save_conversation(conversation, "org1")
 
         # Verify saved
@@ -213,13 +218,13 @@ class TestStorageOperations:
         """Test deleting a conversation."""
         conversation_id = "test-conv-del"
         storage.create_conversation(conversation_id, "user1", "org1")
-        
+
         # Verify exists
         assert storage.get_conversation(conversation_id, "org1") is not None
-        
+
         # Delete
         storage.delete_conversation(conversation_id, "org1")
-        
+
         # Verify gone
         assert storage.get_conversation(conversation_id, "org1") is None
 
@@ -228,12 +233,11 @@ class TestStorageOperations:
         storage.create_conversation("c1", "u1", "org1")
         storage.create_conversation("c2", "u1", "org1")
         storage.create_conversation("c3", "u2", "org1")
-        
+
         count = storage.delete_user_conversations("u1", "org1")
         assert count == 2
-        
+
         # u1 should match nothing
         assert len(storage.list_conversations("u1", "org1")) == 0
         # u2 should remain
         assert len(storage.list_conversations("u2", "org1")) == 1
-

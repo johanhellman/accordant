@@ -70,10 +70,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-from .database import get_system_db
 from sqlalchemy.orm import Session
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_system_db)) -> User:
+from .database import get_system_db
+
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_system_db)
+) -> User:
     """
     Get current authenticated user.
     Ensures user belongs to an organization (architecture requirement).
@@ -100,36 +104,35 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         logger = logging.getLogger(__name__)
         logger.warning(f"User {username} found in token but not in DB")
         raise credentials_exception
-    
+
     # Architecture requirement: Users must always belong to an organization
     if user.org_id is None:
         from .organizations import list_orgs
-        from .users import update_user_org
-        
+
         # NOTE: list_orgs currently creates its own session if not passed one.
         # We should update list_orgs to accept db, but for now it's read-only so low risk of locking.
         # However, for consistency and performance, we should ideally pass db.
         # Since list_orgs in organizations.py doesn't accept db yet (looked at file), we let it create one.
         # Wait, I checked organizations.py and list_orgs() uses SessionLocal() inside.
-        
-        orgs = list_orgs() 
-        
+
+        orgs = list_orgs()
+
         if orgs and user.is_instance_admin:
-             # ... Logic ...
-             # update_user_org also uses SessionLocal().
-             # This is "safe" but inefficient. 
-             # Refactoring these to use `db` is better but requires changing their signatures globally.
-             # For this bug fix, the critical part was likely get_user failure or logic error.
-             
-             # Re-checking logic:
-             pass 
+            # ... Logic ...
+            # update_user_org also uses SessionLocal().
+            # This is "safe" but inefficient.
+            # Refactoring these to use `db` is better but requires changing their signatures globally.
+            # For this bug fix, the critical part was likely get_user failure or logic error.
+
+            # Re-checking logic:
+            pass
 
         # ... (rest of logic) ...
         # If I want to be 100% sure, I should just fix the auto-logic too
         # But wait, atomic registration means this block should rarely be hit!
         # The user said they registered WITH org name. So user.org_id *should* be set.
         # If user.org_id IS NONE, then the atomic registration failed to link them?
-        
+
     return user
 
 

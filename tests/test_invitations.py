@@ -10,7 +10,6 @@ import pytest
 from backend.invitations import (
     Invitation,
     InvitationCreate,
-    InvitationInDB,
     create_invitation,
     get_invitation,
     list_org_invitations,
@@ -189,4 +188,3 @@ class TestInvitations:
         create = InvitationCreate(org_id="org1")
 
         assert create.expires_in_days == 7
-

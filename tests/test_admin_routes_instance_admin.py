@@ -5,18 +5,15 @@ These tests cover the instance admin-only endpoints:
 - update_default_system_prompts
 """
 
-import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import yaml
-from fastapi import HTTPException
 
 from backend.admin_routes import (
     get_default_system_prompts,
     update_default_system_prompts,
 )
-from backend.config.personalities import DEFAULTS_FILE
 from backend.users import User
 
 
@@ -58,7 +55,9 @@ class TestGetDefaultSystemPrompts:
         defaults_data = {
             "base_system_prompt": "Default base prompt",
             "ranking_prompt": "Default ranking prompt {user_query} {responses_text} {peer_text}",
-            "chairman": {"prompt": "Default chairman prompt {user_query} {stage1_text} {voting_details_text}"},
+            "chairman": {
+                "prompt": "Default chairman prompt {user_query} {stage1_text} {voting_details_text}"
+            },
             "title_generation": {"prompt": "Default title prompt {user_query}"},
             "stage1_response_structure": "Default structure",
             "stage1_meta_structure": "Default meta structure",
@@ -73,9 +72,17 @@ class TestGetDefaultSystemPrompts:
             assert result["base_system_prompt"]["value"] == "Default base prompt"
             assert result["base_system_prompt"]["is_default"] is True
             assert result["base_system_prompt"]["source"] == "default"
-            assert result["ranking"]["prompt"]["value"] == "Default ranking prompt {user_query} {responses_text} {peer_text}"
-            assert result["chairman"]["prompt"]["value"] == "Default chairman prompt {user_query} {stage1_text} {voting_details_text}"
-            assert result["title_generation"]["prompt"]["value"] == "Default title prompt {user_query}"
+            assert (
+                result["ranking"]["prompt"]["value"]
+                == "Default ranking prompt {user_query} {responses_text} {peer_text}"
+            )
+            assert (
+                result["chairman"]["prompt"]["value"]
+                == "Default chairman prompt {user_query} {stage1_text} {voting_details_text}"
+            )
+            assert (
+                result["title_generation"]["prompt"]["value"] == "Default title prompt {user_query}"
+            )
             assert result["stage1_response_structure"]["value"] == "Default structure"
             assert result["stage1_meta_structure"]["value"] == "Default meta structure"
 
@@ -130,7 +137,9 @@ class TestGetDefaultSystemPrompts:
             assert result["chairman"]["prompt"]["value"] == ""
 
     @pytest.mark.asyncio
-    async def test_get_default_system_prompts_non_dict_chairman(self, instance_admin_user, tmp_path):
+    async def test_get_default_system_prompts_non_dict_chairman(
+        self, instance_admin_user, tmp_path
+    ):
         """Test get_default_system_prompts handles non-dict chairman value."""
         defaults_file = tmp_path / "defaults" / "system-prompts.yaml"
         defaults_file.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +157,9 @@ class TestGetDefaultSystemPrompts:
             assert result["chairman"]["prompt"]["value"] == ""
 
     @pytest.mark.asyncio
-    async def test_get_default_system_prompts_non_dict_title_generation(self, instance_admin_user, tmp_path):
+    async def test_get_default_system_prompts_non_dict_title_generation(
+        self, instance_admin_user, tmp_path
+    ):
         """Test get_default_system_prompts handles non-dict title_generation value."""
         defaults_file = tmp_path / "defaults" / "system-prompts.yaml"
         defaults_file.parent.mkdir(parents=True, exist_ok=True)
@@ -186,16 +197,44 @@ class TestUpdateDefaultSystemPrompts:
 
         # Update config with ConfigValue format
         update_config = {
-            "base_system_prompt": {"value": "Updated base prompt", "is_default": True, "source": "default"},
-            "ranking": {"prompt": {"value": "Updated ranking prompt", "is_default": True, "source": "default"}},
-            "chairman": {"prompt": {"value": "Updated chairman prompt", "is_default": True, "source": "default"}},
-            "title_generation": {"prompt": {"value": "Updated title prompt", "is_default": True, "source": "default"}},
-            "stage1_response_structure": {"value": "Updated structure", "is_default": True, "source": "default"},
-            "stage1_meta_structure": {"value": "Updated meta", "is_default": True, "source": "default"},
+            "base_system_prompt": {
+                "value": "Updated base prompt",
+                "is_default": True,
+                "source": "default",
+            },
+            "ranking": {
+                "prompt": {
+                    "value": "Updated ranking prompt",
+                    "is_default": True,
+                    "source": "default",
+                }
+            },
+            "chairman": {
+                "prompt": {
+                    "value": "Updated chairman prompt",
+                    "is_default": True,
+                    "source": "default",
+                }
+            },
+            "title_generation": {
+                "prompt": {"value": "Updated title prompt", "is_default": True, "source": "default"}
+            },
+            "stage1_response_structure": {
+                "value": "Updated structure",
+                "is_default": True,
+                "source": "default",
+            },
+            "stage1_meta_structure": {
+                "value": "Updated meta",
+                "is_default": True,
+                "source": "default",
+            },
         }
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             # Verify updates
             assert result["base_system_prompt"]["value"] == "Updated base prompt"
@@ -226,13 +265,17 @@ class TestUpdateDefaultSystemPrompts:
         }
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             assert result["base_system_prompt"]["value"] == "Direct value"
             assert result["ranking"]["prompt"]["value"] == "Direct ranking prompt"
 
     @pytest.mark.asyncio
-    async def test_update_default_system_prompts_partial_update(self, instance_admin_user, tmp_path):
+    async def test_update_default_system_prompts_partial_update(
+        self, instance_admin_user, tmp_path
+    ):
         """Test update_default_system_prompts preserves existing values when partially updating."""
         defaults_file = tmp_path / "defaults" / "system-prompts.yaml"
         defaults_file.parent.mkdir(parents=True, exist_ok=True)
@@ -251,11 +294,17 @@ class TestUpdateDefaultSystemPrompts:
 
         # Only update base_system_prompt
         update_config = {
-            "base_system_prompt": {"value": "Updated base only", "is_default": True, "source": "default"},
+            "base_system_prompt": {
+                "value": "Updated base only",
+                "is_default": True,
+                "source": "default",
+            },
         }
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             # Updated field should be changed
             assert result["base_system_prompt"]["value"] == "Updated base only"
@@ -281,7 +330,9 @@ class TestUpdateDefaultSystemPrompts:
         }
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             # None values should be handled gracefully
             assert result is not None
@@ -301,13 +352,17 @@ class TestUpdateDefaultSystemPrompts:
         update_config = {}
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             # Should preserve existing values
             assert result["base_system_prompt"]["value"] == "Initial"
 
     @pytest.mark.asyncio
-    async def test_update_default_system_prompts_creates_nested_dicts(self, instance_admin_user, tmp_path):
+    async def test_update_default_system_prompts_creates_nested_dicts(
+        self, instance_admin_user, tmp_path
+    ):
         """Test update_default_system_prompts creates nested dicts when they don't exist."""
         defaults_file = tmp_path / "defaults" / "system-prompts.yaml"
         defaults_file.parent.mkdir(parents=True, exist_ok=True)
@@ -320,12 +375,18 @@ class TestUpdateDefaultSystemPrompts:
 
         # Update with nested configs
         update_config = {
-            "chairman": {"prompt": {"value": "New chairman prompt", "is_default": True, "source": "default"}},
-            "title_generation": {"prompt": {"value": "New title prompt", "is_default": True, "source": "default"}},
+            "chairman": {
+                "prompt": {"value": "New chairman prompt", "is_default": True, "source": "default"}
+            },
+            "title_generation": {
+                "prompt": {"value": "New title prompt", "is_default": True, "source": "default"}
+            },
         }
 
         with patch("backend.config.personalities.DEFAULTS_FILE", str(defaults_file)):
-            result = await update_default_system_prompts(update_config, current_user=instance_admin_user)
+            result = await update_default_system_prompts(
+                update_config, current_user=instance_admin_user
+            )
 
             # Should create nested dicts
             assert result["chairman"]["prompt"]["value"] == "New chairman prompt"
