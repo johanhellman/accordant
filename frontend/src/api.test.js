@@ -43,9 +43,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 401,
+        json: async () => ({ detail: "Unauthorized" }),
       });
 
-      await expect(api.getCurrentUser()).rejects.toThrow("Failed to get current user");
+      await expect(api.getCurrentUser()).rejects.toThrow("Unauthorized");
     });
   });
 
@@ -75,9 +76,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
+        json: async () => ({ detail: "Server error" }),
       });
 
-      await expect(api.listConversations()).rejects.toThrow("Failed to list conversations");
+      await expect(api.listConversations()).rejects.toThrow("Server error");
     });
   });
 
@@ -110,9 +112,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
+        json: async () => ({ detail: "Creation failed" }),
       });
 
-      await expect(api.createConversation()).rejects.toThrow("Failed to create conversation");
+      await expect(api.createConversation()).rejects.toThrow("Creation failed");
     });
   });
 
@@ -144,11 +147,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
+        json: async () => ({ detail: "Not found" }),
       });
 
-      await expect(api.getConversation("non-existent")).rejects.toThrow(
-        "Failed to get conversation"
-      );
+      await expect(api.getConversation("non-existent")).rejects.toThrow("Not found");
     });
   });
 
@@ -184,9 +186,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
+        json: async () => ({ detail: "Not found" }),
       });
 
-      await expect(api.sendMessage("test-id", "Hello")).rejects.toThrow("Failed to send message");
+      await expect(api.sendMessage("test-id", "Hello")).rejects.toThrow("Not found");
     });
   });
 
@@ -252,11 +255,10 @@ describe("API Client", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
+        json: async () => ({ detail: "Not found" }),
       });
 
-      await expect(api.sendMessageStream("test-id", "Hello", vi.fn())).rejects.toThrow(
-        "Failed to send message"
-      );
+      await expect(api.sendMessageStream("test-id", "Hello", vi.fn())).rejects.toThrow("Not found");
     });
   });
 });
