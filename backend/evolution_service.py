@@ -107,9 +107,10 @@ async def combine_personalities(
     if content.endswith("```"):
         content = content[:-3]
 
-    # 5. Parse YAML
     try:
         new_prompt_sections = yaml.safe_load(content)
+        if not isinstance(new_prompt_sections, dict):
+            raise ValueError("Parsed YAML is not a dictionary.")
     except Exception as e:
         logger.error(f"Failed to parse LLM output as YAML: {e}\nOutput: {content}")
         raise ValueError("LLM generated invalid YAML configuration.") from e
