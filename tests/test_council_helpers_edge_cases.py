@@ -388,24 +388,20 @@ class TestBuildRankingPromptEdgeCases:
     """Additional edge case tests for build_ranking_prompt."""
 
     def test_build_ranking_prompt_empty_user_query(self):
-        """Test build_ranking_prompt with empty user query."""
-        user_query = ""
-        responses_text = "Response A: Answer"
-
-        result = build_ranking_prompt(user_query, responses_text)
-
-        assert "" in result  # Empty query should be in result
-        assert responses_text in result
+        """Test with empty user query."""
+        template = "Rank {user_query}. {responses_text}. {peer_text}"
+        result = build_ranking_prompt(
+            "", "Response A: Answer", prompt_template=template
+        )
+        assert "Response A: Answer" in result
 
     def test_build_ranking_prompt_empty_responses_text(self):
-        """Test build_ranking_prompt with empty responses text."""
-        user_query = "Question"
-        responses_text = ""
-
-        result = build_ranking_prompt(user_query, responses_text)
-
-        assert user_query in result
-        assert "" in result  # Empty responses_text should be in result
+        """Test with empty responses text."""
+        template = "Rank {user_query}. {responses_text}. {peer_text}"
+        result = build_ranking_prompt(
+            "Question", "", prompt_template=template
+        )
+        assert "Question" in result
 
     def test_build_ranking_prompt_custom_template_with_all_tags(self):
         """Test build_ranking_prompt with custom template containing all tags."""
@@ -503,7 +499,7 @@ class TestCalculateAggregateRankingsEdgeCases:
             },
             {
                 "model": "voter3",
-                "ranking": f"{FINAL_RANKING_MARKER}\n2. {RESPONSE_LABEL_PREFIX}A",
+                "ranking": f"{FINAL_RANKING_MARKER}\n1. {RESPONSE_LABEL_PREFIX}B\n2. {RESPONSE_LABEL_PREFIX}A",
                 "parsed_ranking": [f"{RESPONSE_LABEL_PREFIX}B", f"{RESPONSE_LABEL_PREFIX}A"],
             },
         ]

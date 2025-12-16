@@ -132,8 +132,9 @@ async def test_stage1_personality_mode_exception_handling(mock_personalities, mo
     base_url = "https://api.test.com/v1/chat/completions"
 
     # First succeeds, second raises exception
-    async def mock_query_side_effect(*args, **kwargs):
-        if mock_query.call_count == 0:
+    async def mock_query_side_effect(model, *args, **kwargs):
+        # Use model name to decide success/failure to be robust against concurrency
+        if "gpt-4" in model:
             return {"content": "Python is a programming language."}
         else:
             raise Exception("API error")

@@ -61,8 +61,11 @@ async def test_stale_conversation_snapshot_streaming():
         "messages": [{"role": "assistant", "content": "Hello"}],
     }
 
+    # Reset singleton to ensure fresh state using patch
+    # We patch the class attribute on the *class itself* in the module
     with (
-        patch("backend.streaming._execute_stage1_stream", new_callable=AsyncMock) as mock_stage1,
+        patch("backend.streaming.CouncilManager._instance", None),
+        patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
     ):
         # Consume the generator
         async for _ in run_council_generator(

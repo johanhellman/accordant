@@ -156,6 +156,10 @@ def build_llm_history(messages: list[dict[str, Any]], max_turns: int = 10) -> li
     """
     llm_history = []
 
+    # Handle max_turns = 0 explicitly
+    if max_turns <= 0:
+        return []
+
     # Filter for user and assistant messages
     relevant_messages = [m for m in messages if m["role"] in ("user", "assistant")]
 
@@ -239,7 +243,9 @@ def calculate_aggregate_rankings(
     model_positions = defaultdict(list)
 
     for ranking in stage2_results:
-        ranking_text = ranking["ranking"]
+        ranking_text = ranking.get("ranking", "")
+        if not isinstance(ranking_text, str):
+            continue  # Skip invalid entries
 
         # Parse the ranking from the structured format
         parsed_ranking = parse_ranking_from_text(ranking_text)

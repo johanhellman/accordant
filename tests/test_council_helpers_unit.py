@@ -32,11 +32,13 @@ class TestGetTimeInstructions:
 
     def test_get_time_instructions_includes_timestamp(self):
         """Test get_time_instructions includes current timestamp."""
-        with patch("backend.council_helpers.datetime.datetime") as mock_datetime:
+        # Patch the datetime CLASS in the module where it is imported
+        with patch("backend.council_helpers.datetime") as mock_datetime:
             mock_now = datetime.datetime(2025, 12, 8, 15, 30, 45)
-            mock_datetime.now.return_value = mock_now
-            mock_datetime.strftime = datetime.datetime.strftime
-
+            # Configure the mock CLASS's now() method (mock_datetime.datetime.now)
+            mock_datetime.datetime.now.return_value = mock_now
+            # Ensure strftime works on the return value (it's a real datetime so it does)
+            
             system_instruction, user_instruction = get_time_instructions()
 
             assert "2025-12-08 15:30:45" in system_instruction
@@ -187,23 +189,25 @@ class TestBuildRankingPrompt:
     """Tests for build_ranking_prompt function."""
 
     def test_build_ranking_prompt_basic(self):
-        """Test build_ranking_prompt creates basic ranking prompt."""
+        """Test basic prompt construction."""
         user_query = "What is Python?"
-        responses_text = "Response A: Answer 1\nResponse B: Answer 2"
-
-        result = build_ranking_prompt(user_query, responses_text)
-
+        responses_text = "Response A: ...\nResponse B: ..."
+        template = "Rank {user_query}. {responses_text}. {peer_text}"
+        
+        result = build_ranking_prompt(user_query, responses_text, prompt_template=template)
+        
         assert user_query in result
         assert responses_text in result
-        assert "FINAL RANKING:" in result
+        assert "different models (anonymized)" in result
 
     def test_build_ranking_prompt_exclude_self(self):
-        """Test build_ranking_prompt uses peer language when exclude_self=True."""
+        """Test with exclude_self=True."""
         user_query = "What is Python?"
-        responses_text = "Response A: Answer 1"
-
-        result = build_ranking_prompt(user_query, responses_text, exclude_self=True)
-
+        responses_text = "Response A: Answer"
+        template = "Rank {user_query}. {peer_text}"
+        
+        result = build_ranking_prompt(user_query, responses_text, exclude_self=True, prompt_template=template)
+        
         assert "your peers" in result.lower()
 
     def test_build_ranking_prompt_custom_template(self):

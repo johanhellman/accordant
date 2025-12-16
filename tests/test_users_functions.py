@@ -1,6 +1,5 @@
 """Tests for user management functions."""
 
-import os
 import tempfile
 
 import pytest
@@ -15,8 +14,7 @@ class TestUserFunctions:
     def temp_data_dir(self, monkeypatch):
         """Create a temporary data directory for testing."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            users_file = os.path.join(tmpdir, "users.json")
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
+            # USERS_FILE patching removed (uses SQLite)
             yield tmpdir
 
     def test_update_user_role_success(self, temp_data_dir):

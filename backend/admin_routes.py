@@ -399,12 +399,18 @@ async def update_system_prompts(config: dict, current_user: User = Depends(get_c
     update_field(current_config, "evolution_prompt", config.get("evolution_prompt"))
 
     # Handle nested components
+    # Handle nested components
     # Chairman
     if "chairman" not in current_config:
         current_config["chairman"] = {}
     if isinstance(config.get("chairman"), dict):
         chairman_in = config["chairman"]
         if "prompt" in chairman_in:  # it's the ConfigValue object
+            # Validate ONLY if custom value being set
+            if (
+                incoming_sys := chairman_in["prompt"].get("value")
+            ) and not chairman_in["prompt"].get("is_default"):
+                validate_prompt_tags(incoming_sys, ["{user_query}"], "Chairman Prompt")
             update_field(current_config["chairman"], "prompt", chairman_in["prompt"])
         # Persist model if sent (UI might send it)
         if "model" in chairman_in and isinstance(chairman_in["model"], str):
@@ -416,26 +422,29 @@ async def update_system_prompts(config: dict, current_user: User = Depends(get_c
     if isinstance(config.get("title_generation"), dict):
         title_in = config["title_generation"]
         if "prompt" in title_in:
+            if (
+                incoming_sys := title_in["prompt"].get("value")
+            ) and not title_in["prompt"].get("is_default"):
+                validate_prompt_tags(incoming_sys, ["{user_query}"], "Title Generation Prompt")
             update_field(current_config["title_generation"], "prompt", title_in["prompt"])
         if "model" in title_in and isinstance(title_in["model"], str):
             current_config["title_generation"]["model"] = title_in["model"]
 
     # Ranking
-    # For ranking, we prioritize the new top-level "ranking_prompt" key for clarity, but support nested.
-    # To keep it clean, let's use "ranking_prompt" at top level if possible, or stick to nested "ranking.prompt"
-    # match existing structure.
     if "ranking" not in current_config:
         current_config["ranking"] = {}
     if isinstance(config.get("ranking"), dict):
         ranking_in = config["ranking"]
         if "prompt" in ranking_in:
-            # We use the nested 'ranking' dict for storage to keep models and prompts together
+            if (
+                incoming_sys := ranking_in["prompt"].get("value")
+            ) and not ranking_in["prompt"].get("is_default"):
+                validate_prompt_tags(
+                    incoming_sys, ["{user_query}", "{responses_text}"], "Ranking Prompt"
+                )
             update_field(current_config["ranking"], "prompt", ranking_in["prompt"])
         if "model" in ranking_in and isinstance(ranking_in["model"], str):
             current_config["ranking"]["model"] = ranking_in["model"]
-
-    # Clean up empty nested dicts if they become empty?
-    # No, keep them for potential model configs.
 
     _save_yaml(file_path, current_config)
 

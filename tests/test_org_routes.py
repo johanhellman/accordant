@@ -16,22 +16,27 @@ class TestOrgRoutes:
     def temp_data_dir(self, monkeypatch):
         """Create a temporary data directory for testing."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            orgs_file = os.path.join(tmpdir, "organizations.json")
+            os.path.join(tmpdir, "organizations.json")
             orgs_data_dir = os.path.join(tmpdir, "organizations")
-            users_file = os.path.join(tmpdir, "users.json")
-            invitations_file = os.path.join(tmpdir, "invitations.json")
+            os.path.join(tmpdir, "users.json")
+            os.path.join(tmpdir, "invitations.json")
             os.makedirs(orgs_data_dir, exist_ok=True)
-            monkeypatch.setattr("backend.organizations.ORGS_FILE", orgs_file)
-            monkeypatch.setattr("backend.organizations.ORGS_DATA_DIR", orgs_data_dir)
             monkeypatch.setattr("backend.config.PROJECT_ROOT", tmpdir)
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
-            monkeypatch.setattr("backend.invitations.INVITATIONS_FILE", invitations_file)
+            # Legacy file patches removed - uses SQLite
             yield tmpdir
 
     def get_auth_headers(self, client, username="testuser", password="password"):
         """Helper to register and login, returning auth headers."""
         # Register
-        client.post("/api/auth/register", json={"username": username, "password": password})
+        client.post(
+            "/api/auth/register",
+            json={
+                "username": username,
+                "password": password,
+                "mode": "create_org",
+                "org_name": f"{username}_org",
+            },
+        )
         # Login
         response = client.post("/api/auth/token", data={"username": username, "password": password})
         token = response.json()["access_token"]

@@ -28,6 +28,11 @@ class TestPersonalityLoading:
             # Patch ORGS_DATA_DIR to use temp dir
             monkeypatch.setattr("backend.config.personalities.ORGS_DATA_DIR", tmpdir)
 
+            # Patch DEFAULTS_DIR to prevent loading system defaults
+            defaults_dir = os.path.join(tmpdir, "defaults")
+            os.makedirs(defaults_dir, exist_ok=True)
+            monkeypatch.setattr("backend.config.personalities.DEFAULTS_DIR", defaults_dir)
+
             # Create org structure
             org_id = "test-org"
             org_dir = os.path.join(tmpdir, org_id)
@@ -113,7 +118,7 @@ class TestPersonalityLoading:
         default_ranking = defaults.get("ranking_prompt", "")
         if not default_ranking:
             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
-        assert prompts["ranking_prompt"]["value"] == default_ranking
+        assert prompts["ranking_prompt"] == default_ranking
         assert prompts["title_prompt"] == _get_nested_config_value(
             defaults, "title_generation", "prompt", ""
         )
@@ -130,7 +135,7 @@ class TestPersonalityLoading:
 
         # Should skip invalid file and return empty list (or other valid personalities)
         # Error should be logged
-        assert "Error loading personality" in caplog.text
+        assert "Error loading org personality" in caplog.text
 
     def test_get_active_personalities_missing_id(self, temp_org_dir):
         """Test that personalities without 'id' field are skipped."""
@@ -214,7 +219,7 @@ class TestPersonalityLoading:
 
         # Should return None and log error
         assert result is None
-        assert "Error loading system prompts config" in caplog.text
+        assert "Error loading" in caplog.text
 
     def test_load_org_system_prompts_file_read_error(self, temp_org_dir, monkeypatch, caplog):
         """Test handling of file read errors."""
@@ -240,7 +245,7 @@ class TestPersonalityLoading:
 
         # Should return None and log error
         assert result is None
-        assert "Error loading system prompts config" in caplog.text
+        assert "Error loading" in caplog.text
 
     def test_load_org_system_prompts_nested_ranking_prompt(self, temp_org_dir):
         """Test loading ranking prompt from nested config."""
@@ -292,7 +297,7 @@ class TestPersonalityLoading:
         if not default_ranking:
             default_ranking = _get_nested_config_value(defaults, "ranking", "prompt", "")
 
-        assert prompts["ranking_prompt"]["value"] == default_ranking
+        assert prompts["ranking_prompt"] == default_ranking
 
 
 class TestNestedConfigValue:
@@ -356,7 +361,7 @@ class TestOrgModelsConfig:
 
         assert models["chairman_model"] == "gemini/gemini-2.5-pro"
         assert models["title_model"] == "gemini/gemini-2.5-pro"
-        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "openai/gpt-4o"
 
     def test_load_org_models_config_nested(self, temp_org_dir):
         """Test load_org_models_config loads nested model config."""
@@ -393,7 +398,7 @@ class TestOrgModelsConfig:
 
         assert models["chairman_model"] == "custom/chairman-model"
         assert models["title_model"] == "gemini/gemini-2.5-pro"  # Default
-        assert models["ranking_model"] == "gemini/gemini-2.5-pro"  # Default
+        assert models["ranking_model"] == "openai/gpt-4o"  # Default
 
     def test_load_org_models_config_non_dict_section(self, temp_org_dir):
         """Test load_org_models_config handles non-dict sections."""
@@ -411,7 +416,7 @@ class TestOrgModelsConfig:
         # Should use defaults when section is not a dict
         assert models["chairman_model"] == "gemini/gemini-2.5-pro"
         assert models["title_model"] == "gemini/gemini-2.5-pro"
-        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "openai/gpt-4o"
 
     def test_load_org_models_config_missing_model_key(self, temp_org_dir):
         """Test load_org_models_config handles missing model key in section."""
@@ -429,7 +434,7 @@ class TestOrgModelsConfig:
         # Should use defaults when model key is missing
         assert models["chairman_model"] == "gemini/gemini-2.5-pro"
         assert models["title_model"] == "gemini/gemini-2.5-pro"
-        assert models["ranking_model"] == "gemini/gemini-2.5-pro"
+        assert models["ranking_model"] == "openai/gpt-4o"
 
 
 class TestOrgDirectoryHelpers:

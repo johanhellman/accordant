@@ -89,13 +89,19 @@ class CouncilManager:
                     generate_conversation_title(user_query, org_id, api_key, base_url)
                 )
 
+            # Ensure messages list includes current user query (handle stale snapshot)
+            messages = conversation_history["messages"]
+            if not messages or messages[-1].get("role") != "user" or messages[-1].get("content") != user_query:
+                # Snapshot is stale or missing the new message, append it
+                messages = messages + [{"role": "user", "content": user_query}]
+
             # --- Stage 1 ---
             await self._emit(
                 conversation_id, "stage_start", {"stage": 1, "name": "Individual Responses"}
             )
 
             stage1_results = await stage1_collect_responses(
-                user_query, conversation_history["messages"], org_id, api_key, base_url
+                user_query, messages, org_id, api_key, base_url
             )
             await self._emit(conversation_id, "stage1_complete", {"results": stage1_results})
 
@@ -105,7 +111,7 @@ class CouncilManager:
             stage2_results, label_to_model = await stage2_collect_rankings(
                 user_query,
                 stage1_results,
-                conversation_history["messages"],
+                messages,
                 org_id,
                 api_key,
                 base_url,
@@ -115,7 +121,7 @@ class CouncilManager:
 
             # Record Votes (DB Side Effect)
             try:
-                turn_number = (len(conversation_history["messages"]) + 1) // 2
+                turn_number = (len(messages) + 1) // 2
                 record_votes(
                     conversation_id,
                     stage2_results,
@@ -150,7 +156,7 @@ class CouncilManager:
                 stage1_results,
                 stage2_results,
                 label_to_model,
-                conversation_history["messages"],
+                messages,
                 org_id,
                 api_key,
                 base_url,
