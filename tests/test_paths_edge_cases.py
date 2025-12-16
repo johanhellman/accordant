@@ -176,8 +176,6 @@ def test_validate_file_path_parent_directory():
         subdir = os.path.join(tmpdir, "subdir")
         os.makedirs(subdir, exist_ok=True)
 
-        # Should resolve to base directory
-        result = validate_file_path("..", base_dir=subdir)
-
-        # Should be normalized to base directory
-        assert os.path.commonpath([tmpdir, result]) == tmpdir
+        # Should raise error as it escapes base directory
+        with pytest.raises(ValueError, match="Path outside allowed directory"):
+            validate_file_path("..", base_dir=subdir)

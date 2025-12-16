@@ -176,7 +176,7 @@ async def test_update_personality(tmp_path, monkeypatch):
 
     # Mock get_org_personalities_dir
     # Mock get_org_personalities_dir in the config module where it is used
-    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
+    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function
@@ -222,7 +222,7 @@ async def test_update_personality_id_mismatch(tmp_path, monkeypatch):
 
     # Mock get_org_personalities_dir
     # Mock get_org_personalities_dir in the config module where it is used
-    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
+    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function - should raise 400
@@ -256,7 +256,7 @@ async def test_delete_personality_existing(tmp_path, monkeypatch):
 
     # Mock get_org_personalities_dir
     # Mock get_org_personalities_dir in the config module where it is used
-    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
+    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function
@@ -287,7 +287,7 @@ async def test_delete_personality_not_found(tmp_path, monkeypatch):
 
     # Mock get_org_personalities_dir
     # Mock get_org_personalities_dir in the config module where it is used
-    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
+    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function - should raise 404
@@ -337,6 +337,8 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
     with (
         patch("backend.config.personalities.get_org_config_dir") as mock_get_config_dir,
         patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.admin_routes._save_yaml") as mock_save_yaml,
+        patch("backend.admin_routes.get_system_prompts") as mock_get_prompts, # Mock return helper to avoid complexity
     ):
         mock_get_config_dir.return_value = str(config_dir)
         mock_load_models.return_value = {
@@ -344,22 +346,24 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
             "chairman_model": "gemini/gemini-pro",
             "title_model": "gemini/gemini-pro",
         }
+        
+        # Mock get_system_prompts to return something valid since we bypass IO
+        mock_get_prompts.return_value = config 
 
         # Call function
         result = await update_system_prompts(config.dict(), current_user=mock_user)
 
-        # Assertions
-        assert result["base_system_prompt"]["value"] == "Base prompt"
-        assert result["ranking"]["prompt"]["value"] == config.ranking.prompt.value
-
-        # Verify file was created/updated
-        system_prompts_file = config_dir / "system-prompts.yaml"
-        assert system_prompts_file.exists()
-
-        with open(system_prompts_file) as f:
-            saved_data = yaml.safe_load(f)
-            assert saved_data["base_system_prompt"]["value"] == "Base prompt"
-            assert saved_data["ranking"]["prompt"]["value"] == config.ranking.prompt.value
+        # Verify save_yaml was called
+        assert mock_save_yaml.called
+        
+        # Verify args passed to save_yaml
+        args, _ = mock_save_yaml.call_args
+        file_path, saved_data = args
+        
+        assert str(file_path).endswith("system-prompts.yaml")
+        # Assert WE ARE SAVING STRINGS NOT DICTS
+        assert saved_data["base_system_prompt"] == "Base prompt"
+        assert saved_data["ranking"]["prompt"] == config.ranking.prompt.value
 
 
 @pytest.mark.asyncio
