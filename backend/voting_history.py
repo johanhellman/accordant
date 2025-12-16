@@ -91,10 +91,44 @@ def record_votes(
 
 # Legacy loader function - kept for interface compatibility but now empty/deprecated
 # The new ranking_service queries the DB directly.
+from .models import Conversation
+
 def load_voting_history(org_id: str) -> list[dict[str, Any]]:
     """
-    DEPRECATED: Returns empty list.
-    Legacy JSON loading is removed. Use ranking_service database queries.
+    Load voting history from Tenant DB.
+    Enriched with user_id from Conversation.
     """
-    logger.warning("load_voting_history is deprecated and returns empty list.")
-    return []
+    db: Session = get_tenant_session(org_id)
+    try:
+        # Join Vote and Conversation to get user_id
+        results = (
+            db.query(Vote, Conversation)
+            .join(Conversation, Vote.conversation_id == Conversation.id)
+            .all()
+        )
+
+        history = []
+        for vote, conv in results:
+            item = {
+                "id": vote.id,
+                "conversation_id": vote.conversation_id,
+                "timestamp": vote.timestamp,
+                "voter_model": vote.voter_model,
+                "voter_personality_id": vote.voter_personality_id,
+                "candidate_model": vote.candidate_model,
+                "candidate_personality_id": vote.candidate_personality_id,
+                "rank": vote.rank,
+                "label": vote.label,
+                "reasoning": vote.reasoning,
+                # Enriched fields
+                "user_id": conv.user_id,
+                "conversation_title": conv.title,
+            }
+            history.append(item)
+
+        return history
+    except Exception as e:
+        logger.error(f"Error loading voting history: {e}")
+        return []
+    finally:
+        db.close()

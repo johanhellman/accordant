@@ -17,7 +17,7 @@ def test_security_fail_fast_in_production():
             del sys.modules["backend.security"]
 
         with pytest.raises(ValueError, match="ENCRYPTION_KEY must be set in production"):
-            pass
+            import backend.security
 
 
 def test_security_warn_in_development():

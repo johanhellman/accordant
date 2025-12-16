@@ -72,6 +72,10 @@ def test_multi_user_voting_attribution(clean_data):
     # Actually, let's test the admin endpoint's enrichment logic.
 
     from backend.voting_history import record_votes
+    from backend.storage import create_conversation
+
+    # Create conversations first so the JOIN works
+    create_conversation("conv1", user_id=user1.id, org_id="test-org")
 
     record_votes(
         conversation_id="conv1",
@@ -82,6 +86,7 @@ def test_multi_user_voting_attribution(clean_data):
     )
 
     # 4. Record vote for User 2
+    create_conversation("conv2", user_id=user2.id, org_id="test-org")
     record_votes(
         conversation_id="conv2",
         stage2_results=[{"model": "gpt-4", "parsed_ranking": ["A"]}],

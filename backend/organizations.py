@@ -93,6 +93,22 @@ def create_org(
         os.makedirs(os.path.join(org_dir, "personalities"), exist_ok=True)
         os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
 
+        # Copy default personalities and system-prompts.yaml
+        src_personalities = os.path.join(PROJECT_ROOT, "data", "personalities")
+        if os.path.exists(src_personalities):
+            import shutil
+            for f in os.listdir(src_personalities):
+                if f.endswith(".yaml"):
+                    src = os.path.join(src_personalities, f)
+                    if f == "system-prompts.yaml":
+                        dst = os.path.join(org_dir, "config", f)
+                    else:
+                        dst = os.path.join(org_dir, "personalities", f)
+                    try:
+                        shutil.copy2(src, dst)
+                    except Exception as e:
+                        logger.warning(f"Failed to copy default file {f}: {e}")
+
         return OrganizationInDB.from_orm(new_org)
     except Exception as e:
         if is_ephemeral:

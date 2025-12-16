@@ -4,7 +4,7 @@ import shutil
 import pytest
 
 from backend import models
-from backend.database import SystemSessionLocal
+import backend.database
 from backend.invitations import create_invitation, get_invitation, use_invitation
 from backend.organizations import ORGS_DATA_DIR, OrganizationCreate, create_org, get_org
 from backend.security import decrypt_value, encrypt_value
@@ -17,7 +17,8 @@ def setup_data():
     # Backup existing data if needed (skipped for simplicity in test env)
     # Ensure clean state
     # Cleanup tables
-    with SystemSessionLocal() as db:
+    # Use dynamic access to SystemSessionLocal to pick up patches
+    with backend.database.SystemSessionLocal() as db:
         # Delete in order of dependencies
         db.query(models.User).delete()
         db.query(models.Organization).delete()
@@ -32,7 +33,7 @@ def setup_data():
     yield
 
     # Cleanup
-    with SystemSessionLocal() as db:
+    with backend.database.SystemSessionLocal() as db:
         db.query(models.User).delete()
         db.query(models.Organization).delete()
         db.commit()
@@ -57,7 +58,7 @@ def test_create_organization(setup_data):
     # Verify directory creation
     org_dir = os.path.join(ORGS_DATA_DIR, org.id)
     assert os.path.exists(org_dir)
-    assert os.path.exists(os.path.join(org_dir, "conversations"))
+    # assert os.path.exists(os.path.join(org_dir, "conversations"))  # No longer needed with SQLite
     assert os.path.exists(os.path.join(org_dir, "personalities"))
     assert os.path.exists(os.path.join(org_dir, "config"))
 
@@ -127,7 +128,7 @@ def test_user_org_update(setup_data):
     # We can just use create_user or direct DB add.
     # The test creates user "u1" then updates it.
 
-    with SystemSessionLocal() as db:
+    with backend.database.SystemSessionLocal() as db:
         db_user = models.User(
             id=user.id, username=user.username, password_hash=user.password_hash, org_id=user.org_id
         )
