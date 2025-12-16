@@ -130,8 +130,8 @@ class TestGetSystemPrompts:
 
             result = await get_system_prompts(current_user=mock_user)
 
-            assert result["ranking"]["prompt"] == legacy_config["ranking_prompt"]
-            assert result["ranking"]["model"] == "gemini/gemini-2.5-pro"  # Default
+            assert result["ranking"]["prompt"]["value"] == legacy_config["ranking_prompt"]
+            assert result["ranking"]["model"] == "gemini/gemini-pro"
 
     @pytest.mark.asyncio
     async def test_get_system_prompts_partial_config(self, tmp_path):
@@ -166,7 +166,7 @@ class TestGetSystemPrompts:
 
             result = await get_system_prompts(current_user=mock_user)
 
-            assert result["base_system_prompt"] == "Custom base prompt"
+            assert result["base_system_prompt"]["value"] == "Custom base prompt"
             # Should use defaults for missing fields
             assert "prompt" in result["ranking"]
             assert "prompt" in result["chairman"]

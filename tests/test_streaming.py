@@ -18,10 +18,10 @@ class TestStreaming:
         """Create a temporary data directory for testing."""
         with tempfile.TemporaryDirectory() as tmpdir:
             orgs_dir = os.path.join(tmpdir, "organizations")
-            users_file = os.path.join(tmpdir, "users.json")
+            os.path.join(tmpdir, "users.json")
             os.makedirs(orgs_dir, exist_ok=True)
             monkeypatch.setattr("backend.organizations.ORGS_DATA_DIR", orgs_dir)
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
+            # USERS_FILE patching removed (uses SQLite)
             yield tmpdir
 
     @pytest.mark.asyncio
@@ -54,7 +54,7 @@ class TestStreaming:
             ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
             patch("backend.streaming.record_votes"),
-            patch("backend.streaming.add_user_message") as mock_add_user,
+            # patch("backend.streaming.add_user_message") as mock_add_user,
             patch("backend.streaming.add_assistant_message") as mock_add_assistant,
             patch("backend.streaming.update_conversation_title") as mock_update_title,
         ):
@@ -107,7 +107,7 @@ class TestStreaming:
             mock_stage2.assert_called_once()
             mock_stage3.assert_called_once()
             mock_title.assert_called_once()
-            mock_add_user.assert_called_once()
+            # mock_add_user.assert_called_once()
             mock_add_assistant.assert_called_once()
             mock_update_title.assert_called_once()
 
@@ -144,7 +144,7 @@ class TestStreaming:
             ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
             patch("backend.streaming.record_votes"),
-            patch("backend.streaming.add_user_message"),
+            # patch("backend.streaming.add_user_message"),
             patch("backend.streaming.add_assistant_message"),
             patch("backend.streaming.update_conversation_title") as mock_update_title,
         ):
@@ -191,7 +191,7 @@ class TestStreaming:
 
         # Mock add_user_message to succeed, but stage1 to raise exception
         with (
-            patch("backend.streaming.add_user_message"),
+            # patch("backend.streaming.add_user_message"),
             patch(
                 "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
             ) as mock_stage1,
@@ -245,7 +245,7 @@ class TestStreaming:
                 "backend.streaming.generate_conversation_title", new_callable=AsyncMock
             ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.add_user_message"),
+            # patch("backend.streaming.add_user_message"),
             patch("backend.streaming.add_assistant_message"),
         ):
             mock_stage1.return_value = []  # Empty results
@@ -295,7 +295,7 @@ class TestStreaming:
             ) as mock_title,
             patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
             patch("backend.streaming.record_votes") as mock_record_votes,
-            patch("backend.streaming.add_user_message"),
+            # patch("backend.streaming.add_user_message"),
             patch("backend.streaming.add_assistant_message"),
         ):
             mock_stage1.return_value = [

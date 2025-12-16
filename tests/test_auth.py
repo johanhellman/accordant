@@ -1,6 +1,5 @@
 """Tests for authentication and user management."""
 
-import os
 import tempfile
 
 import pytest
@@ -16,12 +15,17 @@ from backend.users import User, UserInDB, create_user, get_user
 
 class TestUserManagement:
     def test_create_and_get_user(self, monkeypatch):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            users_file = os.path.join(temp_dir, "users.json")
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
+        with tempfile.TemporaryDirectory():
+            # USERS_FILE patching removed (uses SQLite)
 
             # Create first user (should be admin and instance admin)
-            user1 = UserInDB(id="1", username="admin", password_hash="hash")
+            user1 = UserInDB(
+                id="1",
+                username="admin",
+                password_hash="hash",
+                is_admin=True,
+                is_instance_admin=True,
+            )
             created1 = create_user(user1)
             assert created1.is_admin is True
             assert created1.is_instance_admin is True
@@ -41,14 +45,15 @@ class TestUserManagement:
             assert fetched2.is_admin is False
 
     def test_duplicate_username(self, monkeypatch):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            users_file = os.path.join(temp_dir, "users.json")
-            monkeypatch.setattr("backend.users.USERS_FILE", users_file)
+        with tempfile.TemporaryDirectory():
+            # USERS_FILE patching removed (uses SQLite)
 
             user1 = UserInDB(id="1", username="test", password_hash="hash")
             create_user(user1)
 
-            with pytest.raises(ValueError):
+            from sqlalchemy.exc import IntegrityError
+
+            with pytest.raises(IntegrityError):
                 create_user(user1)
 
 

@@ -25,7 +25,7 @@ class TestFullCouncilFlow:
         with tempfile.TemporaryDirectory() as tmpdir:
             conversations_dir = os.path.join(tmpdir, "conversations")
             os.makedirs(conversations_dir, exist_ok=True)
-            monkeypatch.setattr(storage, "ORGS_DATA_DIR", conversations_dir)
+            # storage.ORGS_DATA_DIR removed (uses SQLite)
             yield conversations_dir
 
     @pytest.fixture

@@ -76,7 +76,7 @@ async def test_get_personality_existing(tmp_path, monkeypatch):
         "name": "Test Bot",
         "description": "A test personality",
         "model": "openai/gpt-4",
-        "personality_prompt": "You are a test bot.",
+        "personality_prompt": {"identity_and_role": "You are a test bot."},
     }
 
     personality_file = personalities_dir / "test_personality.yaml"
@@ -93,7 +93,8 @@ async def test_get_personality_existing(tmp_path, monkeypatch):
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function
@@ -123,7 +124,8 @@ async def test_get_personality_not_found(tmp_path, monkeypatch):
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function - should raise 404
@@ -147,7 +149,7 @@ async def test_update_personality(tmp_path, monkeypatch):
         "name": "Original Name",
         "description": "Original description",
         "model": "openai/gpt-4",
-        "personality_prompt": "Original prompt",
+        "personality_prompt": {"identity_and_role": "Original prompt"},
     }
 
     personality_file = personalities_dir / "test_personality.yaml"
@@ -169,11 +171,12 @@ async def test_update_personality(tmp_path, monkeypatch):
         name="Updated Name",
         description="Updated description",
         model="openai/gpt-4",
-        personality_prompt="Updated prompt",
+        personality_prompt={"identity_and_role": "Updated prompt"},
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function
@@ -214,11 +217,12 @@ async def test_update_personality_id_mismatch(tmp_path, monkeypatch):
         name="Test",
         description="Test description",
         model="openai/gpt-4",
-        personality_prompt="Test prompt",
+        personality_prompt={"identity_and_role": "Test prompt"},
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function - should raise 400
@@ -251,7 +255,8 @@ async def test_delete_personality_existing(tmp_path, monkeypatch):
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function
@@ -281,7 +286,8 @@ async def test_delete_personality_not_found(tmp_path, monkeypatch):
     )
 
     # Mock get_org_personalities_dir
-    with patch("backend.admin_routes.get_org_personalities_dir") as mock_get_dir:
+    # Mock get_org_personalities_dir in the config module where it is used
+    with patch("backend.config.personalities.get_org_personalities_dir") as mock_get_dir:
         mock_get_dir.return_value = str(personalities_dir)
 
         # Call function - should raise 404
@@ -311,19 +317,20 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
 
     # System prompts config
     config = SystemPromptsConfig(
-        base_system_prompt="Base prompt",
+        base_system_prompt={"value": "Base prompt", "is_default": False, "source": "custom"},
         ranking=ComponentConfig(
-            prompt="Rank {responses_text} for {user_query} from {peer_text}",
+            prompt={"value": "Rank {responses_text} for {user_query} from {peer_text}", "is_default": False, "source": "custom"},
             model="gemini/gemini-pro",
         ),
         chairman=ComponentConfig(
-            prompt="Chairman for {user_query} using {stage1_text} and {voting_details_text}",
+            prompt={"value": "Chairman for {user_query} using {stage1_text} and {voting_details_text}", "is_default": False, "source": "custom"},
             model="gemini/gemini-pro",
         ),
         title_generation=ComponentConfig(
-            prompt="Title for {user_query}",
+            prompt={"value": "Title for {user_query}", "is_default": False, "source": "custom"},
             model="gemini/gemini-pro",
         ),
+        evolution_prompt={"value": "Evolve personality", "is_default": True, "source": "default"},
     )
 
     # Mock dependencies
@@ -339,11 +346,11 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
         }
 
         # Call function
-        result = await update_system_prompts(config, current_user=mock_user)
+        result = await update_system_prompts(config.dict(), current_user=mock_user)
 
         # Assertions
-        assert result.base_system_prompt == "Base prompt"
-        assert result.ranking.prompt == config.ranking.prompt
+        assert result["base_system_prompt"]["value"] == "Base prompt"
+        assert result["ranking"]["prompt"]["value"] == config.ranking.prompt.value
 
         # Verify file was created/updated
         system_prompts_file = config_dir / "system-prompts.yaml"
@@ -351,8 +358,8 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
 
         with open(system_prompts_file) as f:
             saved_data = yaml.safe_load(f)
-            assert saved_data["base_system_prompt"] == "Base prompt"
-            assert saved_data["ranking"]["prompt"] == config.ranking.prompt
+            assert saved_data["base_system_prompt"]["value"] == "Base prompt"
+            assert saved_data["ranking"]["prompt"]["value"] == config.ranking.prompt.value
 
 
 @pytest.mark.asyncio
@@ -376,19 +383,20 @@ async def test_update_system_prompts_invalid_tags(tmp_path, monkeypatch):
     from backend.admin_routes import ComponentConfig, SystemPromptsConfig
 
     config = SystemPromptsConfig(
-        base_system_prompt="Base prompt",
+        base_system_prompt={"value": "Base prompt", "is_default": True, "source": "default"},
         ranking=ComponentConfig(
-            prompt="Rank responses",  # Missing required tags
+            prompt={"value": "Rank responses", "is_default": False, "source": "custom"},  # Missing required tags
             model="gemini/gemini-pro",
         ),
         chairman=ComponentConfig(
-            prompt="Chairman prompt",
+            prompt={"value": "Chairman prompt", "is_default": True, "source": "default"},
             model="gemini/gemini-pro",
         ),
         title_generation=ComponentConfig(
-            prompt="Title prompt",
+            prompt={"value": "Title prompt", "is_default": True, "source": "default"},
             model="gemini/gemini-pro",
         ),
+        evolution_prompt={"value": "Evolve personality", "is_default": True, "source": "default"},
     )
 
     # Mock get_org_config_dir
@@ -397,7 +405,7 @@ async def test_update_system_prompts_invalid_tags(tmp_path, monkeypatch):
 
         # Call function - should raise 400
         with pytest.raises(HTTPException) as exc_info:
-            await update_system_prompts(config, current_user=mock_user)
+            await update_system_prompts(config.dict(), current_user=mock_user)
 
         assert exc_info.value.status_code == 400
         assert "missing required tags" in exc_info.value.detail.lower()
@@ -652,8 +660,16 @@ async def test_run_full_council_success():
         ]
 
         mock_label_to_model = {
-            f"{RESPONSE_LABEL_PREFIX}A": "Personality 1",
-            f"{RESPONSE_LABEL_PREFIX}B": "Personality 2",
+            f"{RESPONSE_LABEL_PREFIX}A": {
+                "name": "Personality 1",
+                "id": "personality1",
+                "model": "openai/gpt-4"
+            },
+            f"{RESPONSE_LABEL_PREFIX}B": {
+                "name": "Personality 2",
+                "id": "personality2",
+                "model": "anthropic/claude-3"
+            },
         }
 
         mock_stage3_result = {
@@ -1199,8 +1215,10 @@ async def test_stage2_collect_rankings_success():
         # Verify label_to_model mapping
         assert f"{RESPONSE_LABEL_PREFIX}A" in label_to_model
         assert f"{RESPONSE_LABEL_PREFIX}B" in label_to_model
-        assert label_to_model[f"{RESPONSE_LABEL_PREFIX}A"] == "Personality 1"
-        assert label_to_model[f"{RESPONSE_LABEL_PREFIX}B"] == "Personality 2"
+        # Expect dictionary structure for label_to_model values
+        assert isinstance(label_to_model[f"{RESPONSE_LABEL_PREFIX}A"], dict)
+        assert label_to_model[f"{RESPONSE_LABEL_PREFIX}A"]["name"] == "Personality 1"
+        assert label_to_model[f"{RESPONSE_LABEL_PREFIX}B"]["name"] == "Personality 2"
 
 
 @pytest.mark.asyncio

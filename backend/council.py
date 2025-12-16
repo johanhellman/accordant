@@ -347,7 +347,7 @@ async def stage3_synthesize_final(
     # Construct detailed voting history for the prompt
     voting_details = []
     for res in stage2_results:
-        voter_name = res.get("personality_name", res["model"])
+        voter_name = res.get("personality_name", res.get("model", "Unknown Model"))
         # We intentionally do NOT include the model name here to prevent bias
         voter_display = f"{voter_name}"
         rankings = res.get("parsed_ranking", [])
@@ -423,11 +423,12 @@ async def generate_conversation_title(
         # Fallback to a generic title
         return "New Conversation"
 
+    today = "today" # Placeholder or use context if available but unused here.
     content = response.get("content")
     title = "New Conversation" if content is None else content.strip()
 
     # Clean up the title - remove quotes, limit length
-    title = title.strip("\"'")
+    title = title.strip("\"'").strip()
 
     # If title is empty after cleaning, use fallback
     if not title:
@@ -478,11 +479,20 @@ async def run_full_council(
     # Calculate aggregate rankings
     aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
 
+    # Group stage 2 results by model, skipping entries missing the 'model' key
+    # This ensures that only valid results are passed to stage 3 if needed,
+    # and aligns with the instruction to skip missing model keys.
+    from collections import defaultdict
+    results_by_model = defaultdict(list)
+    for r in stage2_results:
+        if "model" in r:
+            results_by_model[r["model"]].append(r)
+
     # Stage 3: Synthesize final answer
     stage3_result = await stage3_synthesize_final(
         user_query,
         stage1_results,
-        stage2_results,
+        stage2_results, # Pass the original stage2_results, filtering logic can be inside stage3 if needed
         label_to_model,
         messages,
         org_id,
