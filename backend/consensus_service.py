@@ -6,7 +6,8 @@ import json
 import logging
 import re
 
-from ..config.prompts import get_active_consensus_prompt
+from backend.config.prompts import get_active_consensus_prompt
+
 from .openrouter import query_model
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class ConsensusService:
         prompt_template = ""
 
         if strategy_name:
-            from ..config.prompts import load_consensus_prompt
+            from backend.config.prompts import load_consensus_prompt
 
             prompt_template = load_consensus_prompt(strategy_name)
         else:
@@ -86,7 +87,7 @@ class ConsensusService:
         system_prompt = prompt_template.replace("{count}", str(len(stage1_results)))
 
         # 4. Call LLM (Async)
-        from ..config.personalities import load_org_models_config
+        from backend.config.personalities import load_org_models_config
 
         models_config = load_org_models_config(org_id)
         model = models_config.get("chairman_model", "gemini/gemini-2.5-pro")

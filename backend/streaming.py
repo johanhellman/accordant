@@ -8,11 +8,8 @@ from typing import Any
 
 from .council import (
     generate_conversation_title,
-    stage1_collect_responses,
-    stage2_collect_rankings,
-    stage3_synthesize_final,
+    run_council_cycle,
 )
-from .council_helpers import calculate_aggregate_rankings
 from .storage import (
     add_assistant_message,
     update_conversation_status,
@@ -73,7 +70,7 @@ class CouncilManager:
     ):
         """
         The Background Worker.
-        Executes the council logic, updates DB status, and feeds the stream queue.
+        Executes the council logic via the shared generator, updates DB status, and feeds the stream queue.
         This must NEVER raise an exception out to the caller, or it crashes the Task.
         """
         try:
@@ -100,87 +97,51 @@ class CouncilManager:
                 # Snapshot is stale or missing the new message, append it
                 messages = messages + [{"role": "user", "content": user_query}]
 
-            # --- Stage 1 ---
-            await self._emit(
-                conversation_id, "stage_start", {"stage": 1, "name": "Individual Responses"}
-            )
+            # Variables to hold results for final persistence
+            final_stage1_results = []
+            final_stage2_results = []
+            final_stage3_result = {}
 
-            stage1_results = await stage1_collect_responses(
-                user_query, messages, org_id, api_key, base_url
-            )
-            await self._emit(conversation_id, "stage1_complete", {"results": stage1_results})
-
-            # --- Stage 2 ---
-            await self._emit(conversation_id, "stage_start", {"stage": 2, "name": "Peer Ranking"})
-
-            stage2_results, label_to_model = await stage2_collect_rankings(
+            # Iterate over the shared generator
+            async for event in run_council_cycle(
                 user_query,
-                stage1_results,
                 messages,
                 org_id,
                 api_key,
                 base_url,
-            )
+                consensus_enabled=consensus_enabled,
+            ):
+                event_type = event["type"]
+                data = event["data"]
 
-            aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
+                # Emit event to client
+                await self._emit(conversation_id, event_type, data)
 
-            # Record Votes (DB Side Effect)
-            try:
-                turn_number = (len(messages) + 1) // 2
-                record_votes(
-                    conversation_id,
-                    stage2_results,
-                    label_to_model,
-                    conversation_title=conversation_history.get("title", "Unknown"),
-                    turn_number=turn_number,
-                    user_id=conversation_history.get("user_id"),
-                    org_id=org_id,
-                )
-            except Exception as e:
-                logger.error(f"Error recording votes: {e}")
+                # Handle Side Effects based on event type
+                if event_type == "stage1_complete":
+                    final_stage1_results = data["results"]
 
-            await self._emit(
-                conversation_id,
-                "stage2_complete",
-                {
-                    "results": stage2_results,
-                    "metadata": {
-                        "label_to_model": label_to_model,
-                        "aggregate_rankings": aggregate_rankings,
-                    },
-                },
-            )
+                elif event_type == "stage2_complete":
+                    final_stage2_results = data["results"]
+                    label_to_model = data["metadata"]["label_to_model"]
 
-            # --- Stage 3 ---
-            await self._emit(
-                conversation_id, "stage_start", {"stage": 3, "name": "Final Synthesis"}
-            )
+                    # Record Votes (DB Side Effect)
+                    try:
+                        turn_number = (len(messages) + 1) // 2
+                        record_votes(
+                            conversation_id,
+                            final_stage2_results,
+                            label_to_model,
+                            conversation_title=conversation_history.get("title", "Unknown"),
+                            turn_number=turn_number,
+                            user_id=conversation_history.get("user_id"),
+                            org_id=org_id,
+                        )
+                    except Exception as e:
+                        logger.error(f"Error recording votes: {e}")
 
-            if consensus_enabled:
-                from .consensus_service import ConsensusService
-
-                logger.info("Executing Strategic Consensus Mode (Streamed)")
-                response_text, attribution = await ConsensusService.synthesize_consensus(
-                    stage1_results, stage2_results, org_id, api_key, base_url
-                )
-                stage3_result = {
-                    "model": "consensus-strategy",
-                    "response": response_text,
-                    "consensus_contributions": attribution,
-                }
-            else:
-                stage3_result = await stage3_synthesize_final(
-                    user_query,
-                    stage1_results,
-                    stage2_results,
-                    label_to_model,
-                    messages,
-                    org_id,
-                    api_key,
-                    base_url,
-                )
-
-            await self._emit(conversation_id, "stage3_complete", {"results": stage3_result})
+                elif event_type == "stage3_complete":
+                    final_stage3_result = data["results"]
 
             # Wait for title generation
             if title_task:
@@ -192,9 +153,14 @@ class CouncilManager:
                     logger.error(f"Title generation failed: {e}")
 
             # Save Result (The Critical Part)
-            add_assistant_message(
-                conversation_id, stage1_results, stage2_results, stage3_result, org_id
-            )
+            if final_stage1_results and final_stage3_result:
+                add_assistant_message(
+                    conversation_id,
+                    final_stage1_results,
+                    final_stage2_results,
+                    final_stage3_result,
+                    org_id,
+                )
 
             # Finish
             await self._emit_raw(conversation_id, f"data: {json.dumps({'type': 'complete'})}\n\n")
@@ -211,8 +177,6 @@ class CouncilManager:
         finally:
             # Signal end of stream logic
             # We do NOT remove the queue immediately if we want to support "late joiners"
-            # but for Phase 1 (transient stream), we signal done.
-            # The consumer loop will handle queue cleanup/exit when it sees 'complete' or 'error'
             pass
 
 
@@ -234,10 +198,6 @@ async def run_council_generator(
 
     # Add user message to DB immediately (synchronous part provided by caller usually, but we ensure here)
     # The caller (main.py) already did valid checks.
-
-    # Check if task is already running?
-    # For Phase 1, we assume a new request starts a new task.
-    # Ideally we should check DB status.
 
     # Spawn background task
     asyncio.create_task(

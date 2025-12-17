@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from .config.personalities import (
@@ -450,6 +451,90 @@ async def generate_conversation_title(
     return title
 
 
+async def run_council_cycle(
+    user_query: str,
+    messages: list[dict[str, Any]] | None = None,
+    org_id: str = None,
+    api_key: str = None,
+    base_url: str = None,
+    consensus_enabled: bool = False,
+) -> AsyncGenerator[dict[str, Any]]:
+    """
+    Execute the council logic sequence and yield events for each stage.
+    This generator encapsulates the core business logic, preventing logic drift.
+
+    Yields:
+        Dicts with "type" and "data" keys.
+        Types: "stage_start", "stage1_complete", "stage2_complete", "stage3_complete"
+    """
+    # --- Stage 1 ---
+    yield {"type": "stage_start", "data": {"stage": 1, "name": "Individual Responses"}}
+
+    stage1_results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
+
+    # Check termination if Stage 1 failed completely (logic from run_full_council)
+    if not stage1_results:
+        # We define a special error/empty event or just finish?
+        # Standard flow expects stage1_complete.
+        yield {"type": "stage1_complete", "data": {"results": []}}
+        return
+
+    yield {"type": "stage1_complete", "data": {"results": stage1_results}}
+
+    # --- Stage 2 ---
+    yield {"type": "stage_start", "data": {"stage": 2, "name": "Peer Ranking"}}
+
+    stage2_results, label_to_model = await stage2_collect_rankings(
+        user_query, stage1_results, messages, org_id, api_key, base_url
+    )
+
+    aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
+
+    yield {
+        "type": "stage2_complete",
+        "data": {
+            "results": stage2_results,
+            "metadata": {
+                "label_to_model": label_to_model,
+                "aggregate_rankings": aggregate_rankings,
+            },
+        },
+    }
+
+    # --- Stage 3 ---
+    yield {
+        "type": "stage_start",
+        "data": {"stage": 3, "name": "Final Synthesis"},
+    }  # Stage 3: Synthesize final answer
+    if consensus_enabled:
+        from backend.consensus_service import ConsensusService
+
+        # Use Strategic Consensus
+        logger.info("Executing Strategic Consensus Mode (Shared Generator)")
+        response_text, attribution = await ConsensusService.synthesize_consensus(
+            stage1_results, stage2_results, org_id, api_key, base_url
+        )
+
+        stage3_result = {
+            "model": "consensus-strategy",
+            "response": response_text,
+            "consensus_contributions": attribution,
+        }
+    else:
+        stage3_result = await stage3_synthesize_final(
+            user_query,
+            stage1_results,
+            stage2_results,
+            label_to_model,
+            messages,
+            org_id,
+            api_key,
+            base_url,
+        )
+
+    yield {"type": "stage3_complete", "data": {"results": stage3_result}}
+
+
 async def run_full_council(
     user_query: str,
     messages: list[dict[str, Any]] | None = None,
@@ -459,7 +544,7 @@ async def run_full_council(
     consensus_enabled: bool = False,
 ) -> tuple[list[Stage1Result], list[Stage2Result], Stage3Result, dict[str, Any]]:
     """
-    Run the complete 3-stage council process.
+    Run the complete 3-stage council process (Batch/Sync wrapper).
 
     Args:
         user_query: The user's question
@@ -469,66 +554,39 @@ async def run_full_council(
         Tuple of (stage1_results, stage2_results, stage3_result, metadata)
     """
     logger.info(f"Starting full council session for query: {user_query[:50]}...")
-    # Stage 1: Collect individual responses
-    stage1_results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
 
-    # If no models responded successfully, return error
-    if not stage1_results:
-        return (
-            [],
-            [],
-            {"model": "error", "response": "All models failed to respond. Please try again."},
-            {},
-        )
+    # Initialize accumulation variables
+    stage1_results = []
+    stage2_results = []
+    stage3_result = {}
+    metadata = {}
 
-    # Stage 2: Collect rankings
-    stage2_results, label_to_model = await stage2_collect_rankings(
-        user_query, stage1_results, messages, org_id, api_key, base_url
-    )
+    async for event in run_council_cycle(
+        user_query, messages, org_id, api_key, base_url, consensus_enabled
+    ):
+        event_type = event["type"]
+        data = event["data"]
 
-    # Calculate aggregate rankings
-    aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
+        if event_type == "stage1_complete":
+            stage1_results = data["results"]
+            # Early exit check if no results
+            if not stage1_results:
+                return (
+                    [],
+                    [],
+                    {
+                        "model": "error",
+                        "response": "All models failed to respond. Please try again.",
+                    },
+                    {},
+                )
 
-    # Group stage 2 results by model, skipping entries missing the 'model' key
-    # This ensures that only valid results are passed to stage 3 if needed,
-    # and aligns with the instruction to skip missing model keys.
-    from collections import defaultdict
+        elif event_type == "stage2_complete":
+            stage2_results = data["results"]
+            metadata = data["metadata"]
 
-    results_by_model = defaultdict(list)
-    for r in stage2_results:
-        if "model" in r:
-            results_by_model[r["model"]].append(r)
-
-    # Stage 3: Synthesize final answer
-    if consensus_enabled:
-        from .consensus_service import ConsensusService
-
-        # Use Strategic Consensus
-        logger.info("Executing Strategic Consensus Mode (Stage 3)")
-        response_text, attribution = await ConsensusService.synthesize_consensus(
-            stage1_results, stage2_results, org_id, api_key, base_url
-        )
-
-        stage3_result = {
-            "model": "consensus-strategy",
-            "response": response_text,
-            # Pass attribution in metadata specific key so storage can pick it up
-            "consensus_contributions": attribution,
-        }
-    else:
-        stage3_result = await stage3_synthesize_final(
-            user_query,
-            stage1_results,
-            stage2_results,  # Pass the original stage2_results, filtering logic can be inside stage3 if needed
-            label_to_model,
-            messages,
-            org_id,
-            api_key,
-            base_url,
-        )
-
-    # Prepare metadata
-    metadata = {"label_to_model": label_to_model, "aggregate_rankings": aggregate_rankings}
+        elif event_type == "stage3_complete":
+            stage3_result = data["results"]
 
     logger.info("Full council session complete")
     return stage1_results, stage2_results, stage3_result, metadata
