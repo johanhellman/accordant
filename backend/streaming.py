@@ -69,6 +69,7 @@ class CouncilManager:
         org_id: str,
         api_key: str,
         base_url: str,
+        consensus_enabled: bool = False,
     ):
         """
         The Background Worker.
@@ -155,16 +156,30 @@ class CouncilManager:
                 conversation_id, "stage_start", {"stage": 3, "name": "Final Synthesis"}
             )
 
-            stage3_result = await stage3_synthesize_final(
-                user_query,
-                stage1_results,
-                stage2_results,
-                label_to_model,
-                messages,
-                org_id,
-                api_key,
-                base_url,
-            )
+            if consensus_enabled:
+                from .consensus_service import ConsensusService
+
+                logger.info("Executing Strategic Consensus Mode (Streamed)")
+                response_text, attribution = await ConsensusService.synthesize_consensus(
+                    stage1_results, stage2_results, org_id, api_key, base_url
+                )
+                stage3_result = {
+                    "model": "consensus-strategy",
+                    "response": response_text,
+                    "consensus_contributions": attribution,
+                }
+            else:
+                stage3_result = await stage3_synthesize_final(
+                    user_query,
+                    stage1_results,
+                    stage2_results,
+                    label_to_model,
+                    messages,
+                    org_id,
+                    api_key,
+                    base_url,
+                )
+
             await self._emit(conversation_id, "stage3_complete", {"results": stage3_result})
 
             # Wait for title generation
@@ -208,6 +223,7 @@ async def run_council_generator(
     org_id: str,
     api_key: str,
     base_url: str,
+    consensus_enabled: bool = False,
 ) -> AsyncGenerator[str]:
     """
     Entry point for the API.
@@ -226,7 +242,13 @@ async def run_council_generator(
     # Spawn background task
     asyncio.create_task(
         manager.run_task(
-            conversation_id, user_query, conversation_history, org_id, api_key, base_url
+            conversation_id,
+            user_query,
+            conversation_history,
+            org_id,
+            api_key,
+            base_url,
+            consensus_enabled=consensus_enabled,
         )
     )
 
