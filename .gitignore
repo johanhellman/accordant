@@ -28,6 +28,7 @@ jscpd-report/
 # Data files
 data/*
 !data/defaults/
+!data/prompts/
 
 # Frontend
 frontend/node_modules/

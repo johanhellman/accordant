@@ -96,6 +96,49 @@
   z-index: 20;
 }
 
+.consensus-toggle-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 4px;
+  /* Align with button text baseline approx */
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s;
+}
+
+.toggle-label:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.toggle-label input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+/* When checked styling */
+.toggle-label:has(input:checked) {
+  background: var(--gradient-subtle);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
 .message-input {
   flex: 1;
   padding: 1rem;

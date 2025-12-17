@@ -133,3 +133,51 @@ def load_voting_history(org_id: str) -> list[dict[str, Any]]:
         return []
     finally:
         db.close()
+
+
+def get_consensus_stats(org_id: str) -> dict[str, Any]:
+    """
+    Get aggregated statistics for Consensus Mode contributions.
+    """
+    from .models import ConsensusContribution
+
+    db: Session = get_tenant_session(org_id)
+    try:
+        contributions = db.query(ConsensusContribution).all()
+
+        # Raw list
+        raw_data = []
+
+        # Aggregation by Personality
+        by_personality = {}
+
+        for c in contributions:
+            # Raw
+            raw_data.append(
+                {
+                    "id": c.id,
+                    "personality_id": c.personality_id,
+                    "strategy": c.strategy,
+                    "score": c.score,
+                    "timestamp": c.created_at,
+                }
+            )
+
+            # Aggregate
+            pid = c.personality_id or "unknown"
+            if pid not in by_personality:
+                by_personality[pid] = {"count": 0, "total_score": 0.0}
+
+            by_personality[pid]["count"] += 1
+            by_personality[pid]["total_score"] += c.score
+
+        return {
+            "total_contributions": len(raw_data),
+            "by_personality": by_personality,
+            "raw": raw_data,
+        }
+    except Exception as e:
+        logger.error(f"Error loading consensus stats: {e}")
+        return {"error": str(e)}
+    finally:
+        db.close()

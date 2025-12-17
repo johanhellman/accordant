@@ -688,6 +688,14 @@ async def get_voting_statistics(current_user: User = Depends(get_current_admin_u
     return load_voting_history(current_user.org_id)
 
 
+@app.get("/api/admin/stats/consensus")
+async def get_consensus_statistics(current_user: User = Depends(get_current_admin_user)):
+    """Get aggregated consensus statistics."""
+    from .voting_history import get_consensus_stats
+
+    return get_consensus_stats(current_user.org_id)
+
+
 # --- Conversation Routes ---
 
 
@@ -788,6 +796,7 @@ async def send_message(
         org_id=current_user.org_id,
         api_key=api_key,
         base_url=base_url,
+        consensus_enabled=request_data.consensus_enabled,
     )
 
     # Record voting history

@@ -207,6 +207,30 @@ def add_assistant_message(
             stages_json=stages_data,
         )
         db.add(msg)
+
+        # --- Consensus Attribution Saving ---
+        # If Stage 3 contains 'consensus_contributions' metadata, save to separate table
+        contributions = stage3.get("consensus_contributions", [])
+        if contributions:
+            for contrib in contributions:
+                # Expecting: {personality_id, score/weight, strategy, reasoning}
+                # The Service returns {id, weight, reason, strategy}
+                # Map keys: id -> personality_id
+
+                # Default "weight" from prompt is raw format
+                # We need to map it carefully
+
+                c_id = str(uuid.uuid4())
+                new_contrib = models.ConsensusContribution(
+                    id=c_id,
+                    conversation_id=conversation_id,
+                    personality_id=contrib.get("id"),
+                    strategy=contrib.get("strategy", "unknown"),
+                    score=float(contrib.get("weight", 0.0)),
+                    reasoning=contrib.get("reason"),
+                )
+                db.add(new_contrib)
+
         db.commit()
 
 
