@@ -136,6 +136,39 @@ uv run pytest --cov=backend --cov-report=term-missing
 - Aligns with pytest configuration (`testpaths = ["tests"]`)
 - Follows standard Python project structure
 
+### Running Coverage
+
+To generate a new coverage report:
+```bash
+uv run pytest --cov=backend --cov-report=html
+open htmlcov/index.html
+```
+
+## Observability & Error Handling
+
+### Structured Logging
+The application uses structured JSON logging. Always use the logger configured in each module:
+```python
+import logging
+logger = logging.getLogger(__name__)
+
+logger.info("Processing started", extra={"custom_field": "value"})
+```
+The `request_id` is automatically injected into all logs within a request context context.
+
+### Error Handling
+Throw `AppError` or its subclasses for logic errors. These are automatically converted to standardized JSON responses:
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "User not found",
+    "request_id": "req_abc123"
+  }
+}
+```
+Avoid raising generic `HTTPException` manually if a specific `AppError` is available.
+
 ### Debugging
 
 **Backend Logging:**
@@ -149,9 +182,6 @@ uv run pytest --cov=backend --cov-report=term-missing
 - Use browser DevTools (F12)
 - React DevTools extension recommended
 - Check Network tab for API call issues
-## Known Issues in Test Suite
-- `tests/test_admin_routes.py`: Contains some assertion failures (4/30) due to legacy logic around validation and system prompt structure. These do not impact core SQLite functionality but require further refactoring.
-- Other legacy tests (`test_config.py`, `test_auth.py`) may fail due to removed file-based mocks. Focus on `test_main.py` and `test_storage.py` for verification.
 **Common Debugging Steps:**
 
 1. Check backend logs: `tail -f logs/llm_council.log`
