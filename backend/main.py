@@ -832,7 +832,7 @@ async def send_message_stream(
     return StreamingResponse(
         run_council_generator(
             conversation_id,
-            request.content,
+            request_data.content,
             conversation,
             org_id=current_user.org_id,
             api_key=api_key,

@@ -81,6 +81,27 @@ def tenant_db_session(tenant_engine):
 
 
 @pytest.fixture(autouse=True)
+def disable_rate_limiter(monkeypatch):
+    """
+    Disable rate limiting for all tests by default.
+    Tests that specifically need to test rate limiting should override this.
+    """
+    # Import locally to avoid circular imports if any
+    from backend.limiter import limiter
+
+    # Store original state
+    original_enabled = limiter.enabled
+
+    # Disable
+    limiter.enabled = False
+
+    yield
+
+    # Restore
+    limiter.enabled = original_enabled
+
+
+@pytest.fixture(autouse=True)
 def mock_db_engines(monkeypatch, tenant_engine, system_engine):
     """
     Patch database engines/sessions to use in-memory fixtures.
