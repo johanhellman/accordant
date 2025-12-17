@@ -921,8 +921,7 @@ async def test_run_full_council_with_messages():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Skeleton implementation not fully wired")
-async def test_governance_evolution_flow(self, mock_user, mock_db_session):
+async def test_governance_evolution_flow():
     """
     Critical Path 3: Governance Evolution
     Tests the flow of proposing and accepting personality changes.
@@ -981,8 +980,7 @@ async def test_governance_evolution_flow(self, mock_user, mock_db_session):
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Skeleton implementation not fully wired")
-async def test_daily_counsel_flow(self, mock_user, mock_db_session):
+async def test_daily_counsel_flow():
     """
     Critical Path 2: Daily Counsel Operation
     Tests the core loop of requesting and receiving counsel.
@@ -1041,8 +1039,7 @@ async def test_daily_counsel_flow(self, mock_user, mock_db_session):
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Skeleton implementation not fully wired")
-async def test_initial_setup_flow(self, mock_user, mock_db_session, mock_settings):
+async def test_initial_setup_flow():
     """
     Critical Path 1: Initial System Setup
     Tests the flow from fresh install to configured system.
