@@ -1,7 +1,7 @@
 # ADR-024: Strategic Consensus & Attribution
 
 **Date**: 2025-12-17
-**Status**: Proposed
+**Status**: Accepted
 **Context**:
 The original [ADR-001](ADR-001-3-stage-council-deliberation.md) defined Stage 3 as a simple synthesis step where the Chairman merges the answer. However, the system needs to support varying governance strategies (e.g., Risk-Averse vs. Novelty-Seeking) and must accurately attribute which parts of the synthesis came from which personality.
 
