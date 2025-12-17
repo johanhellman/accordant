@@ -87,7 +87,10 @@ def get_tenant_session(org_id: str):
     TenantBase.metadata.create_all(bind=engine)
 
     # Run schema migrations for existing databases
-    _migrate_tenant_schema(engine)
+    # Run schema migrations for existing databases
+    from .tenant_migrations import apply_tenant_migrations
+
+    apply_tenant_migrations(engine)
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()

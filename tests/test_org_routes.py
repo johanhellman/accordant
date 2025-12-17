@@ -86,7 +86,7 @@ class TestOrgRoutes:
     def test_join_organization_invalid_code(self, temp_data_dir):
         """Test joining organization with invalid invitation code returns 404."""
         client = TestClient(app)
-        headers = self.get_auth_headers(client)
+        _headers = self.get_auth_headers(client)
 
         response = client.post("/api/organizations/join", json={"invite_code": "INVALID"})
         assert response.status_code in [404, 401]
@@ -119,7 +119,7 @@ class TestOrgRoutes:
             use_invitation(invite_code, "some-user-id")
 
         # Try to join with expired code
-        user_headers = self.get_auth_headers(client, username="newuser", password="newpass")
+        _user_headers = self.get_auth_headers(client, username="newuser", password="newpass")
         response = client.post("/api/organizations/join", json={"invite_code": "EXPIRED"})
         assert response.status_code in [400, 401]
         if response.status_code == 400:

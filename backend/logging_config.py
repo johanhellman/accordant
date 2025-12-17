@@ -11,7 +11,7 @@ from .middleware import request_id_context
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
-        super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
+        super().add_fields(log_record, record, message_dict)
 
         # Standard fields
         if not log_record.get("timestamp"):

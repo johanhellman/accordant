@@ -84,31 +84,71 @@ A major innovation not in the original design is the **Evolution Service** (`bac
 
 This closes the loop: **Consensus Data → Better Personalities**.
 
-## 5. Future Work: Consensus Mode (Stage 3)
+## 5. Strategic Consensus Synthesis (Stage 3 Redesign)
 
-The final piece of the original design—changing how the Chairman *synthesizes* the answer in real-time—is the next logical step.
+Instead of a binary switch between "Ranking" and "Consensus", Stage 3 will support **Swappable Consensus Prompts**. The "Strategy" is not a complex code object, but simply a prompt template that dictates *how* the Chairman synthesizes the unfiltered views from the Council.
 
-**Proposed Logic**:
-*   **Input**: The same Stage 2 results we already have.
-*   **Mechanism**: A switch in the Chairman's system prompt.
-*   **Prompt Strategy**:
-    *   *Ranking Mode (Current)*: "Report the votes. Declare a winner. Write the best answer."
-    *   *Consensus Mode (Future)*: "Ignore the ranks. Read the 'Strengths' sections. Synthesize a unified answer that combines the best points from all responses."
+### 5.1. Philosophy
+*   **Unfiltered Input**: Personalities (Stage 1) and Peer Reviews (Stage 2) remain objective, diverse, and unfiltered. They provide the raw "evidence."
+*   **Directed Synthesis**: The Chairman (Stage 3) applies a specific "Lens" to this evidence to generate the final output.
+
+### 5.2. Use Cases
+*   **Balanced Consensus**: "Find the middle ground where most personalities agree." (Default)
+*   **Risk-Averse**: "Prioritize safety and stability. Reject any high-risk proposals."
+*   **Goal-Seeking**: "Prioritize maximum possible outcome for X, accepting higher risk."
+*   **Novelty Focus**: "Ignore safe, conventional answers. Synthesize the most novel components from the proposals."
+
+### 5.3. The Consensus Prompt Structure
+To ensure reliability, all Consensus Prompts should follow a standard skeleton while allowing the "Directive" to vary.
+
+**Skeleton Template**:
+```markdown
+# Role
+You are the Chairman. You represent the final decision-maker.
+
+# Input Data
+You have received proposals from {count} experts and detailed peer evaluations highlighting their strengths and weaknesses.
+
+# STRATEGIC DIRECTIVE (Variable)
+[The specific goal goes here. e.g., "Your goal is to maximize efficiency..."]
+
+# Instructions
+1. Analyze the "Weaknesses" identified in the peer reviews.
+2. Filter out proposals that violate the Strategic Directive.
+3. Synthesize a final answer that combines the remaining valid points.
+
+# Output Format
+Provide the final answer in the requested format.
+```
 
 ## 6. API & Configuration
 
-### Implemented Configuration (`data/defaults/system-prompts.yaml`)
-*   `ranking_enforced_output_format`: The template for Stage 2.
-*   `evolution_prompt`: The instruction for creating new personalities.
-*   `feedback_synthesis_prompt`: The instruction for summarizing peer critiques.
+### 6.1. Changes
+*   **Flexible Prompting**: The API will use the configured strategy for the organization.
+*   **Prompt Registry**: We can maintain a registry of standard generic strategies (e.g., `strategy_risk_averse.md`, `strategy_balanced.md`) in `data/prompts/consensus/`.
 
-### Planned API Changes
-*   `POST /api/chat`: Add `mode="consensus"` parameter to trigger the alternative Chairman prompt.
+### 6.2. Example: Risk-Averse Strategy
+> "Your goal is to parse the inputs for any risks identified by the Council. If a high-reward option has a significant weakness, it MUST be discarded. Synthesize the safest, most robust path forward."
+
+### 6.3. Cascading Configuration
+
+The "Strategic Directive" is managed via a strict 2-level configuration system, aligning with our Multi-Tenant architecture:
+
+1.  **System Default** (The "Reasonable Baseline")
+    *   *File*: `data/defaults/system-prompts.yaml`
+    *   *Key*: `consensus_prompt`
+    *   *Behavior*: By default, the system seeks a "balanced synthesis" of all views.
+
+2.  **Organization Override** (Tenant Scoped)
+    *   *File*: `data/organizations/{org_id}/config/system-prompts.yaml`
+    *   *Behavior*: An organization can override the default to enforce a specific strategy (e.g., "Risk-Averse") for all their interactions. This ensures consistent governance across the tenant.
 
 ## 7. Risks & Mitigation
 
-*   **Risk**: Context Window Limits. Aggregating full text critiques from 5+ models for the Chairman might exceed token limits.
-    *   *Mitigation*: The Chairman currently only sees the *raw text* of the answers and a *summary* of the votes. For Consensus Mode, we may need an intermediate "Summary Step" to condense the Stage 2 critiques before feeding them to the Chairman.
+*   **Risk**: Prompt drifts.
+    *   *Mitigation*: Use strict "Input/Output" sections in the prompt to keep the LLM focused on the "Strategic Directive" section.
+*   **Risk**: Context Window.
+    *   *Mitigation*: Summarize Stage 2 critiques if they become too verbose before feeding them to the Chairman.
 
 ## 8. Conclusion
-The "Consensus Model" has evolved from a simple alternative synthesis mode into a **foundational data engine** for the entire platform. By enforcing structured evaluation in Stage 2, we have enabled powerful features like Evolution and Feedback Reports, while laying the groundwork for the future Consensus Synthesis mode.
+Moving to a **Prompt-Based Consensus** model gives us infinite flexibility without over-engineering the backend. We preserve the purity of the Council's diverse views (Stage 1 & 2) but allow the business to decide *how* those views are aggregated (Stage 3) via a simple, cascading prompt configuration.

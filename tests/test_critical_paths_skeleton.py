@@ -361,7 +361,8 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
         mock_get_prompts.return_value = config
 
         # Call function
-        result = await update_system_prompts(config.dict(), current_user=mock_user)
+        # Call function
+        await update_system_prompts(config.dict(), current_user=mock_user)
 
         # Verify save_yaml was called
         assert mock_save_yaml.called
