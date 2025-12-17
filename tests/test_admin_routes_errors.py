@@ -139,7 +139,7 @@ def test_update_personality_mismatch(auth_headers, mock_data_root):
         )
         assert response.status_code == 400
         data = response.json()
-        assert "URL name mismatch" in data["error"]["message"]
+        assert "ID mismatch" in data["error"]["message"]
 
 
 def test_create_personality_file_error(auth_headers, mock_data_root):
@@ -167,7 +167,7 @@ def test_create_personality_file_error(auth_headers, mock_data_root):
         )
         assert response.status_code == 500
         data = response.json()
-        assert "Failed to initialize" in data["error"]["message"]
+        assert "Failed to save configuration" in data["error"]["message"]
 
 
 def test_get_personality_read_error(auth_headers, mock_data_root):
