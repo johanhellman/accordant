@@ -24,7 +24,7 @@ uv run alembic check
 
 # 5. Tests
 echo "🧪 Running tests (pytest)..."
-# NOTE: Tests are currently broken (refactor fallout). 
-# We run them to see output, but do not fail the build yet (Step 3 will fix them).
-uv run python -m pytest || echo "⚠️ Tests failed. Ignoring for Step 2 baseline."
+# We run pytest directly. Failures will now BLOCK the build.
+# Known issues are marked as xfail in the code.
+uv run python -m pytest
 
