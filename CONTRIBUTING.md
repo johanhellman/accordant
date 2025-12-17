@@ -12,6 +12,26 @@
    cd frontend && npm install
    ```
 
+### Local Preflight Checks
+Before pushing code, we recommend running the preflight script for your respective area.
+
+**Backend**:
+```bash
+./scripts/check_backend.sh
+```
+This runs:
+1.  **Ruff Format** (Warning only): Please fix formatting issues if possible.
+2.  **Ruff Lint** (Error): Detects potential bugs and style deviations.
+3.  **Bandit** (Error): Checks for common security issues.
+4.  **Alembic Check** (Error): Ensures DB models match migration scripts.
+5.  **Pytest** (Error): Runs automated tests.
+
+**Frontend**:
+```bash
+cd frontend && npm run preflight
+```
+This runs Linting, Formatting, Unit Tests (Vitest), E2E Tests (Playwright), and a Build check.
+
 ## Code Style
 
 ### Python
