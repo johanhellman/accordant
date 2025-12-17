@@ -64,10 +64,8 @@ def get_tenant_engine(org_id: str):
     # Cache it
     _tenant_engines[org_id] = engine
 
-    # Apply standardized migrations on connect
-    from .tenant_migrations import apply_tenant_migrations
-
-    apply_tenant_migrations(engine)
+    # Note: Migrations are applied in get_tenant_session to ensure
+    # proper sequencing with create_all()
 
     return engine
 
@@ -75,22 +73,33 @@ def get_tenant_engine(org_id: str):
 def get_tenant_session(org_id: str):
     """
     Get a session for a specific tenant.
-    Auto-creates tables if they don't exist (simplistic migration for now).
+    Auto-creates tables if they don't exist and applies migrations.
     """
     engine = get_tenant_engine(org_id)
 
-    # Ensure tables exist (Lazy Migration)
-    # in prod, we might want to do this explicitly, but for now this ensures
-    # new tenant DBs are initialized.
-    # IMPORTANT: Must import models here to ensure they are registered with ValidBase/TenantBase
+    from sqlalchemy import inspect
 
+    from .tenant_migrations import apply_tenant_migrations, set_version
+
+    # Check if DB is fresh (no conversation table)
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+    is_fresh_db = "conversations" not in existing_tables
+
+    # Ensure tables exist (Lazy Migration)
+    # This creates the schema as defined in models.py (which is Latest)
+    # IMPORTANT: Must import models here to ensure they are registered with ValidBase/TenantBase
     TenantBase.metadata.create_all(bind=engine)
 
-    # Run schema migrations for existing databases
-    # Run schema migrations for existing databases
-    from .tenant_migrations import apply_tenant_migrations
-
-    apply_tenant_migrations(engine)
+    if is_fresh_db:
+        # If we just created the DB, we are effectively at the latest schema version.
+        # We implicitly skip all migrations that are "catch-up" for existing/legacy DBs.
+        # Currently, latest migration is 1.
+        logger.info("Initialized fresh Tenant DB. Setting version to 1.")
+        set_version(engine, 1)
+    else:
+        # Existing DB: Apply standard migrations
+        apply_tenant_migrations(engine)
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()
