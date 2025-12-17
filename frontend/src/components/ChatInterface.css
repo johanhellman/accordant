@@ -102,6 +102,9 @@
   justify-content: center;
   margin-bottom: 4px;
   /* Align with button text baseline approx */
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .toggle-label {
@@ -113,7 +116,7 @@
   cursor: pointer;
   user-select: none;
   padding: 0.5rem 0.75rem;
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-tertiary);
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
   transition: all 0.2s;
