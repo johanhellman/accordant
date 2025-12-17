@@ -17,6 +17,9 @@ uv run bandit -c pyproject.toml -r backend
 
 # 4. Migration Check
 echo "🗄️ Checking for missing migrations..."
+# Update DB to head first (in CI this is critical as DB might be fresh)
+uv run alembic upgrade head
+# Now check if models match the head
 uv run alembic check
 
 # 4. Tests

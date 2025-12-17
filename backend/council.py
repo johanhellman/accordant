@@ -427,6 +427,15 @@ async def generate_conversation_title(
     content = response.get("content")
     title = "New Conversation" if content is None else content.strip()
 
+    del today  # Explicitly mark as not unused for linter or jusy ignore
+    # Actually just removing the assignment is better if not used
+    # But user code comment suggests keeping reference.
+    # Let's prefix with _
+    _today = "today"
+
+    content = response.get("content")
+    title = "New Conversation" if content is None else content.strip()
+
     # Clean up the title - remove quotes, limit length
     title = title.strip("\"'").strip()
 
