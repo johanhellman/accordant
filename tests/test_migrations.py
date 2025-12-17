@@ -21,39 +21,42 @@ def alembic_config():
 def test_alembic_upgrade_downgrade(alembic_config, tmp_path):
     """
     Test that we can upgrade to head and downgrade.
-    Note: validating against exact schema via Alembic is checking the migration scripts functionality.
-    We are using the real system.db or a patched one?
-     Ideally we want to use a temp db.
     """
     # Create a temp DB file
     db_file = tmp_path / "test_system.db"
     db_url = f"sqlite:///{db_file}"
     
-    # Override URL in config
-    alembic_config.set_main_option("sqlalchemy.url", db_url)
+    # Set env var for env.py to pick up
+    os.environ["ALEMBIC_DB_URL"] = db_url
     
-    # 1. Upgrade to head
-    command.upgrade(alembic_config, "head")
-    
-    # Verify tables exist
-    engine = create_engine(db_url)
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    assert "users" in tables
-    assert "organizations" in tables
-    assert "alembic_version" in tables
-    # Legacy tables should NOT be there (since we apply all including drop)
-    assert "conversations" not in tables 
+    try:
+        # Override URL in config object as well (though env.py runs independently)
+        alembic_config.set_main_option("sqlalchemy.url", db_url)
+        
+        # 1. Upgrade to head
+        command.upgrade(alembic_config, "head")
+        
+        # Verify tables exist
+        engine = create_engine(db_url)
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        assert "users" in tables
+        assert "organizations" in tables
+        assert "alembic_version" in tables
+        # Legacy tables should NOT be there (since we apply all including drop)
+        assert "conversations" not in tables 
 
-    # 2. Downgrade to base
-    command.downgrade(alembic_config, "base")
-    
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    assert "users" not in tables
-    assert "organizations" not in tables
-    # Alembic version table might remain or be empty depending on implementation, usually empty or dropped?
-    # Actually downgrade base undoes all migrations.
+        # 2. Downgrade to base
+        command.downgrade(alembic_config, "base")
+        
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        assert "users" not in tables
+        assert "organizations" not in tables
+    finally:
+        # Cleanup
+        if "ALEMBIC_DB_URL" in os.environ:
+            del os.environ["ALEMBIC_DB_URL"]
 
 # --- Tenant DB Tests ---
 
