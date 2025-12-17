@@ -25,7 +25,7 @@ def upgrade() -> None:
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     
-    if "conversations" in inspector.get_tables():
+    if "conversations" in inspector.get_table_names():
         with op.batch_alter_table('conversations', schema=None) as batch_op:
             batch_op.drop_index(batch_op.f('ix_conversations_id'))
 
