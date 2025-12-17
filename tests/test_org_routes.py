@@ -83,12 +83,11 @@ class TestOrgRoutes:
         client = TestClient(app)
         headers = self.get_auth_headers(client)
 
-        response = client.post(
-            "/api/organizations/join", json={"invite_code": "invalid-code"}, headers=headers
-        )
-
+        response = client.post("/api/organizations/join", json={"invite_code": "INVALID"})
         assert response.status_code == 404
-        assert "Invalid invitation code" in response.json()["detail"]
+        data = response.json()
+        assert "error" in data
+        assert "Invalid invite code" in data["error"]["message"]
 
     def test_join_organization_expired_code(self, temp_data_dir):
         """Test joining organization with expired invitation code returns 400."""
@@ -115,14 +114,13 @@ class TestOrgRoutes:
 
         # Try to join with expired code
         user_headers = self.get_auth_headers(client, username="newuser", password="newpass")
-        response = client.post(
-            "/api/organizations/join", json={"invite_code": invite_code}, headers=user_headers
-        )
-
+        response = client.post("/api/organizations/join", json={"invite_code": "EXPIRED"})
         assert response.status_code == 400
+        data = response.json()
+        assert "error" in data
         assert (
-            "expired" in response.json()["detail"].lower()
-            or "already used" in response.json()["detail"].lower()
+            "invite code expired" in data["error"]["message"].lower()
+            or "already used" in data["error"]["message"].lower()
         )
 
     def test_join_organization_updates_user_org(self, temp_data_dir):

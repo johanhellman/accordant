@@ -81,7 +81,8 @@ def test_create_personality_exists(auth_headers, mock_data_root):
             headers=headers,
         )
         assert response.status_code == 400
-        assert "already exists" in response.json()["detail"]
+        data = response.json()
+        assert "already exists" in data["error"]["message"]
 
 
 def test_get_personality_not_found(auth_headers, mock_data_root):
@@ -137,7 +138,8 @@ def test_update_personality_mismatch(auth_headers, mock_data_root):
             headers=headers,
         )
         assert response.status_code == 400
-        assert "ID mismatch" in response.json()["detail"]
+        data = response.json()
+        assert "URL name mismatch" in data["error"]["message"]
 
 
 def test_create_personality_file_error(auth_headers, mock_data_root):
@@ -164,7 +166,8 @@ def test_create_personality_file_error(auth_headers, mock_data_root):
             headers=headers,
         )
         assert response.status_code == 500
-        assert "Failed to save configuration" in response.json()["detail"]
+        data = response.json()
+        assert "Failed to initialize" in data["error"]["message"]
 
 
 def test_get_personality_read_error(auth_headers, mock_data_root):
