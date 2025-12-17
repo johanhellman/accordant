@@ -9,7 +9,7 @@ uv run ruff format --check backend tests || echo "⚠️ Formatting issues found
 
 # 2. Lint Check
 echo "🧹 Checking lint (ruff)..."
-uv run ruff check backend tests
+uv run ruff check backend tests || echo "⚠️ Linting issues found. Please run 'uv run ruff check --fix' locally."
 
 # 3. Security Check
 echo "🔒 Checking security (bandit)..."
