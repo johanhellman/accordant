@@ -58,8 +58,31 @@ def setup_logging():
 
     root_logger.addHandler(handler)
 
+    # Configure File Handler
+    try:
+        from logging.handlers import RotatingFileHandler
+
+        from .config.paths import LOG_FILE, LOG_RETENTION_DAYS
+
+        # Create logs directory if it doesn't exist (handled in paths.py validation usually, but safe to check)
+        log_dir = os.path.dirname(LOG_FILE)
+        os.makedirs(log_dir, exist_ok=True)
+
+        file_handler = RotatingFileHandler(
+            LOG_FILE,
+            maxBytes=10 * 1024 * 1024,  # 10 MB
+            backupCount=LOG_RETENTION_DAYS,
+        )
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+    except Exception as e:
+        # Fallback to console only if file logging fails (e.g. permissions)
+        logging.error(f"Failed to setup file logging: {e}")
+
     # Silence noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     # logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    logging.info("JSON Logging initialized", extra={"log_level": log_level_str})
+    logging.info(
+        "JSON Logging initialized", extra={"log_level": log_level_str, "log_file": LOG_FILE}
+    )

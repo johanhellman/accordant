@@ -176,6 +176,7 @@ Avoid raising generic `HTTPException` manually if a specific `AppError` is avail
 - Logs are configured in `backend/logging_config.py`
 - Default log file: `logs/llm_council.log`
 - Set `LOG_LEVEL=DEBUG` in `.env` for verbose output
+- Set `LOG_RETENTION_DAYS` in `.env` to configure log rotation (default: 30 days)
 
 **Frontend Debugging:**
 
