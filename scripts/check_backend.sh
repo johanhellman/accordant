@@ -22,9 +22,9 @@ uv run alembic upgrade head
 # Now check if models match the head
 uv run alembic check
 
-# 4. Tests
+# 5. Tests
 echo "🧪 Running tests (pytest)..."
 # NOTE: Tests are currently broken (refactor fallout). 
 # We run them to see output, but do not fail the build yet (Step 3 will fix them).
-uv run pytest || echo "⚠️ Tests failed. Ignoring for Step 2 baseline."
+uv run python -m pytest || echo "⚠️ Tests failed. Ignoring for Step 2 baseline."
 
