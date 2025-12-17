@@ -147,7 +147,9 @@ class TestConversationEndpoints:
         response = client.get("/api/conversations/non-existent-id", headers=headers)
 
         assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+        data = response.json()
+        assert "error" in data
+        assert "Conversation not found" in data["error"]["message"]
 
     def test_get_conversation_unauthorized_access(self, temp_data_dir):
         """Test retrieving conversation owned by another user returns 403."""
