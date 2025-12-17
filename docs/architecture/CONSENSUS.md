@@ -51,6 +51,10 @@ The rich data from Stage 2 is now utilized by offline services:
 
 ## 4. Current Implementation
 
+### 6.1. Changes
+*   **Flexible Prompting**: The API will use the configured strategy for the organization.
+*   **Prompt Registry**: We can maintain a registry of standard generic strategies (e.g., `strategy_risk_averse.md`, `strategy_balanced.md`) in `data/defaults/consensus/`.
+
 ### 4.1. Data Model
 *   **`Stage2Result`**: Contains the full text evaluation and the parsed ranking.
 *   **`VotingHistory`**: Logs every session, including the raw critiques. This is the dataset that powers the Evolution Service.
