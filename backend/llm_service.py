@@ -1,20 +1,38 @@
-"""Service for interacting with LLM providers (OpenRouter/LiteLLM)."""
-
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 # from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL # Removed global import
 
 logger = logging.getLogger(__name__)
 
-# Cache for models list
 # Cache for models list, keyed by base_url
 # Structure: { base_url: { "models": [...], "timestamp": datetime } }
 _MODELS_CACHE: dict[str, dict[str, Any]] = {}
 _CACHE_TTL = timedelta(minutes=60)  # Cache models for 1 hour
+
+
+@retry(
+    stop=stop_after_attempt(3),  # Fewer retries for model list as it's less critical
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type((httpx.ConnectTimeout, httpx.ReadTimeout, httpx.HTTPStatusError)),
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+    reraise=True,
+)
+async def _fetch_models_with_retry(client: httpx.AsyncClient, url: str, headers: dict):
+    """Fetch models with retry logic."""
+    response = await client.get(url, headers=headers)
+    response.raise_for_status()
+    return response
 
 
 async def get_available_models(api_key: str, base_url: str) -> list[dict[str, Any]]:
@@ -38,9 +56,6 @@ async def get_available_models(api_key: str, base_url: str) -> list[dict[str, An
 
     try:
         # Determine provider URL (OpenRouter vs Generic/LiteLLM)
-        # If OPENROUTER_API_URL is the default OpenRouter URL, use their models endpoint
-        # Otherwise assume OpenAI-compatible /models endpoint
-
         if "openrouter.ai" in base_url:
             models_url = "https://openrouter.ai/api/v1/models"
         else:
@@ -54,23 +69,28 @@ async def get_available_models(api_key: str, base_url: str) -> list[dict[str, An
             "Authorization": f"Bearer {api_key}",
         }
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(models_url, headers=headers)
-            response.raise_for_status()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await _fetch_models_with_retry(client, models_url, headers)
             data = response.json()
 
             raw_models = data.get("data", [])
             processed_models = []
 
             for m in raw_models:
-                model_id = m.get("id")
+                # Handle cases where model might be a string (unlikely but possible in some APIs)
+                if isinstance(m, str):
+                    model_id = m
+                    name = m
+                else:
+                    model_id = m.get("id")
+                    name = m.get("name", model_id)
+
                 if not model_id:
                     continue
 
                 # Extract provider from ID (e.g., "openai/gpt-4" -> "openai")
-                parts = model_id.split("/")
+                parts = str(model_id).split("/")
                 provider = parts[0] if len(parts) > 1 else "unknown"
-                name = m.get("name", model_id)
 
                 processed_models.append({"id": model_id, "name": name, "provider": provider})
 
@@ -81,5 +101,5 @@ async def get_available_models(api_key: str, base_url: str) -> list[dict[str, An
 
     except Exception as e:
         logger.error(f"Error fetching models: {e}")
-        # Return empty list or fallback?
+        # Return empty list fallback
         return []
