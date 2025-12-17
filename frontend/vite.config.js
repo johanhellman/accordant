@@ -45,6 +45,12 @@ export default defineConfig(({ mode }) => {
           '**/*.config.js',
         ],
       },
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/tests/e2e/**',
+        '**/tests-examples/**',
+      ],
     },
   }
 })
