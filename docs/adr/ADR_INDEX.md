@@ -30,15 +30,16 @@ Each ADR follows this structure:
 | [ADR-009](ADR-009-ui-redesign.md) | UI Redesign and Theme Overhaul | Accepted | 2025-11-25 |
 | [ADR-010](ADR-010-multi-user-architecture.md) | Multi-User Architecture | Superseded by ADR-016 | 2025-12-03 |
 | [ADR-011](ADR-011-client-side-voting-statistics.md) | Client-Side Voting Statistics Aggregation | Accepted | 2025-12-04 |
-| [ADR-012](012-multi-tenancy-architecture.md) | Multi-Tenancy Architecture | Accepted | 2025-12-04 |
-| [ADR-013](013-secrets-management.md) | Secrets Management | Accepted | 2025-12-04 |
+| [ADR-012](ADR-012-multi-tenancy-architecture.md) | Multi-Tenancy Architecture | Accepted | 2025-12-04 |
+| [ADR-013](ADR-013-secrets-management.md) | Secrets Management | Accepted | 2025-12-04 |
 | [ADR-014](ADR-014-structured-personality-prompts.md) | Structured Personality Prompts | Accepted | 2025-12-08 |
 | [ADR-015](ADR-015-federated-voting-privacy.md) | Federated Voting Privacy | Accepted | 2025-12-08 |
-| [ADR-019](ADR-019-enhanced-admin-dashboard.md) | Enhanced Admin Dashboard | Accepted | 2025-12-13 |
-| [ADR-020](ADR-020-e2e-testing-with-playwright.md) | E2E Testing with Playwright | Accepted | 2025-12-13 |
 | [ADR-016](ADR-016-multi-tenant-sqlite-sharding.md) | Multi-Tenant SQLite Sharding | Accepted | 2025-12-10 |
 | [ADR-017](ADR-017-sqlite-voting-and-identity.md) | SQLite Voting Storage & UUID Identity | Accepted | 2025-12-11 |
 | [ADR-018](ADR-018-async-council-architecture.md) | Async Council Architecture | Accepted | 2025-12-12 |
+| [ADR-019](ADR-019-enhanced-admin-dashboard.md) | Enhanced Admin Dashboard | Accepted | 2025-12-13 |
+| [ADR-020](ADR-020-e2e-testing-with-playwright.md) | E2E Testing with Playwright | Accepted | 2025-12-13 |
+| [ADR-021](ADR-021-observability-standards.md) | Observability Standards | Accepted | 2025-12-17 |
 
 ## Decision Timeline
 
@@ -60,6 +61,11 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 14. **ADR-014**: Configuration - structured personality prompts with editable sections
 15. **ADR-015**: Privacy - federated voting stats with privacy firewalls
 16. **ADR-016**: Architecture - multi-tenant sharded SQLite database to fix scalability & isolation
+17. **ADR-017**: Identity - SQLite voting storage and UUID identity
+18. **ADR-018**: Architecture - async council architecture
+19. **ADR-019**: UI - enhanced admin dashboard
+20. **ADR-020**: Testing - E2E testing with Playwright
+21. **ADR-021**: Observability - standards for errors, logging, and tracing
 
 ## Related Documentation
 
