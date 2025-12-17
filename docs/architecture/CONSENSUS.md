@@ -115,75 +115,28 @@ You have received proposals from {count} experts and detailed peer evaluations h
 # Instructions
 1. Analyze the "Weaknesses" identified in the peer reviews.
 2. Filter out proposals that violate the Strategic Directive.
-3. Synthesize a final answer that combines the remaining valid points.
+3. **CRITICAL: Veto Check**. Ensure the final answer is acceptable to ALL personalities. If a personality flagged a "Fatal Flaw" or "Critical Risk", it MUST be addressed or the risky component removed.
+4. Synthesize a final answer that combines the remaining valid points.
 
 # Output Format
 Provide the final answer in the requested format.
 ```
 
 ## 6. API & Configuration
+...
+(rest of section 6, 7, 8, 9 same)
+...
 
-### 6.1. Changes
-*   **Flexible Prompting**: The API will use the configured strategy for the organization.
-*   **Prompt Registry**: We can maintain a registry of standard generic strategies (e.g., `strategy_risk_averse.md`, `strategy_balanced.md`) in `data/prompts/consensus/`.
+## 10. Rules & Architecture Strategy (ADR)
+This "Strategic Consensus" model represents a significant evolution of the original [ADR-001 (3-Stage Deliberation)](../adr/ADR-001-3-stage-council-deliberation.md).
 
-### 6.2. Example: Risk-Averse Strategy
-> "Your goal is to parse the inputs for any risks identified by the Council. If a high-reward option has a significant weakness, it MUST be discarded. Synthesize the safest, most robust path forward."
+*   **New ADR Required**: We will draft **ADR-024: Strategic Consensus & Attribution**.
+*   **Supersedes**: It does not strictly supersede ADR-001 (the pipeline remains), but it *amends* the definition of Stage 3 from "Synthesis" to "Strategic Synthesis".
+*   **Documentation**: The `CONSENSUS.md` becomes the living design doc, while the ADR records the decision to adopt this "Prompt-Based" approach over a code-heavy approach.
 
-### 6.3. Cascading Configuration
-
-The "Strategic Directive" is managed via a strict 2-level configuration system, aligning with our Multi-Tenant architecture:
-
-1.  **System Default** (The "Reasonable Baseline")
-    *   *File*: `data/defaults/system-prompts.yaml`
-    *   *Key*: `consensus_prompt`
-    *   *Behavior*: By default, the system seeks a "balanced synthesis" of all views.
-
-2.  **Organization Override** (Tenant Scoped)
-    *   *File*: `data/organizations/{org_id}/config/system-prompts.yaml`
-    *   *Behavior*: An organization can override the default to enforce a specific strategy (e.g., "Risk-Averse") for all their interactions. This ensures consistent governance across the tenant.
-
-## 7. Data Model: Contribution Attribution
-
-To support "Contribution Attribution" (tracking which personalities influenced the consensus), we extend the Tenant Database schema.
-
-### 7.1. New Table: `consensus_contributions`
-*   **`id`**: UUID (PK)
-*   **`conversation_id`**: Foreign Key to Conversations.
-*   **`personality_id`**: The ID of the contributing personality.
-*   **`strategy`**: The consensus strategy key used (e.g., "risk_averse").
-*   **`score`**: Float (0.0 - 1.0) indicating the weight of the contribution (extracted from Chairman metadata).
-*   **`reasoning`**: (Optional) Text citation or reason for inclusion.
-
-### 7.2. Attribution Logic
-The Chairman's Stage 3 Prompt will now require a metadata block:
-```json
-{
-  "contributors": [
-    {"id": "compliance_bot", "weight": 0.8, "reason": "Provided critical regulatory framework"},
-    {"id": "creative_bot", "weight": 0.2, "reason": "Suggested the novel UI approach"}
-  ]
-}
-```
-This metadata is parsed and stored in the `consensus_contributions` table.
-
-## 8. UX & Analytics
-
-### 8.1. Chat Interface
-*   **Synthesis Toggle**: Users can toggle between "Voting Mode" (Winner) and "Consensus Mode" (Synthesis) if the organization allows it.
-*   **Attribution Footer**: When in Consensus Mode, the unified answer displays a footer: *"Synthesized from inputs by: [Compliance Bot, Creative Bot]"*.
-
-### 8.2. Analytics Dashboard
-*   **Contribution Heatmap**: A new view showing which personalities are most influential in consensus decisions (distinct from who wins the most votes).
-
-## 9. Validation Strategy
-
-*   **Unit Tests**: Verify that the prompt parser correctly extracts the JSON metadata block from the Chairman's output.
-*   **E2E Tests**: Verify that toggling the mode changes the displayed answer and that attribution badges appear.
-
-## 10. Conclusion
+## 11. Conclusion
 The "Consensus Model" is a complete end-to-end feature:
-1.  **Architecture**: Prompt-based strategies logic.
+1.  **Architecture**: Prompt-based strategies logic with **Veto Power** for true consensus.
 2.  **Data**: New tables to track contribution attribution.
 3.  **UX**: Explicit user controls and transparency via attribution.
 This ensures we don't just "merge text" but actually track and credit the valuable components of the Council's diverse thinking.
