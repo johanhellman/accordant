@@ -1928,6 +1928,7 @@ async def test_query_model_success():
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
             mock_client.post = AsyncMock(return_value=mock_response_obj)
 
             result = await query_model(
@@ -1968,6 +1969,7 @@ async def test_query_model_retry_on_429():
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_success_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
 
             # First call raises 429, second succeeds
             mock_client.post = AsyncMock(side_effect=[mock_error, mock_response_obj])
@@ -2010,6 +2012,7 @@ async def test_query_model_retry_on_500():
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_success_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
 
             mock_client.post = AsyncMock(side_effect=[mock_error, mock_response_obj])
 
@@ -2043,11 +2046,13 @@ async def test_query_model_timeout():
             mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
             # Simulate timeout on first attempt, success on retry
-            mock_timeout = httpx.TimeoutException("Request timed out")
+            # Simulate timeout on first attempt, success on retry
+            mock_timeout = httpx.ReadTimeout("Request timed out")
             mock_success_response = {"choices": [{"message": {"content": "Success after timeout"}}]}
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_success_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
 
             mock_client.post = AsyncMock(side_effect=[mock_timeout, mock_response_obj])
 
@@ -2110,6 +2115,7 @@ async def test_query_model_non_retryable_error():
     mock_error = httpx.HTTPStatusError(
         "400 Bad Request", request=MagicMock(), response=MagicMock(status_code=400)
     )
+    mock_error.response.raise_for_status.side_effect = mock_error
 
     with patch("backend.openrouter.get_semaphore") as mock_semaphore:
         mock_semaphore_instance = AsyncMock()
@@ -2122,7 +2128,7 @@ async def test_query_model_non_retryable_error():
             mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            mock_client.post = AsyncMock(side_effect=mock_error)
+            mock_client.post = AsyncMock(return_value=mock_error.response)
 
             result = await query_model(
                 "test-model",
@@ -2159,6 +2165,7 @@ async def test_query_model_temperature_parameter():
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
             mock_client.post = AsyncMock(return_value=mock_response_obj)
 
             result = await query_model(
@@ -2195,6 +2202,7 @@ async def test_query_model_semaphore_concurrency():
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_response
             mock_response_obj.raise_for_status = MagicMock()
+            mock_response_obj.status_code = 200
             mock_client.post = AsyncMock(return_value=mock_response_obj)
 
             await query_model(
