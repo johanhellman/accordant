@@ -5,6 +5,13 @@ import logging
 from typing import Any
 
 import httpx
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 from .config import LLM_MAX_RETRIES, LLM_REQUEST_TIMEOUT, MAX_CONCURRENT_REQUESTS
 
@@ -27,6 +34,26 @@ def get_semaphore():
     return _SEMAPHORE
 
 
+@retry(
+    stop=stop_after_attempt(LLM_MAX_RETRIES),
+    wait=wait_exponential(multiplier=1, min=2, max=60),
+    retry=retry_if_exception_type((httpx.ConnectTimeout, httpx.ReadTimeout, httpx.HTTPStatusError)),
+    before_sleep=before_sleep_log(logger, logging.DEBUG),
+    reraise=True,
+)
+async def _execute_request(
+    client: httpx.AsyncClient, base_url: str, headers: dict, payload: dict
+) -> httpx.Response:
+    """Execute request with retry logic."""
+    response = await client.post(base_url, headers=headers, json=payload)
+    # Raise error for status codes we want to retry (e.g. 5xx, 429)
+    # Note: raise_for_status raises HTTPStatusError
+    if response.status_code == 429 or response.status_code >= 500:
+        response.raise_for_status()
+    # For other errors (e.g. 400, 401), we return response and handle it in caller
+    return response
+
+
 async def query_model(
     model: str,
     messages: list[dict[str, str]],
@@ -38,9 +65,8 @@ async def query_model(
     """
     Query a single model via OpenRouter API.
 
-    This function handles retries with exponential backoff for transient errors
-    (429 Too Many Requests, 5xx server errors, timeouts). It uses a semaphore
-    to limit concurrent requests according to MAX_CONCURRENT_REQUESTS.
+    This function handles retries with exponential backoff via tenacity.
+    It uses a semaphore to limit concurrent requests.
 
     Args:
         model: OpenRouter model identifier (e.g., "openai/gpt-4o")
@@ -49,17 +75,8 @@ async def query_model(
         temperature: Optional temperature setting (0.0 to 1.0) for model output
 
     Returns:
-        Dict with 'content' (str) and optional 'reasoning_details' keys if successful,
+        Dict with 'content' and optional 'reasoning_details' keys if successful,
         None if the request failed after all retries.
-
-    Raises:
-        No exceptions are raised; all errors are caught and logged, returning None.
-
-    Example:
-        >>> messages = [{"role": "user", "content": "Hello"}]
-        >>> response = await query_model("openai/gpt-4o", messages)
-        >>> if response:
-        ...     print(response['content'])
     """
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -77,53 +94,24 @@ async def query_model(
     semaphore = get_semaphore()
 
     async with semaphore:
-        for attempt in range(LLM_MAX_RETRIES):
-            try:
-                logger.debug(f"Querying model {model} (attempt {attempt + 1}/{LLM_MAX_RETRIES})...")
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(base_url, headers=headers, json=payload)
-                    response.raise_for_status()
+        try:
+            logger.debug(f"Querying model {model}...")
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await _execute_request(client, base_url, headers, payload)
+                response.raise_for_status()  # Check for other errors (400, 401, etc.)
 
-                    data = response.json()
-                    message = data["choices"][0]["message"]
-                    logger.debug(f"Model {model} responded successfully.")
+                data = response.json()
+                message = data["choices"][0]["message"]
+                logger.debug(f"Model {model} responded successfully.")
 
-                    return {
-                        "content": message.get("content"),
-                        "reasoning_details": message.get("reasoning_details"),
-                    }
+                return {
+                    "content": message.get("content"),
+                    "reasoning_details": message.get("reasoning_details"),
+                }
 
-            except httpx.HTTPStatusError as e:
-                # Retry on 429 (Too Many Requests) or 5xx (Server Errors)
-                if (
-                    e.response.status_code == 429 or e.response.status_code >= 500
-                ) and attempt < LLM_MAX_RETRIES - 1:
-                    wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s...
-                    logger.warning(
-                        f"Model {model} failed with {e.response.status_code}. Retrying in {wait_time}s..."
-                    )
-                    await asyncio.sleep(wait_time)
-                    continue
-
-                # If not retryable or max retries reached
-                logger.error(f"Error querying model {model}: {e}")
-                return None
-
-            except httpx.TimeoutException:
-                if attempt < LLM_MAX_RETRIES - 1:
-                    wait_time = 2**attempt
-                    logger.warning(f"Model {model} timed out. Retrying in {wait_time}s...")
-                    await asyncio.sleep(wait_time)
-                    continue
-
-                logger.error(f"Error querying model {model}: Request timed out after {timeout}s")
-                return None
-
-            except Exception as e:
-                logger.error(f"Error querying model {model}: {e}")
-                return None
-
-    return None
+        except Exception as e:
+            logger.error(f"Error querying model {model}: {e}")
+            return None
 
 
 async def query_models_parallel(
