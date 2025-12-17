@@ -354,7 +354,8 @@ The system supports a modular "Personalities" architecture:
 
 - **Directory**: `data/personalities/` contains individual YAML files for each personality.
 - **Structure**: Each YAML file defines `id`, `name`, `model`, `personality_prompt`, `ui` metadata, and an `enabled` flag.
-- **System Prompts**: `data/personalities/system-prompts.yaml` contains global prompts:
+- **System Prompts**: `data/defaults/system-prompts.yaml` contains global prompts.
+- **Consensus Strategies**: `data/defaults/consensus/` contains generic consensus prompt templates (e.g. `balanced.md`, `risk_averse.md`).
   - `base_system_prompt`: Shared by all personalities.
   - `chairman_prompt`: Used by the chairman in Stage 3.
   - `title_generation_prompt`: Used for generating conversation titles.
