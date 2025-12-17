@@ -41,6 +41,7 @@ Each ADR follows this structure:
 | [ADR-020](ADR-020-e2e-testing-with-playwright.md) | E2E Testing with Playwright | Accepted | 2025-12-13 |
 | [ADR-021](ADR-021-observability-standards.md) | Observability Standards | Accepted | 2025-12-17 |
 | [ADR-022](ADR-022-resilience-patterns.md) | Resilience Patterns (Retries & Rate Limiting) | Accepted | 2025-12-17 |
+| [ADR-023](ADR-023-database-migration-strategy.md) | Database Migration Strategy | Accepted | 2025-12-17 |
 
 ## Decision Timeline
 
@@ -68,6 +69,7 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 20. **ADR-020**: Testing - E2E testing with Playwright
 21. **ADR-021**: Observability - standards for errors, logging, and tracing
 22. **ADR-022**: Resilience - retries via tenacity and rate limiting via slowapi
+23. **ADR-023**: Database - Hybrid migration strategy (Alembic + Migrate-on-Connect)
 
 ## Related Documentation
 
