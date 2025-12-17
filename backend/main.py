@@ -855,6 +855,7 @@ async def send_message_stream(
             org_id=current_user.org_id,
             api_key=api_key,
             base_url=base_url,
+            consensus_enabled=request_data.consensus_enabled,
         ),
         media_type="text/event-stream",
         headers={
