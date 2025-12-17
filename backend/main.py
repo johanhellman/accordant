@@ -74,6 +74,12 @@ from .voting_history import record_votes
 from .middleware import RequestIdMiddleware, request_id_context
 from .errors import AppError, INTERNAL_ERROR, VALIDATION_ERROR
 
+# Rate Limiting
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from .limiter import limiter
+
 # --- Helper Functions ---
 
 
@@ -155,6 +161,11 @@ logger = logging.getLogger(__name__)
 #     )
 
 app = FastAPI(title="Accordant API")
+
+# Initialize Rate Limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # Include Admin Routes
 app.include_router(admin_routes.router)
@@ -270,11 +281,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# Register RequestIdMiddleware FIRST (so it wraps everything including other middleware)
+app.add_middleware(RequestIdMiddleware)
 # Register SecurityHeadersMiddleware BEFORE StaticCacheMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StaticCacheMiddleware)
-# Register RequestIdMiddleware FIRST (so it wraps everything including other middleware)
-app.add_middleware(RequestIdMiddleware)
+
 
 # --- Exception Handlers ---
 
@@ -433,7 +445,8 @@ async def health_check():
 
 
 @app.post("/api/auth/register", response_model=Token)
-async def register(reg_data: RegistrationRequest, db: Session = Depends(get_system_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, reg_data: RegistrationRequest, db: Session = Depends(get_system_db)):
     """
     Atomic registration of User and Organization.
     Prevents orphaned users by wrapping both creations in a single transaction.
@@ -524,8 +537,9 @@ async def register(reg_data: RegistrationRequest, db: Session = Depends(get_syst
 
 
 @app.post("/api/auth/token", response_model=Token)
+@limiter.limit("5/minute")
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)
+    request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)
 ):
     """Login to get access token."""
     user = get_user(form_data.username, db=db)
@@ -716,9 +730,11 @@ async def delete_conversation(conversation_id: str, current_user: User = Depends
 
 
 @app.post("/api/conversations/{conversation_id}/message", response_model=dict[str, Any])
+@limiter.limit("5/minute")
 async def send_message(
+    request: Request,
     conversation_id: str,
-    request: SendMessageRequest,
+    request_data: SendMessageRequest,
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -737,10 +753,10 @@ async def send_message(
     is_first_message = len(conversation["messages"]) == 0
 
     # Add user message
-    storage.add_user_message(conversation_id, request.content, org_id=current_user.org_id)
+    storage.add_user_message(conversation_id, request_data.content, org_id=current_user.org_id)
 
     # FIX: Update in-memory conversation to include the new message so it's not stale
-    conversation["messages"].append({"role": "user", "content": request.content})
+    conversation["messages"].append({"role": "user", "content": request_data.content})
 
     # Get Org API Config
     api_key, base_url = get_org_api_config(current_user.org_id)
@@ -748,7 +764,7 @@ async def send_message(
     # Generate title if this is the first message
     await _handle_conversation_title(
         conversation_id,
-        request.content,
+        request_data.content,
         is_first_message,
         current_user.org_id,
         api_key,
@@ -758,7 +774,7 @@ async def send_message(
     # Run the 3-stage council process
     # Pass the full conversation history (which now includes the user's latest message)
     stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
-        request.content,
+        request_data.content,
         conversation["messages"],
         org_id=current_user.org_id,
         api_key=api_key,
@@ -790,9 +806,11 @@ async def send_message(
 
 
 @app.post("/api/conversations/{conversation_id}/message/stream")
+@limiter.limit("5/minute")
 async def send_message_stream(
+    request: Request,
     conversation_id: str,
-    request: SendMessageRequest,
+    request_data: SendMessageRequest,
     current_user: User = Depends(get_current_user),
 ):
     """
