@@ -164,7 +164,9 @@ class TestUpdateSystemPromptsNestedComponents:
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
             mock_get.return_value = {
-                "chairman": {"prompt": {"value": "Custom chairman prompt {user_query}", "is_default": False}}
+                "chairman": {
+                    "prompt": {"value": "Custom chairman prompt {user_query}", "is_default": False}
+                }
             }
 
             await update_system_prompts(update_config, current_user=admin_user)
@@ -219,7 +221,11 @@ class TestUpdateSystemPromptsNestedComponents:
 
         update_config = {
             "title_generation": {
-                "prompt": {"value": "Custom title prompt {user_query}", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Custom title prompt {user_query}",
+                    "is_default": False,
+                    "source": "custom",
+                },
             },
         }
 
@@ -266,7 +272,12 @@ class TestUpdateSystemPromptsNestedComponents:
             patch("backend.admin_routes.get_system_prompts") as mock_get,
         ):
             mock_get.return_value = {
-                "ranking": {"prompt": {"value": "Custom ranking prompt {responses_text} {user_query}", "is_default": False}}
+                "ranking": {
+                    "prompt": {
+                        "value": "Custom ranking prompt {responses_text} {user_query}",
+                        "is_default": False,
+                    }
+                }
             }
 
             await update_system_prompts(update_config, current_user=admin_user)
@@ -275,7 +286,10 @@ class TestUpdateSystemPromptsNestedComponents:
             with open(config_file) as f:
                 saved = yaml.safe_load(f)
                 assert isinstance(saved["ranking"], dict)
-                assert saved["ranking"]["prompt"] == "Custom ranking prompt {responses_text} {user_query}"
+                assert (
+                    saved["ranking"]["prompt"]
+                    == "Custom ranking prompt {responses_text} {user_query}"
+                )
 
     @pytest.mark.asyncio
     async def test_update_system_prompts_ranking_model(self, admin_user, tmp_path):
@@ -463,15 +477,27 @@ class TestUpdateSystemPromptsEdgeCases:
                 "source": "custom",
             },
             "chairman": {
-                "prompt": {"value": "Updated chairman {user_query}", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Updated chairman {user_query}",
+                    "is_default": False,
+                    "source": "custom",
+                },
                 "model": "chairman-model",
             },
             "title_generation": {
-                "prompt": {"value": "Updated title {user_query}", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Updated title {user_query}",
+                    "is_default": False,
+                    "source": "custom",
+                },
                 "model": "title-model",
             },
             "ranking": {
-                "prompt": {"value": "Updated ranking {user_query} {responses_text}", "is_default": False, "source": "custom"},
+                "prompt": {
+                    "value": "Updated ranking {user_query} {responses_text}",
+                    "is_default": False,
+                    "source": "custom",
+                },
                 "model": "ranking-model",
             },
         }
@@ -482,7 +508,9 @@ class TestUpdateSystemPromptsEdgeCases:
         ):
             mock_get.return_value = {
                 "base_system_prompt": {"value": "Updated base", "is_default": False},
-                "chairman": {"prompt": {"value": "Updated chairman {user_query}", "is_default": False}},
+                "chairman": {
+                    "prompt": {"value": "Updated chairman {user_query}", "is_default": False}
+                },
             }
 
             await update_system_prompts(update_config, current_user=admin_user)

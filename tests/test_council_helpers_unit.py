@@ -38,7 +38,7 @@ class TestGetTimeInstructions:
             # Configure the mock CLASS's now() method (mock_datetime.datetime.now)
             mock_datetime.datetime.now.return_value = mock_now
             # Ensure strftime works on the return value (it's a real datetime so it does)
-            
+
             system_instruction, user_instruction = get_time_instructions()
 
             assert "2025-12-08 15:30:45" in system_instruction
@@ -193,9 +193,9 @@ class TestBuildRankingPrompt:
         user_query = "What is Python?"
         responses_text = "Response A: ...\nResponse B: ..."
         template = "Rank {user_query}. {responses_text}. {peer_text}"
-        
+
         result = build_ranking_prompt(user_query, responses_text, prompt_template=template)
-        
+
         assert user_query in result
         assert responses_text in result
         assert "different models (anonymized)" in result
@@ -205,9 +205,11 @@ class TestBuildRankingPrompt:
         user_query = "What is Python?"
         responses_text = "Response A: Answer"
         template = "Rank {user_query}. {peer_text}"
-        
-        result = build_ranking_prompt(user_query, responses_text, exclude_self=True, prompt_template=template)
-        
+
+        result = build_ranking_prompt(
+            user_query, responses_text, exclude_self=True, prompt_template=template
+        )
+
         assert "your peers" in result.lower()
 
     def test_build_ranking_prompt_custom_template(self):

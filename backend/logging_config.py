@@ -1,36 +1,38 @@
 import logging
 import os
 import sys
-import json
 from datetime import datetime
+
 from pythonjsonlogger import jsonlogger
 
 # Import context var for correlation ID
 from .middleware import request_id_context
 
+
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
-        
+
         # Standard fields
         if not log_record.get("timestamp"):
             now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             log_record["timestamp"] = now
-            
+
         if log_record.get("level"):
             log_record["level"] = log_record["level"].upper()
         else:
             log_record["level"] = record.levelname
 
         log_record["module"] = record.module
-        
+
         # Add Correlation ID from context
         try:
             req_id = request_id_context.get()
             if req_id != "UNKNOWN":
                 log_record["correlation_id"] = req_id
         except LookupError:
-            pass # Context var not set 
+            pass  # Context var not set
+
 
 def setup_logging():
     """
@@ -55,9 +57,9 @@ def setup_logging():
         root_logger.handlers.clear()
 
     root_logger.addHandler(handler)
-    
+
     # Silence noisy loggers
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING) 
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     # logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    logging.info(f"JSON Logging initialized", extra={"log_level": log_level_str})
+    logging.info("JSON Logging initialized", extra={"log_level": log_level_str})

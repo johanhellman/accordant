@@ -319,11 +319,19 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
     config = SystemPromptsConfig(
         base_system_prompt={"value": "Base prompt", "is_default": False, "source": "custom"},
         ranking=ComponentConfig(
-            prompt={"value": "Rank {responses_text} for {user_query} from {peer_text}", "is_default": False, "source": "custom"},
+            prompt={
+                "value": "Rank {responses_text} for {user_query} from {peer_text}",
+                "is_default": False,
+                "source": "custom",
+            },
             model="gemini/gemini-pro",
         ),
         chairman=ComponentConfig(
-            prompt={"value": "Chairman for {user_query} using {stage1_text} and {voting_details_text}", "is_default": False, "source": "custom"},
+            prompt={
+                "value": "Chairman for {user_query} using {stage1_text} and {voting_details_text}",
+                "is_default": False,
+                "source": "custom",
+            },
             model="gemini/gemini-pro",
         ),
         title_generation=ComponentConfig(
@@ -338,7 +346,9 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
         patch("backend.config.personalities.get_org_config_dir") as mock_get_config_dir,
         patch("backend.config.personalities.load_org_models_config") as mock_load_models,
         patch("backend.admin_routes._save_yaml") as mock_save_yaml,
-        patch("backend.admin_routes.get_system_prompts") as mock_get_prompts, # Mock return helper to avoid complexity
+        patch(
+            "backend.admin_routes.get_system_prompts"
+        ) as mock_get_prompts,  # Mock return helper to avoid complexity
     ):
         mock_get_config_dir.return_value = str(config_dir)
         mock_load_models.return_value = {
@@ -346,20 +356,20 @@ async def test_update_system_prompts(tmp_path, monkeypatch):
             "chairman_model": "gemini/gemini-pro",
             "title_model": "gemini/gemini-pro",
         }
-        
+
         # Mock get_system_prompts to return something valid since we bypass IO
-        mock_get_prompts.return_value = config 
+        mock_get_prompts.return_value = config
 
         # Call function
         result = await update_system_prompts(config.dict(), current_user=mock_user)
 
         # Verify save_yaml was called
         assert mock_save_yaml.called
-        
+
         # Verify args passed to save_yaml
         args, _ = mock_save_yaml.call_args
         file_path, saved_data = args
-        
+
         assert str(file_path).endswith("system-prompts.yaml")
         # Assert WE ARE SAVING STRINGS NOT DICTS
         assert saved_data["base_system_prompt"] == "Base prompt"
@@ -389,7 +399,11 @@ async def test_update_system_prompts_invalid_tags(tmp_path, monkeypatch):
     config = SystemPromptsConfig(
         base_system_prompt={"value": "Base prompt", "is_default": True, "source": "default"},
         ranking=ComponentConfig(
-            prompt={"value": "Rank responses", "is_default": False, "source": "custom"},  # Missing required tags
+            prompt={
+                "value": "Rank responses",
+                "is_default": False,
+                "source": "custom",
+            },  # Missing required tags
             model="gemini/gemini-pro",
         ),
         chairman=ComponentConfig(
@@ -667,12 +681,12 @@ async def test_run_full_council_success():
             f"{RESPONSE_LABEL_PREFIX}A": {
                 "name": "Personality 1",
                 "id": "personality1",
-                "model": "openai/gpt-4"
+                "model": "openai/gpt-4",
             },
             f"{RESPONSE_LABEL_PREFIX}B": {
                 "name": "Personality 2",
                 "id": "personality2",
-                "model": "anthropic/claude-3"
+                "model": "anthropic/claude-3",
             },
         }
 

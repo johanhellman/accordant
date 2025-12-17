@@ -4,11 +4,11 @@ from typing import Any
 
 import httpx
 from tenacity import (
+    before_sleep_log,
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
-    before_sleep_log,
 )
 
 # from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL # Removed global import

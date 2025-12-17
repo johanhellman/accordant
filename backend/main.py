@@ -8,12 +8,11 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, status, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Register MIME types explicitly to ensure correct content types are served
@@ -41,6 +40,10 @@ from .database import get_system_db, system_engine
 # Create tables on startup (System DB only - Tenants created on demand)
 models.SystemBase.metadata.create_all(bind=system_engine)
 
+# Rate Limiting
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy.orm import Session
 
 from .auth import (
@@ -56,7 +59,12 @@ from .council import (
     generate_conversation_title,
     run_full_council,
 )
+from .errors import INTERNAL_ERROR, VALIDATION_ERROR, AppError
+from .limiter import limiter
 from .logging_config import setup_logging
+
+# Imports for Observability
+from .middleware import RequestIdMiddleware, request_id_context
 from .organizations import get_org_api_config
 from .schema import (
     ChangePasswordRequest,
@@ -69,16 +77,6 @@ from .schema import (
 from .streaming import run_council_generator
 from .users import User, UserResponse, get_user
 from .voting_history import record_votes
-
-# Imports for Observability
-from .middleware import RequestIdMiddleware, request_id_context
-from .errors import AppError, INTERNAL_ERROR, VALIDATION_ERROR
-
-# Rate Limiting
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
-from .limiter import limiter
 
 # --- Helper Functions ---
 
@@ -290,6 +288,7 @@ app.add_middleware(StaticCacheMiddleware)
 
 # --- Exception Handlers ---
 
+
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(
@@ -303,6 +302,7 @@ async def app_error_handler(request: Request, exc: AppError):
             }
         },
     )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -318,6 +318,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         },
     )
 
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(
@@ -332,10 +333,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         },
     )
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     correlation_id = request_id_context.get()
-    logger.error(f"Unhandled exception: {exc}", exc_info=True, extra={"correlation_id": correlation_id})
+    logger.error(
+        f"Unhandled exception: {exc}", exc_info=True, extra={"correlation_id": correlation_id}
+    )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
@@ -347,6 +351,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             }
         },
     )
+
 
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -446,7 +451,9 @@ async def health_check():
 
 @app.post("/api/auth/register", response_model=Token)
 @limiter.limit("5/minute")
-async def register(request: Request, reg_data: RegistrationRequest, db: Session = Depends(get_system_db)):
+async def register(
+    request: Request, reg_data: RegistrationRequest, db: Session = Depends(get_system_db)
+):
     """
     Atomic registration of User and Organization.
     Prevents orphaned users by wrapping both creations in a single transaction.
@@ -539,7 +546,9 @@ async def register(request: Request, reg_data: RegistrationRequest, db: Session 
 @app.post("/api/auth/token", response_model=Token)
 @limiter.limit("5/minute")
 async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_system_db)
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_system_db),
 ):
     """Login to get access token."""
     user = get_user(form_data.username, db=db)

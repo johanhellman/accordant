@@ -3,8 +3,8 @@ import shutil
 
 import pytest
 
-from backend import models
 import backend.database
+from backend import models
 from backend.invitations import create_invitation, get_invitation, use_invitation
 from backend.organizations import ORGS_DATA_DIR, OrganizationCreate, create_org, get_org
 from backend.security import decrypt_value, encrypt_value

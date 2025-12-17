@@ -91,7 +91,11 @@ class CouncilManager:
 
             # Ensure messages list includes current user query (handle stale snapshot)
             messages = conversation_history["messages"]
-            if not messages or messages[-1].get("role") != "user" or messages[-1].get("content") != user_query:
+            if (
+                not messages
+                or messages[-1].get("role") != "user"
+                or messages[-1].get("content") != user_query
+            ):
                 # Snapshot is stale or missing the new message, append it
                 messages = messages + [{"role": "user", "content": user_query}]
 

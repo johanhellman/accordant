@@ -71,8 +71,8 @@ def test_multi_user_voting_attribution(clean_data):
     # or just manually inject a vote record to test the retrieval logic if the recording logic is too complex to integration test here.
     # Actually, let's test the admin endpoint's enrichment logic.
 
-    from backend.voting_history import record_votes
     from backend.storage import create_conversation
+    from backend.voting_history import record_votes
 
     # Create conversations first so the JOIN works
     create_conversation("conv1", user_id=user1.id, org_id="test-org")

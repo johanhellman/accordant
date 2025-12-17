@@ -99,5 +99,5 @@ class ChangePasswordRequest(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response structure."""
-    
+
     error: dict[str, Any]  # {code, message, correlation_id, details}

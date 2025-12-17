@@ -671,7 +671,9 @@ class TestBuildRankingPrompt:
         """Test building ranking prompt with provided template."""
         user_query = "What is Python?"
         responses_text = "Response A: Python is a language\nResponse B: Python is a snake"
-        template = "Rank {user_query} responses: {responses_text}. {peer_text}\n\n{FINAL_RANKING_MARKER}"
+        template = (
+            "Rank {user_query} responses: {responses_text}. {peer_text}\n\n{FINAL_RANKING_MARKER}"
+        )
 
         result = build_ranking_prompt(user_query, responses_text, prompt_template=template)
 
@@ -687,7 +689,9 @@ class TestBuildRankingPrompt:
         responses_text = "Response A: Answer"
         template = "Rank {user_query}. {peer_text}"
 
-        result = build_ranking_prompt(user_query, responses_text, exclude_self=True, prompt_template=template)
+        result = build_ranking_prompt(
+            user_query, responses_text, exclude_self=True, prompt_template=template
+        )
 
         assert "your peers (anonymized)" in result
         # assert "different models (anonymized)" not in result # Template dependent

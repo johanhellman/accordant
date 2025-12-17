@@ -1,7 +1,8 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
 from backend.middleware import RequestIdMiddleware, request_id_context
+
 
 def test_request_id_middleware():
     app = FastAPI()

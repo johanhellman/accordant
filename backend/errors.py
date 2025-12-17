@@ -1,9 +1,11 @@
 from typing import Any
 
+
 class AppError(Exception):
     """
     Base class for all application errors.
     """
+
     def __init__(
         self,
         code: str,
@@ -16,6 +18,7 @@ class AppError(Exception):
         self.status_code = status_code
         self.details = details or {}
         super().__init__(self.message)
+
 
 # Standard Error Codes
 RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"

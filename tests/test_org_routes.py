@@ -29,8 +29,9 @@ class TestOrgRoutes:
         """Helper to register and login, returning auth headers."""
         if username is None:
             import uuid
+
             username = f"user_{uuid.uuid4().hex[:8]}"
-            
+
         # Register
         client.post(
             "/api/auth/register",

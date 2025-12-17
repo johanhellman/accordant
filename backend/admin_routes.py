@@ -407,9 +407,9 @@ async def update_system_prompts(config: dict, current_user: User = Depends(get_c
         chairman_in = config["chairman"]
         if "prompt" in chairman_in:  # it's the ConfigValue object
             # Validate ONLY if custom value being set
-            if (
-                incoming_sys := chairman_in["prompt"].get("value")
-            ) and not chairman_in["prompt"].get("is_default"):
+            if (incoming_sys := chairman_in["prompt"].get("value")) and not chairman_in[
+                "prompt"
+            ].get("is_default"):
                 validate_prompt_tags(incoming_sys, ["{user_query}"], "Chairman Prompt")
             update_field(current_config["chairman"], "prompt", chairman_in["prompt"])
         # Persist model if sent (UI might send it)
@@ -422,9 +422,9 @@ async def update_system_prompts(config: dict, current_user: User = Depends(get_c
     if isinstance(config.get("title_generation"), dict):
         title_in = config["title_generation"]
         if "prompt" in title_in:
-            if (
-                incoming_sys := title_in["prompt"].get("value")
-            ) and not title_in["prompt"].get("is_default"):
+            if (incoming_sys := title_in["prompt"].get("value")) and not title_in["prompt"].get(
+                "is_default"
+            ):
                 validate_prompt_tags(incoming_sys, ["{user_query}"], "Title Generation Prompt")
             update_field(current_config["title_generation"], "prompt", title_in["prompt"])
         if "model" in title_in and isinstance(title_in["model"], str):
@@ -436,9 +436,9 @@ async def update_system_prompts(config: dict, current_user: User = Depends(get_c
     if isinstance(config.get("ranking"), dict):
         ranking_in = config["ranking"]
         if "prompt" in ranking_in:
-            if (
-                incoming_sys := ranking_in["prompt"].get("value")
-            ) and not ranking_in["prompt"].get("is_default"):
+            if (incoming_sys := ranking_in["prompt"].get("value")) and not ranking_in["prompt"].get(
+                "is_default"
+            ):
                 validate_prompt_tags(
                     incoming_sys, ["{user_query}", "{responses_text}"], "Ranking Prompt"
                 )
