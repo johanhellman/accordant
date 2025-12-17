@@ -95,3 +95,9 @@ class ChangePasswordRequest(BaseModel):
 
     current_password: str
     new_password: str
+
+
+class ErrorResponse(BaseModel):
+    """Standard error response structure."""
+    
+    error: dict[str, Any]  # {code, message, correlation_id, details}
