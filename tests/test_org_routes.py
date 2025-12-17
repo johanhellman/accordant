@@ -25,8 +25,12 @@ class TestOrgRoutes:
             # Legacy file patches removed - uses SQLite
             yield tmpdir
 
-    def get_auth_headers(self, client, username="testuser", password="password"):
+    def get_auth_headers(self, client, username=None, password="password"):
         """Helper to register and login, returning auth headers."""
+        if username is None:
+            import uuid
+            username = f"user_{uuid.uuid4().hex[:8]}"
+            
         # Register
         client.post(
             "/api/auth/register",

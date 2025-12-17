@@ -525,7 +525,7 @@ def test_create_personality_duplicate(mock_data_root, auth_headers):
             yaml.dump(MOCK_PERSONALITY, f)
 
         response = client.post(
-        "/api/admin/personalities",
+        "/api/personalities",
         json={"name": "existing_personality", "description": "Duplicate"},
     )
     assert response.status_code == 400
