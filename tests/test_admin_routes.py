@@ -433,8 +433,10 @@ def test_list_models_error(mock_data_root, auth_headers):
         ),
     ):
         response = client.get("/api/models", headers=headers)
-        assert response.status_code == 400
-        assert "Invalid API key" in response.json()["detail"]
+        assert response.status_code == 500
+        data = response.json()
+        assert "error" in data
+        assert data["error"]["code"] == "HTTP_ERROR"
 
 
 def test_list_personalities_empty_dir(mock_data_root, auth_headers):
@@ -598,7 +600,9 @@ def test_update_system_prompts_missing_tags(mock_data_root, auth_headers):
 
     response = client.put("/api/system-prompts", json=invalid_config, headers=headers)
     assert response.status_code == 400
-    assert "missing required tags" in response.json()["detail"]
+    data = response.json()
+    assert "error" in data
+    assert "Missing required tags" in data["error"]["message"]
 
 
 def test_get_settings_no_org(mock_data_root, auth_headers):
@@ -652,7 +656,9 @@ def test_update_settings_update_failed(mock_data_root, auth_headers):
         payload = {"api_key": "new_key"}
         response = client.put("/api/settings", json=payload, headers=headers)
         assert response.status_code == 500
-        assert "Failed to update organization" in response.json()["detail"]
+    data = response.json()
+    assert "error" in data
+    assert "Failed to update settings" in data["error"]["message"]
 
 
 def test_update_settings_only_base_url(mock_data_root, auth_headers):
