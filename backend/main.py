@@ -8,10 +8,13 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Register MIME types explicitly to ensure correct content types are served
 # This is critical for CSS and JS files to be properly recognized by browsers
@@ -66,6 +69,10 @@ from .schema import (
 from .streaming import run_council_generator
 from .users import User, UserResponse, get_user
 from .voting_history import record_votes
+
+# Imports for Observability
+from .middleware import RequestIdMiddleware, request_id_context
+from .errors import AppError, INTERNAL_ERROR, VALIDATION_ERROR
 
 # --- Helper Functions ---
 
@@ -266,7 +273,68 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 # Register SecurityHeadersMiddleware BEFORE StaticCacheMiddleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StaticCacheMiddleware)
+# Register RequestIdMiddleware FIRST (so it wraps everything including other middleware)
+app.add_middleware(RequestIdMiddleware)
 
+# --- Exception Handlers ---
+
+@app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+                "correlation_id": request_id_context.get(),
+                "details": exc.details,
+            }
+        },
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": {
+                "code": VALIDATION_ERROR,
+                "message": "Validation error",
+                "correlation_id": request_id_context.get(),
+                "details": exc.errors(),
+            }
+        },
+    )
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": "HTTP_ERROR",
+                "message": exc.detail,
+                "correlation_id": request_id_context.get(),
+                "details": {},
+            }
+        },
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    correlation_id = request_id_context.get()
+    logger.error(f"Unhandled exception: {exc}", exc_info=True, extra={"correlation_id": correlation_id})
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": {
+                "code": INTERNAL_ERROR,
+                "message": "Internal server error",
+                "correlation_id": correlation_id,
+                "details": {},
+            }
+        },
+    )
 
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
