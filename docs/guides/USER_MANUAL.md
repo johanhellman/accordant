@@ -20,9 +20,14 @@ Every query goes through a rigorous 3-stage process:
     *   **Goal**: Filter out hallucinations and identify the strongest elements.
 
 3.  **Stage 3: Chairman Synthesis**
-    *   The "Chairman" AI analyzes all responses and the peer review data.
     *   It synthesizes a final, authoritative answer that combines the best insights from the council.
     *   **Goal**: Deliver a single, high-quality answer.
+
+### 1.2 Strategic Consensus Mode
+You can toggle **"Strategic Consensus"** mode in the chat interface. This changes how Stage 3 works:
+*   **Strategy-Based Synthesis**: Instead of a generic synthesis, the Chairman applies a specific strategy (e.g., "Risk Averse" or "Goal Seeking") defined by your organization.
+*   **Veto Power**: The system explicitly checks for "fatal flaws" identified by peers. If a risk is flagged, the consensus will address it or reject the risky proposal.
+*   **Attribution**: The final answer includes an **Attribution Badge** showing exactly which personalities contributed to the answer and why.
 
 ## 2. Managing Personalities
 (Admin Only) The Personality Manager allows you to configure the council members.

@@ -173,7 +173,7 @@ export const api = {
    * @param {function} onEvent - Callback function for each event: (eventType, data) => void
    * @returns {Promise<void>}
    */
-  async sendMessageStream(conversationId, content, onEvent) {
+  async sendMessageStream(conversationId, content, consensusEnabled, onEvent) {
     const headers = {
       "Content-Type": "application/json",
     };
@@ -184,7 +184,7 @@ export const api = {
     const response = await fetch(`${API_BASE}/api/conversations/${conversationId}/message/stream`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, consensus_enabled: consensusEnabled }),
     });
 
     if (!response.ok) {
@@ -368,6 +368,10 @@ export const api = {
 
   async getAdminStats() {
     return request("/api/admin/stats");
+  },
+
+  async getConsensusStats() {
+    return request("/api/admin/stats/consensus");
   },
 
   async getVotingHistory() {

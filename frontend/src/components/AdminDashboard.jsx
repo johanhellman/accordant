@@ -18,8 +18,11 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     try {
-      const data = await api.getAdminStats();
-      setStats(data);
+      const [adminData, consensusData] = await Promise.all([
+        api.getAdminStats(),
+        api.getConsensusStats(),
+      ]);
+      setStats({ ...adminData, consensus: consensusData });
     } catch (err) {
       setError("Failed to load dashboard statistics");
       console.error(err);
@@ -72,7 +75,33 @@ export default function AdminDashboard() {
         */}
       </div>
 
-      {/* Future: Add graphs or recent activity logs here */}
+      <div className="dashboard-section">
+        <h3>Strategic Consensus Influence</h3>
+        {stats.consensus && stats.consensus.by_personality ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Personality ID</th>
+                <th>Contributions</th>
+                <th>Total Influence Score</th>
+                <th>Avg Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(stats.consensus.by_personality).map(([pid, data]) => (
+                <tr key={pid}>
+                  <td>{pid}</td>
+                  <td>{data.count}</td>
+                  <td>{data.total_score.toFixed(2)}</td>
+                  <td>{(data.total_score / data.count).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No consensus data available yet.</p>
+        )}
+      </div>
     </div>
   );
 }

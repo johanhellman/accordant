@@ -9,6 +9,7 @@ import "./ChatInterface.css";
 import ContextualHelp from "./ContextualHelp";
 
 export default function ChatInterface({ conversation, onSendMessage, onDelete, isLoading }) {
+  const [consensusEnabled, setConsensusEnabled] = useState(false);
   const [input, setInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef(null);
@@ -24,7 +25,7 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      onSendMessage(input);
+      onSendMessage(input, consensusEnabled);
       setInput("");
     }
   };
@@ -152,6 +153,16 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
       </div>
 
       <form className="input-form" onSubmit={handleSubmit}>
+        <div className="consensus-toggle-container">
+          <label className="toggle-label" title="Enable Strategic Consensus Mode">
+            <input
+              type="checkbox"
+              checked={consensusEnabled}
+              onChange={(e) => setConsensusEnabled(e.target.checked)}
+            />
+            <span className="toggle-text">Strategic Consensus</span>
+          </label>
+        </div>
         <textarea
           id="message-input"
           name="message"

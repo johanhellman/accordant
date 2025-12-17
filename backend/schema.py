@@ -55,6 +55,7 @@ class SendMessageRequest(BaseModel):
     """Request to send a message in a conversation."""
 
     content: str
+    consensus_enabled: bool = False
 
 
 class ConversationMetadata(BaseModel):

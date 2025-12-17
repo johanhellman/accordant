@@ -86,7 +86,7 @@ function Dashboard() {
     setView("chat");
   };
 
-  const handleSendMessage = async (content) => {
+  const handleSendMessage = async (content, consensusEnabled = false) => {
     if (!currentConversationId) return;
 
     setIsLoading(true);
@@ -119,107 +119,112 @@ function Dashboard() {
       }));
 
       // Send message with streaming
-      await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
-        // Normalize event type (trim whitespace, handle variations)
-        const normalizedType = eventType?.trim();
+      await api.sendMessageStream(
+        currentConversationId,
+        content,
+        consensusEnabled,
+        (eventType, event) => {
+          // Normalize event type (trim whitespace, handle variations)
+          const normalizedType = eventType?.trim();
 
-        switch (normalizedType) {
-          case "stage1_start": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.loading.stage1 = true;
-              return { ...prev, messages };
-            });
-            break;
-          }
+          switch (normalizedType) {
+            case "stage1_start": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.loading.stage1 = true;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage1_complete": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.stage1 = event.data?.results || event.data;
-              lastMsg.loading.stage1 = false;
-              return { ...prev, messages };
-            });
-            break;
-          }
+            case "stage1_complete": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.stage1 = event.data?.results || event.data;
+                lastMsg.loading.stage1 = false;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage2_start": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.loading.stage2 = true;
-              return { ...prev, messages };
-            });
-            break;
-          }
+            case "stage2_start": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.loading.stage2 = true;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage2_complete": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.stage2 = event.data?.results || event.data;
-              lastMsg.metadata = event.data?.metadata || event.metadata;
-              lastMsg.loading.stage2 = false;
-              return { ...prev, messages };
-            });
-            break;
-          }
+            case "stage2_complete": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.stage2 = event.data?.results || event.data;
+                lastMsg.metadata = event.data?.metadata || event.metadata;
+                lastMsg.loading.stage2 = false;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage3_start": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.loading.stage3 = true;
-              return { ...prev, messages };
-            });
-            break;
-          }
+            case "stage3_start": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.loading.stage3 = true;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage3_complete": {
-            setCurrentConversation((prev) => {
-              const messages = [...prev.messages];
-              const lastMsg = messages[messages.length - 1];
-              lastMsg.stage3 = event.data?.results || event.data;
-              lastMsg.loading.stage3 = false;
-              return { ...prev, messages };
-            });
-            break;
-          }
+            case "stage3_complete": {
+              setCurrentConversation((prev) => {
+                const messages = [...prev.messages];
+                const lastMsg = messages[messages.length - 1];
+                lastMsg.stage3 = event.data?.results || event.data;
+                lastMsg.loading.stage3 = false;
+                return { ...prev, messages };
+              });
+              break;
+            }
 
-          case "stage_start":
-            // Generic stage_start event - we already handle specific stage starts above
-            // This is just informational, so we can ignore it or use it for general loading state
-            // Note: Backend sends this before stage1_start, stage2_start, stage3_start
-            // Silently handle this event (no action needed as specific handlers cover it)
-            break;
+            case "stage_start":
+              // Generic stage_start event - we already handle specific stage starts above
+              // This is just informational, so we can ignore it or use it for general loading state
+              // Note: Backend sends this before stage1_start, stage2_start, stage3_start
+              // Silently handle this event (no action needed as specific handlers cover it)
+              break;
 
-          case "title_complete":
-            // Reload conversations to get updated title
-            loadConversations();
-            break;
+            case "title_complete":
+              // Reload conversations to get updated title
+              loadConversations();
+              break;
 
-          case "complete":
-            // Stream complete, reload conversations list
-            loadConversations();
-            setIsLoading(false);
-            break;
+            case "complete":
+              // Stream complete, reload conversations list
+              loadConversations();
+              setIsLoading(false);
+              break;
 
-          case "error":
-            console.error("Stream error:", event.message || event.data?.message);
-            setIsLoading(false);
-            break;
+            case "error":
+              console.error("Stream error:", event.message || event.data?.message);
+              setIsLoading(false);
+              break;
 
-          default: {
-            // Silently ignore stage_start events (handled above) and only log truly unknown events
-            const isStageStart = normalizedType === "stage_start" || eventType === "stage_start";
-            if (!isStageStart) {
-              console.debug("Unknown event type:", eventType, event);
+            default: {
+              // Silently ignore stage_start events (handled above) and only log truly unknown events
+              const isStageStart = normalizedType === "stage_start" || eventType === "stage_start";
+              if (!isStageStart) {
+                console.debug("Unknown event type:", eventType, event);
+              }
             }
           }
         }
-      });
+      );
     } catch (error) {
       console.error("Failed to send message:", error);
       // Remove optimistic messages on error

@@ -456,6 +456,7 @@ async def run_full_council(
     org_id: str = None,
     api_key: str = None,
     base_url: str = None,
+    consensus_enabled: bool = False,
 ) -> tuple[list[Stage1Result], list[Stage2Result], Stage3Result, dict[str, Any]]:
     """
     Run the complete 3-stage council process.
@@ -499,16 +500,32 @@ async def run_full_council(
             results_by_model[r["model"]].append(r)
 
     # Stage 3: Synthesize final answer
-    stage3_result = await stage3_synthesize_final(
-        user_query,
-        stage1_results,
-        stage2_results,  # Pass the original stage2_results, filtering logic can be inside stage3 if needed
-        label_to_model,
-        messages,
-        org_id,
-        api_key,
-        base_url,
-    )
+    if consensus_enabled:
+        from .consensus_service import ConsensusService
+
+        # Use Strategic Consensus
+        logger.info("Executing Strategic Consensus Mode (Stage 3)")
+        response_text, attribution = await ConsensusService.synthesize_consensus(
+            stage1_results, stage2_results, org_id, api_key, base_url
+        )
+
+        stage3_result = {
+            "model": "consensus-strategy",
+            "response": response_text,
+            # Pass attribution in metadata specific key so storage can pick it up
+            "consensus_contributions": attribution,
+        }
+    else:
+        stage3_result = await stage3_synthesize_final(
+            user_query,
+            stage1_results,
+            stage2_results,  # Pass the original stage2_results, filtering logic can be inside stage3 if needed
+            label_to_model,
+            messages,
+            org_id,
+            api_key,
+            base_url,
+        )
 
     # Prepare metadata
     metadata = {"label_to_model": label_to_model, "aggregate_rankings": aggregate_rankings}

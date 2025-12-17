@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from .database import SystemBase, TenantBase
@@ -125,3 +125,25 @@ class Vote(TenantBase):
     rank = Column(Integer)  # e.g., 1, 2, 3
     label = Column(String)  # e.g., "A", "B" (Historical context)
     reasoning = Column(Text, nullable=True)  # Qualitative feedback details
+
+
+class ConsensusContribution(TenantBase):
+    """
+    Tracks which personalities contributed to a formulated Consensus answer (Stage 3).
+    Used for analytics and attribution transparency.
+    """
+
+    __tablename__ = "consensus_contributions"
+
+    id = Column(String, primary_key=True, index=True)
+    conversation_id = Column(String, index=True, nullable=False)
+
+    # Metadata
+    personality_id = Column(String, nullable=False)
+    strategy = Column(String, nullable=False)  # e.g. "risk_averse"
+
+    # The Attribution (0.0 to 1.0)
+    score = Column(Float)
+
+    reasoning = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
