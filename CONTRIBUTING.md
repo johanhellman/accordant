@@ -142,6 +142,15 @@ uv run pre-commit install
 
 Test infrastructure is set up for both backend and frontend. When contributing:
 
+### Git Hooks (Recommended)
+To automatically run these checks before every commit, install the pre-commit hooks:
+
+```bash
+uv run pre-commit install
+```
+
+This ensures that your local environment runs the exact same checks (using `uv` and `npm`) as the CI pipeline, fixing issues automatically where possible.
+
 **Test Organization:**
 
 - **Backend Tests**: Place all backend tests in the `tests/` directory (project root)

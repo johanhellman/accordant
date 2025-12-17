@@ -14,44 +14,46 @@
 # You can always skip them with --no-verify if needed.
 
 repos:
-  # Python formatting with ruff (auto-fixes)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.0
+  - repo: local
     hooks:
+      # Backend hooks (using uv)
       - id: ruff-format
-        name: ruff format (auto-fix)
-        description: Auto-format Python code with ruff
-        # Auto-fixes formatting, doesn't block commits
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
         pass_filenames: true
 
-  # Python linting with ruff (auto-fixes when possible)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.0
-    hooks:
-      - id: ruff
-        name: ruff lint (auto-fix)
-        description: Lint and auto-fix Python code with ruff
-        args: [--fix]
-        # Auto-fixes issues when possible, doesn't block commits
+      - id: ruff-lint
+        name: ruff lint
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
         pass_filenames: true
 
-  # JavaScript/JSX formatting with prettier (auto-fixes)
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
+      - id: alembic-check
+        name: alembic check
+        entry: uv run alembic check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      # Frontend hooks (using npm)
       - id: prettier
-        name: prettier format (auto-fix)
-        description: Auto-format JavaScript/JSX/CSS with prettier
-        types: [file]
-        types_or: [javascript, jsx, json, css]
+        name: prettier format
+        entry: bash -c 'cd frontend && npm run format'
+        language: system
         files: ^frontend/
-        # Auto-fixes formatting, doesn't block commits
-        pass_filenames: true
+        pass_filenames: false # npm run format handles globbing internal to the script usually, or we can pass files if script supports it. 
+        # But 'npm run format' in package.json is "prettier --write ..."
+        # Let's just let it run on the whole frontend dir for safety or use pre-commit's file passing if we change the command.
+        # Simpler: just use the npm command.
 
-# Default settings
-default_language_version:
-  python: python3.10
+      - id: frontend-lint
+        name: frontend lint
+        entry: bash -c 'cd frontend && npm run lint:fix'
+        language: system
+        files: ^frontend/
+        pass_filenames: false
 
-# Note: ESLint is not included here as it requires npm/node setup.
-# Run manually with: cd frontend && npm run lint
 

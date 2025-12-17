@@ -1,6 +1,6 @@
 import logging
-import sqlite3
-from sqlalchemy import text, inspect
+
+from sqlalchemy import inspect, text
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +14,10 @@ TENANT_MIGRATIONS = [
         """
         ALTER TABLE conversations ADD COLUMN processing_state VARCHAR DEFAULT 'idle';
         UPDATE conversations SET processing_state = 'idle' WHERE processing_state IS NULL;
-        """
+        """,
     ),
 ]
+
 
 def get_current_version(engine):
     """Get the current user_version of the SQLite database."""
@@ -25,10 +26,12 @@ def get_current_version(engine):
         result = conn.execute(text("PRAGMA user_version")).scalar()
         return int(result)
 
+
 def set_version(engine, version):
     """Set the user_version of the SQLite database."""
     with engine.begin() as conn:
         conn.execute(text(f"PRAGMA user_version = {version}"))
+
 
 def apply_tenant_migrations(engine):
     """
@@ -36,8 +39,8 @@ def apply_tenant_migrations(engine):
     This uses SQLite `user_version` PRAGMA to track state.
     """
     current_ver = get_current_version(engine)
-    
-    # Pre-check for legacy schema state (the 'processing_state' column might exist 
+
+    # Pre-check for legacy schema state (the 'processing_state' column might exist
     # from previous ad-hoc migration but version is 0)
     # If version is 0, we should inspect to see if we need to skip migration 1
     if current_ver == 0:
@@ -45,7 +48,9 @@ def apply_tenant_migrations(engine):
         if "conversations" in inspector.get_table_names():
             columns = [c["name"] for c in inspector.get_columns("conversations")]
             if "processing_state" in columns:
-                logger.info("Detected legacy schema with 'processing_state'. Fast-forwarding version to 1.")
+                logger.info(
+                    "Detected legacy schema with 'processing_state'. Fast-forwarding version to 1."
+                )
                 set_version(engine, 1)
                 current_ver = 1
 
@@ -60,7 +65,7 @@ def apply_tenant_migrations(engine):
                     statements = [s.strip() for s in operation.split(";") if s.strip()]
                     for stmt in statements:
                         conn.execute(text(stmt))
-                
+
                 # Update version AFTER successful transaction
                 set_version(engine, version)
                 current_ver = version

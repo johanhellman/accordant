@@ -93,6 +93,7 @@ def record_votes(
 # The new ranking_service queries the DB directly.
 from .models import Conversation
 
+
 def load_voting_history(org_id: str) -> list[dict[str, Any]]:
     """
     Load voting history from Tenant DB.

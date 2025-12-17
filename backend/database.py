@@ -63,11 +63,12 @@ def get_tenant_engine(org_id: str):
 
     # Cache it
     _tenant_engines[org_id] = engine
-    
+
     # Apply standardized migrations on connect
     from .tenant_migrations import apply_tenant_migrations
+
     apply_tenant_migrations(engine)
-    
+
     return engine
 
 

@@ -423,7 +423,7 @@ async def generate_conversation_title(
         # Fallback to a generic title
         return "New Conversation"
 
-    today = "today" # Placeholder or use context if available but unused here.
+    today = "today"  # Placeholder or use context if available but unused here.
     content = response.get("content")
     title = "New Conversation" if content is None else content.strip()
 
@@ -483,6 +483,7 @@ async def run_full_council(
     # This ensures that only valid results are passed to stage 3 if needed,
     # and aligns with the instruction to skip missing model keys.
     from collections import defaultdict
+
     results_by_model = defaultdict(list)
     for r in stage2_results:
         if "model" in r:
@@ -492,7 +493,7 @@ async def run_full_council(
     stage3_result = await stage3_synthesize_final(
         user_query,
         stage1_results,
-        stage2_results, # Pass the original stage2_results, filtering logic can be inside stage3 if needed
+        stage2_results,  # Pass the original stage2_results, filtering logic can be inside stage3 if needed
         label_to_model,
         messages,
         org_id,

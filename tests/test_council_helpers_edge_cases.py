@@ -390,17 +390,13 @@ class TestBuildRankingPromptEdgeCases:
     def test_build_ranking_prompt_empty_user_query(self):
         """Test with empty user query."""
         template = "Rank {user_query}. {responses_text}. {peer_text}"
-        result = build_ranking_prompt(
-            "", "Response A: Answer", prompt_template=template
-        )
+        result = build_ranking_prompt("", "Response A: Answer", prompt_template=template)
         assert "Response A: Answer" in result
 
     def test_build_ranking_prompt_empty_responses_text(self):
         """Test with empty responses text."""
         template = "Rank {user_query}. {responses_text}. {peer_text}"
-        result = build_ranking_prompt(
-            "Question", "", prompt_template=template
-        )
+        result = build_ranking_prompt("Question", "", prompt_template=template)
         assert "Question" in result
 
     def test_build_ranking_prompt_custom_template_with_all_tags(self):

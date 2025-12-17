@@ -65,6 +65,7 @@ def auth_headers(tmp_path, monkeypatch):
 
     # Register admin (first user is admin, creates org atomically)
     import uuid
+
     username = f"admin_{uuid.uuid4().hex[:8]}"
     reg_payload = {
         "username": username,
@@ -436,7 +437,7 @@ def test_list_models_error(mock_data_root, auth_headers):
     ):
         response = client.get("/api/models", headers=headers)
         # ValueError is likely converted to 400 VALIDATION_ERROR or similar by intermediate logic
-        assert response.status_code in [400, 500] 
+        assert response.status_code in [400, 500]
         data = response.json()
         assert "error" in data
 
@@ -502,6 +503,7 @@ def test_get_personality_load_error(mock_data_root, auth_headers):
 
         # Use local client to capture 500 error
         from fastapi.testclient import TestClient
+
         from backend.main import app
 
         local_client = TestClient(app, raise_server_exceptions=False)
@@ -527,9 +529,9 @@ def test_create_personality_duplicate(mock_data_root, auth_headers):
             yaml.dump(MOCK_PERSONALITY, f)
 
         response = client.post(
-        "/api/personalities",
-        json={"name": "existing_personality", "description": "Duplicate"},
-    )
+            "/api/personalities",
+            json={"name": "existing_personality", "description": "Duplicate"},
+        )
     assert response.status_code in [400, 401]
     if response.status_code == 400:
         data = response.json()

@@ -97,6 +97,7 @@ def create_org(
         src_personalities = os.path.join(PROJECT_ROOT, "data", "personalities")
         if os.path.exists(src_personalities):
             import shutil
+
             for f in os.listdir(src_personalities):
                 if f.endswith(".yaml"):
                     src = os.path.join(src_personalities, f)
