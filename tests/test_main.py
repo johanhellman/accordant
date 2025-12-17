@@ -166,6 +166,14 @@ class TestConversationEndpoints:
 
         # Should return 403 (or 404 if conversation not found for user2's org)
         assert response.status_code in [403, 404]
+        if response.status_code == 404:
+            data = response.json()
+            assert "error" in data
+            assert data["error"]["message"] == "Conversation not found"
+        data = response.json()
+        if response.status_code == 404:
+            assert "error" in data
+            assert data["error"]["message"] == "Conversation not found"
 
     def test_get_conversation_with_messages(self, temp_data_dir):
         """Test retrieving conversation includes all messages."""
