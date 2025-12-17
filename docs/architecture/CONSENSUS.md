@@ -143,12 +143,47 @@ The "Strategic Directive" is managed via a strict 2-level configuration system, 
     *   *File*: `data/organizations/{org_id}/config/system-prompts.yaml`
     *   *Behavior*: An organization can override the default to enforce a specific strategy (e.g., "Risk-Averse") for all their interactions. This ensures consistent governance across the tenant.
 
-## 7. Risks & Mitigation
+## 7. Data Model: Contribution Attribution
 
-*   **Risk**: Prompt drifts.
-    *   *Mitigation*: Use strict "Input/Output" sections in the prompt to keep the LLM focused on the "Strategic Directive" section.
-*   **Risk**: Context Window.
-    *   *Mitigation*: Summarize Stage 2 critiques if they become too verbose before feeding them to the Chairman.
+To support "Contribution Attribution" (tracking which personalities influenced the consensus), we extend the Tenant Database schema.
 
-## 8. Conclusion
-Moving to a **Prompt-Based Consensus** model gives us infinite flexibility without over-engineering the backend. We preserve the purity of the Council's diverse views (Stage 1 & 2) but allow the business to decide *how* those views are aggregated (Stage 3) via a simple, cascading prompt configuration.
+### 7.1. New Table: `consensus_contributions`
+*   **`id`**: UUID (PK)
+*   **`conversation_id`**: Foreign Key to Conversations.
+*   **`personality_id`**: The ID of the contributing personality.
+*   **`strategy`**: The consensus strategy key used (e.g., "risk_averse").
+*   **`score`**: Float (0.0 - 1.0) indicating the weight of the contribution (extracted from Chairman metadata).
+*   **`reasoning`**: (Optional) Text citation or reason for inclusion.
+
+### 7.2. Attribution Logic
+The Chairman's Stage 3 Prompt will now require a metadata block:
+```json
+{
+  "contributors": [
+    {"id": "compliance_bot", "weight": 0.8, "reason": "Provided critical regulatory framework"},
+    {"id": "creative_bot", "weight": 0.2, "reason": "Suggested the novel UI approach"}
+  ]
+}
+```
+This metadata is parsed and stored in the `consensus_contributions` table.
+
+## 8. UX & Analytics
+
+### 8.1. Chat Interface
+*   **Synthesis Toggle**: Users can toggle between "Voting Mode" (Winner) and "Consensus Mode" (Synthesis) if the organization allows it.
+*   **Attribution Footer**: When in Consensus Mode, the unified answer displays a footer: *"Synthesized from inputs by: [Compliance Bot, Creative Bot]"*.
+
+### 8.2. Analytics Dashboard
+*   **Contribution Heatmap**: A new view showing which personalities are most influential in consensus decisions (distinct from who wins the most votes).
+
+## 9. Validation Strategy
+
+*   **Unit Tests**: Verify that the prompt parser correctly extracts the JSON metadata block from the Chairman's output.
+*   **E2E Tests**: Verify that toggling the mode changes the displayed answer and that attribution badges appear.
+
+## 10. Conclusion
+The "Consensus Model" is a complete end-to-end feature:
+1.  **Architecture**: Prompt-based strategies logic.
+2.  **Data**: New tables to track contribution attribution.
+3.  **UX**: Explicit user controls and transparency via attribution.
+This ensures we don't just "merge text" but actually track and credit the valuable components of the Council's diverse thinking.
