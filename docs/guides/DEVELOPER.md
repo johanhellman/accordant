@@ -120,6 +120,15 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 - **Frontend**: `cd frontend && npm test` (or `npm run test:coverage` for coverage).
 - **E2E (Smoke)**: `cd frontend && npm run test:e2e` (Requires backend running on port 8002).
 
+### Test Coverage
+
+We maintain a snapshot of test coverage metrics in [COVERAGE_REPORT.md](../../docs/testing/COVERAGE_REPORT.md).
+
+**To generate a fresh report:**
+```bash
+uv run pytest --cov=backend --cov-report=term-missing
+```
+
 **Why Tests Are in Project Root:**
 
 - Tests are separate from source code, making it clear they're not part of the application
