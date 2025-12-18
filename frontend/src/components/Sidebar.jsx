@@ -12,6 +12,8 @@ export default function Sidebar({
   onViewChange,
   user,
   onLogout,
+  isOpen, // New prop
+  onClose, // New prop
 }) {
   const [councilExpanded, setCouncilExpanded] = useState(false);
   const [orgExpanded, setOrgExpanded] = useState(false);
@@ -20,7 +22,7 @@ export default function Sidebar({
   const isInstanceAdmin = user && user.is_instance_admin;
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
         <Logo size="md" className="sidebar-logo" />
         <button className="new-conversation-btn btn btn-primary" onClick={onNewConversation}>

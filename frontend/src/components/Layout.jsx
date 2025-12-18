@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, useLocation, useNavigate, useParams, Link } from "react-router-dom";
 import { MessageSquare, Settings, HelpCircle, User } from "lucide-react";
 import Sidebar from "./Sidebar";
@@ -8,6 +8,7 @@ const Layout = ({ conversations, onNewConversation, user, onLogout, loadConversa
   const location = useLocation();
   const navigate = useNavigate();
   const { id: currentConversationId } = useParams();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Determine current view based on path for mobile nav highlighting
   const getCurrentView = () => {
@@ -24,13 +25,49 @@ const Layout = ({ conversations, onNewConversation, user, onLogout, loadConversa
 
   const currentView = getCurrentView();
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="app">
+      {/* Mobile Header with Hamburger */}
+      <div className="mobile-header">
+        <button className="hamburger-btn" onClick={toggleSidebar}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span className="mobile-header-title">Accordant</span>
+      </div>
+
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}
-        onSelectConversation={(id) => navigate(`/chat/${id}`)}
-        onNewConversation={onNewConversation}
+        onSelectConversation={(id) => {
+          navigate(`/chat/${id}`);
+          closeSidebar();
+        }}
+        onNewConversation={() => {
+          onNewConversation();
+          closeSidebar();
+        }}
         currentView={currentView}
         onViewChange={(view) => {
           // Map view names to routes (for compatibility with existing Sidebar props if needed)
@@ -42,10 +79,17 @@ const Layout = ({ conversations, onNewConversation, user, onLogout, loadConversa
           else if (view === "dashboard") navigate("/dashboard");
           else if (view === "organizations") navigate("/organizations");
           else if (view === "user-settings") navigate("/account");
+          closeSidebar();
         }}
         user={user}
         onLogout={onLogout}
+        isOpen={sidebarOpen}
+        onClose={closeSidebar}
       />
+
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
+
       <div className="main-content">
         <Outlet context={{ loadConversations }} />
       </div>

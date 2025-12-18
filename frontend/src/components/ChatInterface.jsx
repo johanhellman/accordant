@@ -70,40 +70,36 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
     }
   };
 
-  if (!conversation) {
-    return (
-      <div className="chat-interface">
-        <div className="empty-state">
-          <h2>Welcome to LLM Council</h2>
-          <p>Create a new conversation to get started</p>
-        </div>
-      </div>
-    );
-  }
+  // If no conversation, we still render the interface but with an empty state message
+  // This allows the user to type and send a message to start a new conversation
+  const isNewSession = !conversation || !conversation.id;
 
   return (
     <div className="chat-interface">
       <div className="chat-header">
         <h2>
-          {conversation.title || "Conversation"} <ContextualHelp topic="stages" />
+          {conversation?.title || "New Council Session"} <ContextualHelp topic="stages" />
         </h2>
-        <button
-          className="btn-icon delete-btn"
-          onClick={handleDelete}
-          title="Delete Conversation"
-          disabled={isDeleting}
-        >
-          <Trash2 size={20} />
-        </button>
+        {conversation?.id && (
+          <button
+            className="btn-icon delete-btn"
+            onClick={handleDelete}
+            title="Delete Conversation"
+            disabled={isDeleting}
+          >
+            <Trash2 size={20} />
+          </button>
+        )}
       </div>
 
       <div className="messages-container" ref={messagesContainerRef}>
-        {!conversation.messages ||
+        {isNewSession ||
+        !conversation.messages ||
         !Array.isArray(conversation.messages) ||
         conversation.messages.length === 0 ? (
           <div className="empty-state">
-            {/* Empty state content moved to header but keeping placeholder if needed */}
-            <p>Ask a question to consult the LLM Council</p>
+            <h2>Welcome to LLM Council</h2>
+            <p>Ask a question to verify the council's wisdom.</p>
           </div>
         ) : (
           conversation.messages.map((msg, index) => (
@@ -159,11 +155,11 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
           ))
         )}
 
-        {(isLoading || conversation.processing_state === "active") && (
+        {(isLoading || conversation?.processing_state === "active") && (
           <div className="loading-indicator">
             <div className="spinner"></div>
             <span>
-              {conversation.processing_state === "active"
+              {conversation?.processing_state === "active"
                 ? "Council is deliberating (Async)..."
                 : "Consulting the council..."}
             </span>
