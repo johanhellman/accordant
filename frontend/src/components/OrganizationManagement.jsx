@@ -209,6 +209,7 @@ export default function OrganizationManagement() {
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  autoComplete="organization"
                 />
               </div>
               <div className="form-group">
@@ -218,6 +219,7 @@ export default function OrganizationManagement() {
                   value={editForm.owner_username}
                   onChange={(e) => setEditForm({ ...editForm, owner_username: e.target.value })}
                   placeholder="Username of new owner"
+                  autoComplete="username"
                 />
               </div>
               <hr className="modal-divider" />
@@ -228,6 +230,7 @@ export default function OrganizationManagement() {
                   value={editForm.api_key}
                   onChange={(e) => setEditForm({ ...editForm, api_key: e.target.value })}
                   placeholder="sk-..."
+                  autoComplete="off"
                 />
               </div>
               <div className="form-group">

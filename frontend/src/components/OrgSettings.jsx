@@ -95,7 +95,7 @@ export default function OrgSettings() {
                 name="api_key"
                 value={settings.api_key}
                 onChange={handleChange}
-                placeholder="sk-..."
+                placeholder={settings.api_key ? "(Hidden for security)" : "sk-..."}
                 autoComplete="off"
               />
               <small className="hint">
