@@ -56,7 +56,7 @@ describe("ChatInterface", () => {
     await user.type(input, "New message");
     await user.click(sendButton);
 
-    expect(mockOnSendMessage).toHaveBeenCalledWith("New message");
+    expect(mockOnSendMessage).toHaveBeenCalledWith("New message", false);
   });
 
   it("should clear input after sending message", async () => {
@@ -121,7 +121,7 @@ describe("ChatInterface", () => {
 
     await user.type(input, "Test message{Enter}");
 
-    expect(mockOnSendMessage).toHaveBeenCalledWith("Test message");
+    expect(mockOnSendMessage).toHaveBeenCalledWith("Test message", false);
   });
 
   it("should not submit on Shift+Enter", async () => {
