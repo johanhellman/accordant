@@ -139,6 +139,8 @@ export default function UserSettings() {
                   type="password"
                   value={pwdForm.currentPassword}
                   onChange={(e) => setPwdForm({ ...pwdForm, currentPassword: e.target.value })}
+                  placeholder="Current password"
+                  autoComplete="current-password"
                   required
                 />
               </div>
@@ -151,6 +153,8 @@ export default function UserSettings() {
                   type="password"
                   value={pwdForm.newPassword}
                   onChange={(e) => setPwdForm({ ...pwdForm, newPassword: e.target.value })}
+                  placeholder="New password"
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -163,6 +167,8 @@ export default function UserSettings() {
                   type="password"
                   value={pwdForm.confirmPassword}
                   onChange={(e) => setPwdForm({ ...pwdForm, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
                   required
                 />
               </div>

@@ -63,7 +63,11 @@ describe("UserManagement", () => {
   it("renders invitations list", async () => {
     api.listUsers.mockResolvedValue(mockUsers);
     api.getInvitations.mockResolvedValue([
-      { code: "INV-123", expires_at: new Date().toISOString(), is_active: true },
+      {
+        code: "INV-123",
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        is_active: true,
+      },
     ]);
     render(<UserManagement />);
 

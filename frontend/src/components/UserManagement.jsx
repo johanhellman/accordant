@@ -111,6 +111,7 @@ export default function UserManagement() {
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            autoComplete="off"
           />
         </div>
         <select
@@ -208,18 +209,20 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {invitations.map((invite) => (
-                  <tr key={invite.code}>
-                    <td className="code-cell">{invite.code}</td>
-                    <td>{new Date(invite.expires_at).toLocaleDateString()}</td>
-                    <td>
-                      <span
-                        className={`status-dot ${invite.is_active ? "active" : "inactive"}`}
-                      ></span>
-                      {invite.is_active ? "Active" : "Expired"}
-                    </td>
-                  </tr>
-                ))}
+                {invitations.map((invite) => {
+                  const isExpired = new Date(invite.expires_at) < new Date();
+                  const isActive = invite.is_active && !isExpired;
+                  return (
+                    <tr key={invite.code}>
+                      <td className="code-cell">{invite.code}</td>
+                      <td>{new Date(invite.expires_at).toLocaleDateString()}</td>
+                      <td>
+                        <span className={`status-dot ${isActive ? "active" : "inactive"}`}></span>
+                        {isActive ? "Active" : "Expired"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

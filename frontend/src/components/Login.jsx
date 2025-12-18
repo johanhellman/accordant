@@ -83,6 +83,7 @@ const Login = ({ onBackToLanding }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
               disabled={loading}
             />
           </div>
@@ -91,9 +92,11 @@ const Login = ({ onBackToLanding }) => {
             <input
               type="password"
               id="password"
+              className="form-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               disabled={loading}
             />
           </div>
@@ -128,6 +131,7 @@ const Login = ({ onBackToLanding }) => {
                       onChange={(e) => setOrgName(e.target.value)}
                       required={isRegistering && regMode === "create_org"}
                       placeholder="My Company"
+                      autoComplete="organization"
                       disabled={loading}
                     />
                   </div>
@@ -140,6 +144,7 @@ const Login = ({ onBackToLanding }) => {
                       onChange={(e) => setOwnerEmail(e.target.value)}
                       required={isRegistering && regMode === "create_org"}
                       placeholder="admin@example.com"
+                      autoComplete="email"
                       disabled={loading}
                     />
                   </div>
@@ -156,6 +161,7 @@ const Login = ({ onBackToLanding }) => {
                     onChange={(e) => setInviteCode(e.target.value)}
                     required={isRegistering && regMode === "join_org"}
                     placeholder="Enter code..."
+                    autoComplete="off"
                     disabled={loading}
                   />
                 </div>
