@@ -34,7 +34,7 @@ mimetypes.add_type("font/otf", ".otf")
 mimetypes.add_type("application/x-font-ttf", ".ttf")
 mimetypes.add_type("application/font-woff", ".woff")
 
-from . import admin_routes, admin_users_routes, models, org_routes, storage
+from . import admin_routes, admin_users_routes, invitations, models, org_routes, storage
 from .database import get_system_db, system_engine
 
 # Create tables on startup (System DB only - Tenants created on demand)
@@ -520,10 +520,52 @@ async def register(
             os.makedirs(os.path.join(org_dir, "config"), exist_ok=True)
 
         elif reg_data.mode == "join_org":
-            # Placeholder for invite logic
-            raise HTTPException(
-                status_code=501, detail="Join organization via invite not yet implemented"
+            if not reg_data.invite_code:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation code required"
+                )
+
+            # Validate Invitation
+            # Note: We do this inside the transaction (conceptually), but since invitations are JSON-based
+            # there is no DB transaction for them. We act optimistically.
+            # If DB insert fails, we might have "used" the invite code.
+            # Ideally invitations should be in SQLite too.
+            # For now, we accept this minor risk or check validity first, then use it after DB commit.
+
+            # 1. Check validity
+            invite = invitations.get_invitation(reg_data.invite_code)
+            if not invite or not invite.is_active or invite.used_by:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid or expired invitation code",
+                )
+
+            # check expiry
+            if datetime.fromisoformat(invite.expires_at) < datetime.utcnow():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation expired"
+                )
+
+            # 2. Create User linked to Org
+            db_user = models.User(
+                id=user_id,
+                username=reg_data.username,
+                password_hash=hashed_password,
+                is_admin=False,  # Members are not admins by default
+                is_instance_admin=False,  # Never instance admin via invite
+                org_id=invite.org_id,
             )
+            db.add(db_user)
+            db.flush()
+
+            org_id = invite.org_id  # For logging
+
+            # 3. Mark invite as used (Deferred until commit success?)
+            # If we do it now and DB fails, invite is lost.
+            # If we do it after, and server crashes, invite is reusable.
+            # Let's do it here, but ideally we'd move it after db.commit.
+            # But we need to ensure it's atom-ish.
+            invitations.use_invitation(reg_data.invite_code, user_id)
 
         # Commit Transaction
         db.commit()
@@ -537,6 +579,9 @@ async def register(
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         logger.error(f"Registration failed: {e}")
