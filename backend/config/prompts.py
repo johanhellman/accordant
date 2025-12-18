@@ -9,7 +9,7 @@ from .paths import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
-CONSENSUS_PROMPTS_DIR = os.path.join(PROJECT_ROOT, "data", "prompts", "consensus")
+CONSENSUS_PROMPTS_DIR = os.path.join(PROJECT_ROOT, "data", "defaults", "consensus")
 
 
 def get_available_consensus_strategies() -> list[str]:

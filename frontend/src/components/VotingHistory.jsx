@@ -94,6 +94,12 @@ export default function VotingHistory() {
             >
               Statistics (Heatmap)
             </button>
+            <button
+              className={`vh-tab ${activeTab === "consensus" ? "active" : ""}`}
+              onClick={() => setActiveTab("consensus")}
+            >
+              Consensus
+            </button>
           </div>
 
           <div className="vh-filters">
@@ -153,12 +159,14 @@ export default function VotingHistory() {
       <div className="vh-content">
         {activeTab === "history" ? (
           <HistoryList history={filteredHistory} />
-        ) : (
+        ) : activeTab === "stats" ? (
           <VotingHeatmap
             history={filteredHistory}
             showEnabledOnly={showEnabledOnly}
             personalities={personalities}
           />
+        ) : (
+          <ConsensusDashboard />
         )}
       </div>
     </div>
@@ -196,13 +204,15 @@ function HistoryList({ history }) {
 function VotesTable({ votes }) {
   // Extract all unique candidates (models being voted ON)
   const allCandidates = new Set();
-  votes.forEach((vote) => {
-    vote.rankings.forEach((r) => allCandidates.add(r.candidate));
-  });
+  if (votes) {
+    votes.forEach((vote) => {
+      vote.rankings.forEach((r) => allCandidates.add(r.candidate));
+    });
+  }
   const candidates = Array.from(allCandidates).sort();
 
   // Extract all voters (personalities casting votes)
-  const voters = votes
+  const voters = (votes || [])
     .map((v) => ({
       name: v.voter_personality || v.voter_model,
       rankings: v.rankings,
@@ -253,14 +263,14 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
     const enabledNames = new Set(personalities.filter((p) => p.enabled).map((p) => p.name));
 
     history.forEach((session) => {
+      // Safety check for votes array
+      if (!session.votes) return;
+
       session.votes.forEach((vote) => {
         const voter = vote.voter_personality || vote.voter_model;
 
         // Skip if filtering enabled and voter is not enabled
         if (showEnabledOnly && !enabledNames.has(voter) && personalities.length > 0) {
-          // Check if it's a model name that corresponds to an enabled personality?
-          // The voter name is usually the personality name.
-          // If the voter is not in the enabled set, skip.
           return;
         }
 
@@ -355,7 +365,6 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
                   const count = cell ? cell.count : 0;
 
                   // Calculate color intensity (1.0 is best/green, 4.0+ is worst/red)
-                  // We'll use a simple class based on value
                   let colorClass = "no-data";
                   if (cell) {
                     const val = parseFloat(avg);
@@ -376,6 +385,131 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
                     </td>
                   );
                 })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ConsensusDashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await api.getConsensusStats();
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to load consensus stats", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadStats();
+  }, []);
+
+  if (loading) return <div className="loading">Loading consensus statistics...</div>;
+  if (!stats) return <div className="error">Failed to load statistics.</div>;
+
+  // Prepare Chart Data
+  const personalityList = Object.entries(stats.by_personality || {})
+    .map(([id, data]) => ({ id, ...data }))
+    .sort((a, b) => b.total_score - a.total_score);
+
+  const strategyList = Object.entries(stats.by_strategy || {})
+    .map(([strat, data]) => ({ name: strat, ...data }))
+    .sort((a, b) => b.count - a.count);
+
+  const maxScore = Math.max(...personalityList.map((p) => p.total_score), 1);
+
+  return (
+    <div className="consensus-dashboard">
+      <div className="dashboard-metrics">
+        <div className="metric-card">
+          <h3>Total Contribution Events</h3>
+          <div className="metric-value">{stats.total_contributions}</div>
+        </div>
+        <div className="metric-card">
+          <h3>Average Confidence Score</h3>
+          <div className="metric-value">
+            {stats.global_avg_score ? (stats.global_avg_score * 100).toFixed(1) + "%" : "-"}
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-grid">
+        <div className="dashboard-panel">
+          <h3>Influence Leaderboard (Total Score)</h3>
+          <div className="leaderboard-chart">
+            {personalityList.map((p) => (
+              <div key={p.id} className="chart-row">
+                <span className="row-label">{p.name || "Unknown"}</span>
+                <div className="row-bar-container">
+                  <div
+                    className="row-bar"
+                    style={{ width: `${(p.total_score / maxScore) * 100}%` }}
+                    title={`Score: ${p.total_score.toFixed(2)}`}
+                  ></div>
+                </div>
+                <span className="row-value">{p.total_score.toFixed(1)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-panel">
+          <h3>Strategy Effectiveness</h3>
+          <table className="strategy-table">
+            <thead>
+              <tr>
+                <th>Strategy</th>
+                <th>Count</th>
+                <th>Avg Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {strategyList.map((s) => (
+                <tr key={s.name}>
+                  <td>{s.name}</td>
+                  <td>{s.count}</td>
+                  <td>{(s.avg_score * 100).toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="dashboard-panel full-width">
+        <h3>Recent Consensus Activity</h3>
+        <table className="activity-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Personality</th>
+              <th>Strategy</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(stats.recent_activity || []).map((event) => (
+              <tr key={event.id}>
+                <td>{new Date(event.timestamp).toLocaleString()}</td>
+                <td>{event.personality_name}</td>
+                <td>{event.strategy}</td>
+                <td>
+                  <span
+                    className={`score-badge ${
+                      event.score > 0.8 ? "high" : event.score > 0.5 ? "medium" : "low"
+                    }`}
+                  >
+                    {(event.score * 100).toFixed(0)}%
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -98,6 +98,16 @@ LLM_REQUEST_TIMEOUT=60.0  # Shorter timeout for faster feedback
 - **Type Hints**: Python code uses type hints where appropriate
 - **Docstrings**: Functions and classes should have docstrings
 
+### 6. Voting & Consensus History
+The system tracks detailed history for both:
+1.  **Voting (Stage 2)**: Stored in `votes` table. Records every ranking decision by every personality.
+2.  **Consensus (Stage 3)**: Stored in `consensus_contributions`. Tracks which personalities contributed to the final answer and their attribution score.
+
+**Dashboard**: The `VotingHistory` tab in the UI provides:
+-   **History List**: Timeline of voting sessions.
+-   **Statistics (Heatmap)**: Affinity matrix between personalities.
+-   **Consensus Dashboard**: Metrics on influence and strategy effectiveness (see [ADR-025](../adr/ADR-025-consensus-dashboard-metrics.md)).
+
 ### Testing
 
 - **Current Status**: Backend tests are fully migrated to use in-memory SQLite databases with proper multi-tenant isolation. Frontend Vitest tests are configured.
