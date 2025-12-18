@@ -96,38 +96,95 @@ from .models import Conversation
 
 def load_voting_history(org_id: str) -> list[dict[str, Any]]:
     """
-    Load voting history from Tenant DB.
-    Enriched with user_id from Conversation.
+    Load voting history from Tenant DB and restructure it for the frontend.
+    Groups votes by (conversation, turn) -> voter -> rankings.
     """
+    from itertools import groupby
+
+    from .config.personalities import get_all_personalities
+
     db: Session = get_tenant_session(org_id)
     try:
-        # Join Vote and Conversation to get user_id
+        # 1. Fetch all personalities to map IDs -> Names
+        # We need this because Vote table stores IDs, but frontend expects Names for display.
+        all_personalities = get_all_personalities(org_id)
+        pid_to_name = {p["id"]: p["name"] for p in all_personalities}
+
+        def resolve_name(pid, model_name):
+            if pid and pid in pid_to_name:
+                return pid_to_name[pid]
+            return model_name or "Unknown"
+
+        # 2. Fetch raw votes joined with Conversation
         results = (
             db.query(Vote, Conversation)
             .join(Conversation, Vote.conversation_id == Conversation.id)
+            .order_by(
+                Vote.conversation_id, Vote.turn_number, Vote.voter_model
+            )  # Order for grouping
             .all()
         )
 
         history = []
-        for vote, conv in results:
-            item = {
-                "id": vote.id,
-                "conversation_id": vote.conversation_id,
-                "timestamp": vote.timestamp,
-                "voter_model": vote.voter_model,
-                "voter_personality_id": vote.voter_personality_id,
-                "candidate_model": vote.candidate_model,
-                "candidate_personality_id": vote.candidate_personality_id,
-                "rank": vote.rank,
-                "label": vote.label,
-                "reasoning": vote.reasoning,
-                # Enriched fields
-                "user_id": conv.user_id,
-                "conversation_title": conv.title,
+
+        # 3. Group by Session (Conversation + Turn)
+        # We use a composite key of (conversation_id, turn_number)
+        def get_session_key(item):
+            vote, conv = item
+            return (vote.conversation_id, vote.turn_number)
+
+        for (conv_id, turn), session_votes_iter in groupby(results, key=get_session_key):
+            session_votes = list(session_votes_iter)
+            first_vote, conversation = session_votes[0]
+
+            # 4. Group by Voter within Session
+            votes_data = []  # The 'votes' array expected by frontend
+
+            # Sort by voter to ensure groupby works
+            session_votes.sort(key=lambda x: x[0].voter_model or "")
+
+            def get_voter_key(item):
+                v, _ = item
+                return (v.voter_personality_id, v.voter_model)
+
+            for (voter_pid, voter_model), voter_group in groupby(session_votes, key=get_voter_key):
+                voter_group = list(voter_group)
+
+                rankings = []
+                for v, _ in voter_group:
+                    cand_name = resolve_name(v.candidate_personality_id, v.candidate_model)
+                    rankings.append(
+                        {"candidate": cand_name, "rank": v.rank, "reasoning": v.reasoning}
+                    )
+
+                # Sort rankings by rank
+                rankings.sort(key=lambda x: x["rank"])
+
+                voter_name = resolve_name(voter_pid, voter_model)
+
+                votes_data.append(
+                    {
+                        "voter_personality": voter_name,  # Frontend looks for this or voter_model
+                        "voter_model": voter_model,
+                        "rankings": rankings,
+                    }
+                )
+
+            # Construct the Session object
+            session_obj = {
+                "id": f"{conv_id}_{turn}",  # Composite ID for frontend key
+                "conversation_id": conv_id,
+                "timestamp": first_vote.timestamp.isoformat(),
+                "turn_number": turn,
+                "user_id": conversation.user_id,
+                "conversation_title": conversation.title,
+                # Flatten user_id logic from admin_routes will add "username" later
+                "votes": votes_data,
             }
-            history.append(item)
+            history.append(session_obj)
 
         return history
+
     except Exception as e:
         logger.error(f"Error loading voting history: {e}")
         return []
