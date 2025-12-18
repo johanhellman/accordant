@@ -30,6 +30,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadConversation(id);
     } else {
       // No ID means new chat or empty state?
@@ -40,16 +41,42 @@ const ChatPage = () => {
   }, [id, loadConversation]);
 
   const handleSendMessage = async (content, consensusEnabled = false) => {
-    if (!id) return;
+    let currentId = id;
+
+    // "Start on Send": Create new conversation if none exists
+    if (!currentId) {
+      setIsLoading(true);
+      try {
+        const newConv = await api.createConversation();
+        currentId = newConv.id;
+
+        // Update URL silently without full reload if possible, or use navigate
+        // Using replace to avoid back-button to empty state
+        navigate(`/chat/${currentId}`, { replace: true });
+
+        // We need to reload conversations context to show in sidebar
+        loadConversations();
+      } catch (error) {
+        console.error("Failed to create new conversation:", error);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (!currentId) return;
 
     setIsLoading(true);
     try {
       // Optimistically add user message to UI
       const userMessage = { role: "user", content };
-      setConversation((prev) => ({
-        ...prev,
-        messages: [...prev.messages, userMessage],
-      }));
+      setConversation((prev) => {
+        // If we just created the conv, prev might be null
+        const base = prev || { messages: [], id: currentId };
+        return {
+          ...base,
+          messages: [...(base.messages || []), userMessage],
+        };
+      });
 
       // Create a partial assistant message that will be updated progressively
       const assistantMessage = {
@@ -70,7 +97,7 @@ const ChatPage = () => {
         messages: [...prev.messages, assistantMessage],
       }));
 
-      await api.sendMessageStream(id, content, consensusEnabled, (eventType, event) => {
+      await api.sendMessageStream(currentId, content, consensusEnabled, (eventType, event) => {
         const normalizedType = eventType?.trim();
 
         switch (normalizedType) {
@@ -193,15 +220,8 @@ const ChatPage = () => {
     }
   };
 
-  if (!id) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state-content">
-          <h2>Select a conversation or start a new one</h2>
-        </div>
-      </div>
-    );
-  }
+  // Allow rendering even without ID (Empty State is now interactive)
+  // if (!id) { ... } logic removed/replaced below
 
   return (
     <ChatInterface

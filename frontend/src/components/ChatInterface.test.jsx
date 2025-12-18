@@ -28,7 +28,7 @@ describe("ChatInterface", () => {
     });
 
     expect(screen.getByText("Welcome to LLM Council")).toBeInTheDocument();
-    expect(screen.getByText("Create a new conversation to get started")).toBeInTheDocument();
+    expect(screen.getByText("Ask a question to verify the council's wisdom.")).toBeInTheDocument();
   });
 
   it("should render conversation messages", () => {
