@@ -13,14 +13,35 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
   const [input, setInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToLatest = (instant = false) => {
+    // 1. Priority: Scroll to the last user message to keep context visible
+    // This is crucial when assistant responses are very tall (Stages 1-3)
+    const userMessages = messagesContainerRef.current?.querySelectorAll(".user-message");
+    if (userMessages && userMessages.length > 0) {
+      const lastUserMsg = userMessages[userMessages.length - 1];
+      lastUserMsg.scrollIntoView({ behavior: instant ? "auto" : "smooth", block: "start" });
+    } else {
+      // Fallback: Scroll to bottom if no user message (e.g. system msg only)
+      messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [conversation]);
+    // Scroll on initial load or conversation switch
+    if (conversation?.messages?.length > 0) {
+      scrollToLatest(true); // Instant on load
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id]); // Only on ID change (new conversation loaded)
+
+  useEffect(() => {
+    // Auto-scroll during streaming (when messages length changes or content updates)
+    if (isLoading) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [conversation.messages, isLoading]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -76,7 +97,7 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
         </button>
       </div>
 
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesContainerRef}>
         {!conversation.messages ||
         !Array.isArray(conversation.messages) ||
         conversation.messages.length === 0 ? (

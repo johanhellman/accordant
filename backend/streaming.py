@@ -12,6 +12,7 @@ from .council import (
 )
 from .storage import (
     add_assistant_message,
+    add_user_message,
     update_conversation_status,
     update_conversation_title,
 )
@@ -198,6 +199,17 @@ async def run_council_generator(
 
     # Add user message to DB immediately (synchronous part provided by caller usually, but we ensure here)
     # The caller (main.py) already did valid checks.
+
+    # Add user message to DB immediately
+    # This ensures it is saved before processing starts
+    try:
+        add_user_message(conversation_id, user_query, org_id)
+    except Exception as e:
+        logger.error(f"Failed to save user message: {e}")
+        # We process anyway to not break the flow, or should we raise?
+        # If we don't save, history will be broken. Better to log for now.
+        yield f"data: {json.dumps({'type': 'error', 'message': 'Failed to save message'})}\n\n"
+        return
 
     # Spawn background task
     asyncio.create_task(
