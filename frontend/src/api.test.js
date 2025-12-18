@@ -229,7 +229,7 @@ describe("API Client", () => {
         body: mockBody,
       });
 
-      await api.sendMessageStream(conversationId, content, onEvent);
+      await api.sendMessageStream(conversationId, content, false, onEvent);
 
       expect(mockFetch).toHaveBeenCalledWith(
         `/api/conversations/${conversationId}/message/stream`,
@@ -238,7 +238,7 @@ describe("API Client", () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content, consensus_enabled: false }),
         }
       );
 
@@ -258,7 +258,9 @@ describe("API Client", () => {
         json: async () => ({ detail: "Not found" }),
       });
 
-      await expect(api.sendMessageStream("test-id", "Hello", vi.fn())).rejects.toThrow("Not found");
+      await expect(api.sendMessageStream("test-id", "Hello", false, vi.fn())).rejects.toThrow(
+        "Not found"
+      );
     });
   });
 });

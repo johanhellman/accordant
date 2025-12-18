@@ -34,14 +34,14 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
       scrollToLatest(true); // Instant on load
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation.id]); // Only on ID change (new conversation loaded)
+  }, [conversation?.id]); // Only on ID change (new conversation loaded)
 
   useEffect(() => {
     // Auto-scroll during streaming (when messages length changes or content updates)
     if (isLoading) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [conversation.messages, isLoading]);
+  }, [conversation?.messages, isLoading]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
