@@ -81,7 +81,7 @@ export default function AdminDashboard() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Personality ID</th>
+                <th>Personality</th>
                 <th>Contributions</th>
                 <th>Total Influence Score</th>
                 <th>Avg Score</th>
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
             <tbody>
               {Object.entries(stats.consensus.by_personality).map(([pid, data]) => (
                 <tr key={pid}>
-                  <td>{pid}</td>
+                  <td>{data.name || pid}</td>
                   <td>{data.count}</td>
                   <td>{data.total_score.toFixed(2)}</td>
                   <td>{(data.total_score / data.count).toFixed(2)}</td>

@@ -195,43 +195,76 @@ def load_voting_history(org_id: str) -> list[dict[str, Any]]:
 def get_consensus_stats(org_id: str) -> dict[str, Any]:
     """
     Get aggregated statistics for Consensus Mode contributions.
+    Includes strategy breakdowns and recent activity timeline.
     """
+    from .config.personalities import get_all_personalities
     from .models import ConsensusContribution
 
     db: Session = get_tenant_session(org_id)
     try:
-        contributions = db.query(ConsensusContribution).all()
+        # 1. Resolve Personalities (ID -> Name)
+        all_personalities = get_all_personalities(org_id)
+        pid_to_name = {p["id"]: p["name"] for p in all_personalities}
 
-        # Raw list
+        def resolve_name(pid):
+            return pid_to_name.get(pid, "Unknown Personality")
+
+        contributions = (
+            db.query(ConsensusContribution).order_by(ConsensusContribution.created_at.desc()).all()
+        )
+
+        # Raw list (Recent 50)
         raw_data = []
 
-        # Aggregation by Personality
+        # Aggregations
         by_personality = {}
+        by_strategy = {}
 
-        for c in contributions:
-            # Raw
-            raw_data.append(
-                {
-                    "id": c.id,
-                    "personality_id": c.personality_id,
-                    "strategy": c.strategy,
-                    "score": c.score,
-                    "timestamp": c.created_at,
-                }
-            )
+        total_score_sum = 0.0
 
-            # Aggregate
+        for i, c in enumerate(contributions):
+            # Add to raw data (limit to 50 for timeline)
+            if i < 50:
+                raw_data.append(
+                    {
+                        "id": c.id,
+                        "personality_id": c.personality_id,
+                        "personality_name": resolve_name(c.personality_id),
+                        "strategy": c.strategy,
+                        "score": c.score,
+                        "timestamp": c.created_at.isoformat(),
+                        "conversation_id": c.conversation_id,
+                    }
+                )
+
+            # Aggregate by Personality
             pid = c.personality_id or "unknown"
+            p_name = resolve_name(pid)
             if pid not in by_personality:
-                by_personality[pid] = {"count": 0, "total_score": 0.0}
-
+                by_personality[pid] = {"name": p_name, "count": 0, "total_score": 0.0}
             by_personality[pid]["count"] += 1
             by_personality[pid]["total_score"] += c.score
 
+            # Aggregate by Strategy
+            strat = c.strategy or "unknown"
+            if strat not in by_strategy:
+                by_strategy[strat] = {"count": 0, "total_score": 0.0, "avg_score": 0.0}
+            by_strategy[strat]["count"] += 1
+            by_strategy[strat]["total_score"] += c.score
+
+            total_score_sum += c.score
+
+        # Finalize Averages for Strategies
+        for s in by_strategy.values():
+            if s["count"] > 0:
+                s["avg_score"] = s["total_score"] / s["count"]
+
         return {
-            "total_contributions": len(raw_data),
+            "total_contributions": len(contributions),
+            "global_avg_score": (total_score_sum / len(contributions)) if contributions else 0,
             "by_personality": by_personality,
-            "raw": raw_data,
+            "by_strategy": by_strategy,
+            "recent_activity": raw_data,
         }
     except Exception as e:
         logger.error(f"Error loading consensus stats: {e}")

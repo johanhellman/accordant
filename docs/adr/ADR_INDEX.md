@@ -78,3 +78,4 @@ The ADRs are ordered chronologically based on when the architectural decisions w
 - [README.md](../../README.md) - Project overview and setup
 - [API Documentation](../api/API_SURFACE.md) - API endpoint documentation
 - [System Overview](../design/SYSTEM_OVERVIEW.md) - High-level architecture and component overview
+| [025](ADR-025-consensus-dashboard-metrics.md) | Consensus Dashboard Metrics | Accumulated data from Stage 3 |
