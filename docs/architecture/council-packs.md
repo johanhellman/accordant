@@ -117,3 +117,27 @@ The `run_council_cycle` and `get_active_personalities` functions currently read 
 *   **Consensus Mode UX**: The user noted that Consensus Modes are not currently exposed in UX. This feature (Packs) will be the primary way users interact with them initially.
 *   **Default Pack**: Use the current manual configuration as a "Custom" state.
 *   **Validation**: Ensure packs don't reference missing personalities (e.g. if a user deleted a custom personality that a custom pack referenced).
+
+## 7. Gap Analysis
+Based on a review of the current codebase (`backend/council.py`, `backend/consensus_service.py`) and ADRs:
+
+1.  **Frontend Gap**:
+    *   No UI exists for "Consensus Strategy" selection.
+    *   No UI exists for "Pack" management.
+    *   *Decision*: We will implement the Pack Gallery as the primary mechanism for both.
+
+2.  **Backend Gap**:
+    *   `Organization.settings` schema is loosely defined (JSON). We need to formalize the storage of `active_pack_id`.
+    *   `consensus_service.py` exists and supports swappable prompts, but currently relies on `get_active_consensus_prompt` which defaults to a single config key `consensus_strategy`. We need to wire this to the `Organization.settings` properly.
+
+## 8. Documentation Impact (ADRs)
+
+*   **ADR-007 (Modular Personality Config)**:
+    *   *Status*: Remains valid, but needs to be extended.
+    *   *Action*: We will implicitly extend this pattern to Packs without a formal update, as the pattern is identical (System Defaults + Org Custom).
+*   **ADR-024 (Strategic Consensus)**:
+    *   *Status*: Accepted and Implemented.
+    *   *Action*: No changes needed. The design relies heavily on this foundation.
+*   **New ADR Recommendation**:
+    *   We should technically draft **ADR-026: Configuration Packs** to formalize the "Meta-Configuration" layer (bundling multiple settings into a single entity).
+
