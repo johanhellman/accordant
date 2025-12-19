@@ -59,12 +59,12 @@ Unified object returned to frontend:
 ## 4. Architecture Changes
 
 ### 4.1. New Service: `ConsensusStrategyService`
-*   **Naming**: Explicitly named `ConsensusStrategyService` (not generic `StrategyService`) to allow for future strategy types (e.g., `EvolutionStrategy`, `RetrievalStrategy`) without collision.
-*   **Responsibilities**:
-    *   `get_all_strategies(session, org_id)`: Merges default files + DB rows.
-    *   `get_strategy(session, id)`: Resolves content from DB -> Files.
-    *   `create_custom_strategy(...)`: Writes to DB.
-    *   `update_strategy(...)`: Updates DB (if custom) or File (if System + Instance Admin).
+Will replace the simple `backend/config/prompts.py` functions.
+
+*   `get_all_strategies(session, org_id)`: Merges default files + DB rows.
+*   `get_strategy(session, id)`: Resolves content from DB -> Files.
+*   `create_custom_strategy(...)`: Writes to DB.
+*   `update_strategy(...)`: Updates DB (if custom) or File (if System + Instance Admin).
 
 ### 4.2. API Endpoints (`/api/config/strategies`)
 
