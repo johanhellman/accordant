@@ -21,7 +21,8 @@ class ConsensusService:
         org_id: str,
         api_key: str,
         base_url: str,
-        user_strategy_override: str = None,
+        user_strategy_override: str = None,  # Name
+        prompt_template_override: str = None,  # Content
     ) -> tuple[str, list[dict]]:
         """
         Synthesize the final answer using the active Consensus Strategy.
@@ -42,7 +43,11 @@ class ConsensusService:
         strategy_name = user_strategy_override
         prompt_template = ""
 
-        if strategy_name:
+        if prompt_template_override:
+            # We have the content directly (e.g. from Custom Strategy)
+            prompt_template = prompt_template_override
+            strategy_name = user_strategy_override or "custom_strategy"  # Fallback name if missing
+        elif strategy_name:
             from backend.config.prompts import load_consensus_prompt
 
             prompt_template = load_consensus_prompt(strategy_name)

@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend.auth import get_current_user
+from backend.config.consensus_strategies import ConsensusStrategyService
 from backend.config.packs import PackService
-from backend.config.prompts import get_available_consensus_strategies
 from backend.database import get_tenant_session
 from backend.users import User
 
@@ -50,6 +50,22 @@ class ActiveConfigResponse(BaseModel):
     personalities: list[str]
     strategy_id: str | None
     system_prompts: dict[str, str]
+
+
+class StrategyResponse(BaseModel):
+    id: str
+    display_name: str
+    description: str | None
+    prompt_content: str
+    source: str
+    is_editable: bool
+
+
+class CreateStrategyRequest(BaseModel):
+    id: str
+    display_name: str
+    description: str | None
+    prompt_content: str
 
 
 # --- Routes ---
@@ -105,10 +121,42 @@ async def get_active_config(
     return PackService.get_active_configuration(db, current_user.id, current_user.org_id)
 
 
-@router.get("/strategies", response_model=list[str])
-async def list_strategies(current_user: User = Depends(get_current_user)):
-    """
-    List available consensus strategies.
-    Reads from data/defaults/consensus/*.md.
-    """
-    return get_available_consensus_strategies()
+@router.get("/strategies", response_model=list[StrategyResponse])
+async def list_strategies(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_org_session)
+):
+    """List available consensus strategies."""
+    return ConsensusStrategyService.get_all_strategies(db, current_user.org_id)
+
+
+@router.post("/strategies", response_model=StrategyResponse)
+async def create_strategy(
+    request: CreateStrategyRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_org_session),
+):
+    """Create a new custom consensus strategy."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can create custom strategies")
+
+    try:
+        return ConsensusStrategyService.create_custom_strategy(
+            db, request.id, request.display_name, request.prompt_content, request.description
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/strategies/{strategy_id}", response_model=StrategyResponse)
+async def get_strategy(
+    strategy_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_org_session),
+):
+    """Get details of a specific strategy."""
+    strat = ConsensusStrategyService.get_strategy(db, strategy_id)
+    if not strat:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    return strat

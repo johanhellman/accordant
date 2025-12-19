@@ -40,6 +40,20 @@ TENANT_MIGRATIONS = [
         );
         """,
     ),
+    (
+        3,
+        "add_consensus_strategies_table",
+        """
+        CREATE TABLE consensus_strategies (
+            id VARCHAR PRIMARY KEY,
+            display_name VARCHAR NOT NULL,
+            description TEXT,
+            prompt_content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+    ),
 ]
 
 

@@ -184,3 +184,21 @@ class CouncilConfiguration(TenantBase):
     active_system_prompts_json = Column(Text, nullable=True)  # Dict[str, str]
 
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ConsensusStrategy(TenantBase):
+    """
+    Definition of a Consensus Strategy (Custom or System mirror).
+    """
+
+    __tablename__ = "consensus_strategies"
+
+    id = Column(String, primary_key=True)
+    display_name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+
+    # The actual instructional prompt
+    prompt_content = Column(Text, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
