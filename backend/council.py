@@ -5,6 +5,7 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from .config.consensus_strategies import ConsensusStrategyService
 from .config.packs import PackService
 from .config.personalities import (
     format_personality_prompt,
@@ -384,76 +385,51 @@ async def stage3_synthesize_final(
     """
     logger.info("Starting Stage 3: Synthesizing final response")
 
-    # Resolve Prompts
+    # Resolve Prompts & Strategy
     # We don't necessarily need personalities here, but we do need prompts
     session = get_tenant_session(org_id)
+    prompt_content_override = None
+    strategy_name_override = None
+
     try:
         config = PackService.get_active_configuration(session, user_id or "anonymous", org_id)
+
+        # Resolve Strategy Content
+        active_strat_id = config.get("strategy_id")
+        if active_strat_id:
+            logger.info(f"Resolving active strategy: {active_strat_id}")
+            strat_data = ConsensusStrategyService.get_strategy(session, active_strat_id)
+            if strat_data:
+                prompt_content_override = strat_data.get("prompt_content")
+                strategy_name_override = strat_data.get("display_name", active_strat_id)
+            else:
+                logger.warning(f"Active strategy {active_strat_id} not found.")
+
     finally:
         session.close()
 
-    base_prompts = load_org_system_prompts(org_id)
-    prompts = {**base_prompts, **config["system_prompts"]}
-
-    # Build history context
-    history_context = build_llm_history(messages) if messages else []
     # Build comprehensive context for chairman
-    stage1_text = "\n\n".join(
-        [
-            f"Model: {result.get('personality_name', result['model'])}\nResponse: {result['response']}"
-            for result in stage1_results
-        ]
+    # Actually, ConsensusService builds its own context from results.
+    # We just need to call it with the strategy override.
+
+    from backend.consensus_service import ConsensusService
+
+    final_response, attribution = await ConsensusService.synthesize_consensus(
+        stage1_results,
+        stage2_results,
+        org_id,
+        api_key,
+        base_url,
+        user_strategy_override=strategy_name_override,
+        prompt_template_override=prompt_content_override,
     )
 
-    # Construct detailed voting history for the prompt
-    voting_details = []
-    for res in stage2_results:
-        voter_name = res.get("personality_name", res.get("model", "Unknown Model"))
-        # We intentionally do NOT include the model name here to prevent bias
-        voter_display = f"{voter_name}"
-        rankings = res.get("parsed_ranking", [])
-
-        vote_line = f"Voter: {voter_display}\n"
-        for i, label in enumerate(rankings, 1):
-            # Resolve label to personality name if available
-            target_info_obj = label_to_model.get(label, {})
-            target_name = (
-                target_info_obj.get("name", "Unknown")
-                if isinstance(target_info_obj, dict)
-                else target_info_obj
-            )
-
-            vote_line += f"   {i}. {target_name} ({label})\n"
-        voting_details.append(vote_line)
-
-    voting_details_text = "\n".join(voting_details)
-
-    chairman_prompt_template = prompts["chairman_prompt"]
+    # Return result compatible with Stage3Result
+    # We need to know the model name for complete correctness, although it's metadata.
     models_config = load_org_models_config(org_id)
-    chairman_model = models_config["chairman_model"]
+    chairman_model = models_config.get("chairman_model", "Unknown Chairman")
 
-    chairman_prompt = chairman_prompt_template.format(
-        user_query=user_query, stage1_text=stage1_text, voting_details_text=voting_details_text
-    )
-
-    system_time_instruction, user_time_instruction = get_time_instructions()
-    modified_chairman_prompt = user_time_instruction + "\n\n" + chairman_prompt
-
-    # Build message chain using helper
-    current_messages = build_message_chain(
-        system_time_instruction, history_context, modified_chairman_prompt
-    )
-
-    # Query the chairman model
-    response = await query_model(
-        chairman_model, current_messages, api_key=api_key, base_url=base_url
-    )
-    logger.info("Stage 3 complete: Final response synthesized")
-    if response is None:
-        # Fallback if chairman fails
-        return {"model": chairman_model, "response": "Error: Unable to generate final synthesis."}
-
-    return {"model": chairman_model, "response": response.get("content", "")}
+    return {"model": chairman_model, "response": final_response}
 
 
 async def generate_conversation_title(
