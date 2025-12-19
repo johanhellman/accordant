@@ -1,0 +1,9 @@
+id: creative_storm
+display_name: Creative Storm
+description: Optimized for brainstorming and lateral thinking. Prioritizes novelty and bold ideas over strict feasibility.
+personalities:
+  - the_visionary
+  - the_optimist
+  - the_contrarian
+consensus_strategy: creative_synthesis
+system_prompts: {}

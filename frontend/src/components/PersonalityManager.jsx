@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { api } from "../api";
 import "./PersonalityManager.css";
 import PersonalityEditor from "./PersonalityEditor";
-import SystemPromptsEditor from "./SystemPromptsEditor";
 import LeagueTable from "./LeagueTable";
 import EvolutionPanel from "./EvolutionPanel";
 import VotingHistory from "./VotingHistory";
@@ -219,12 +218,6 @@ const PersonalityManager = () => {
             >
               Evolution
             </button>
-            <button
-              className={`tab-btn ${activeTab === "system-prompts" ? "active" : ""}`}
-              onClick={() => setActiveTab("system-prompts")}
-            >
-              System Prompts
-            </button>
           </div>
           <div className="tab-separator"></div>
           <div className="tab-group">
@@ -356,8 +349,6 @@ const PersonalityManager = () => {
         {activeTab === "evolution" && (
           <EvolutionPanel personalities={personalities} onRefresh={loadData} />
         )}
-
-        {activeTab === "system-prompts" && <SystemPromptsEditor scope={scope} />}
 
         {activeTab === "voting-history" && <VotingHistory />}
       </div>

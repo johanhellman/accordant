@@ -49,6 +49,7 @@ class PackService:
                                         "consensus_strategy": data.get("consensus_strategy"),
                                         "system_prompts": data.get("system_prompts", {}),
                                     },
+                                    "created_at": None,
                                 }
                     except Exception as e:
                         logger.error(f"Failed to load system pack {filename}: {e}")

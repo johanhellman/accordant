@@ -72,3 +72,22 @@ Every user has access to their personal settings page to manage their profile an
 *   **Change Password**: Securely update your login password.
 *   **Export Data**: Request a download of your personal conversation history in JSON format.
 *   **Delete Account**: Permanently delete your personal account and data from the system. **Warning: This cannot be undone.**
+
+## 6. Council Configuration
+(Admin Only) Advanced tools to shape the behavior and composition of your AI Council.
+
+### 6.1 Council Packs
+Council Packs are pre-bundled configurations that include a specific set of Personalities and a Consensus Strategy.
+*   **Purpose**: Quickly switch between different "modes" of operation (e.g., "Creative Brainstorming" vs. "Strict Compliance").
+*   **Active Pack**: You can set an Active Pack for your organization. This becomes the default for all new sessions.
+*   **System vs Custom**: 
+    *   *System Packs*: Built-in defaults provided by Accordant. Read-only.
+    *   *Custom Packs*: Created by your organization to suit your specific needs.
+
+To use a Pack, navigate to **Council Setup > Council Packs**, view the pack details, and click "Activate".
+
+### 6.2 Consensus Strategies
+Strategies define *how* the Chairman synthesizes the final answer during Stage 3.
+*   **Strategy Manager**: Create and manage custom strategies in **Council Setup > Consensus Strategies**.
+*   **Structure**: A strategy is essentially a prompt template that guides the synthesis logic. It can mandate specific formatting, tone, or risk checks (e.g., "Always cite sources", "Reject if any risk is detected").
+*   **System Strategies**: Built-in strategies (e.g., "Standard Synthesis", "Risk Averse") are read-only but can be used as references.
