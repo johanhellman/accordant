@@ -20,7 +20,7 @@ TENANT_MIGRATIONS = [
         2,
         "add_council_packs_and_config",
         """
-        CREATE TABLE council_packs (
+        CREATE TABLE IF NOT EXISTS council_packs (
             id VARCHAR PRIMARY KEY,
             display_name VARCHAR NOT NULL,
             description TEXT,
@@ -30,7 +30,7 @@ TENANT_MIGRATIONS = [
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE council_configuration (
+        CREATE TABLE IF NOT EXISTS council_configuration (
             user_id VARCHAR PRIMARY KEY,
             active_pack_id VARCHAR,
             active_personalities_json TEXT,
@@ -44,7 +44,7 @@ TENANT_MIGRATIONS = [
         3,
         "add_consensus_strategies_table",
         """
-        CREATE TABLE consensus_strategies (
+        CREATE TABLE IF NOT EXISTS consensus_strategies (
             id VARCHAR PRIMARY KEY,
             display_name VARCHAR NOT NULL,
             description TEXT,
