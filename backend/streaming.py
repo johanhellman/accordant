@@ -111,6 +111,7 @@ class CouncilManager:
                 api_key,
                 base_url,
                 consensus_enabled=consensus_enabled,
+                user_id=conversation_history.get("user_id"),
             ):
                 event_type = event["type"]
                 data = event["data"]

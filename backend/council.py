@@ -5,9 +5,10 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from .config.packs import PackService
 from .config.personalities import (
     format_personality_prompt,
-    get_active_personalities,
+    get_all_personalities,
     load_org_models_config,
     load_org_system_prompts,
 )
@@ -22,6 +23,7 @@ from .council_helpers import (
     get_time_instructions,
     parse_ranking_from_text,
 )
+from .database import get_tenant_session
 from .openrouter import query_model
 from .schema import MessageDict, Stage1Result, Stage2Result, Stage3Result
 
@@ -29,7 +31,13 @@ logger = logging.getLogger(__name__)
 
 
 async def _stage1_personality_mode(
-    user_query: str, history_context: list[MessageDict], org_id: str, api_key: str, base_url: str
+    user_query: str,
+    history_context: list[MessageDict],
+    org_id: str,
+    api_key: str,
+    base_url: str,
+    active_personalities: list[dict[str, Any]],
+    prompts: dict[str, str],
 ) -> list[Stage1Result]:
     """
     Stage 1 implementation for personality mode.
@@ -39,12 +47,12 @@ async def _stage1_personality_mode(
     Args:
         user_query: The user's question
         history_context: Prepared history context (from build_llm_history)
+        active_personalities: Resolved list of active personality objects
+        prompts: Resolved system prompts (merged defaults + pack overrides)
 
     Returns:
         List of Stage 1 results with personality metadata
     """
-    active_personalities = get_active_personalities(org_id)
-    prompts = load_org_system_prompts(org_id)
     base_system_prompt = prompts["base_system_prompt"]
 
     active_names = [p["name"] for p in active_personalities]
@@ -114,6 +122,7 @@ async def stage1_collect_responses(
     org_id: str = None,
     api_key: str = None,
     base_url: str = None,
+    user_id: str = None,
 ) -> list[Stage1Result]:
     """
     Stage 1: Collect individual responses from all council models.
@@ -127,14 +136,30 @@ async def stage1_collect_responses(
     """
     logger.info("Starting Stage 1: Collecting responses from council members")
 
+    # Resolve Context (Config)
+    session = get_tenant_session(org_id)
+    try:
+        config = PackService.get_active_configuration(session, user_id or "anonymous", org_id)
+    finally:
+        session.close()
+
+    # Resolve Personalities
+    all_personas = get_all_personalities(org_id)
+    active_ids = set(config["personalities"])
+    active_personalities = [p for p in all_personas if p["id"] in active_ids]
+
+    # Resolve Prompts
+    base_prompts = load_org_system_prompts(org_id)
+    # Merge overrides (pack prompts overwrite base prompts)
+    prompts = {**base_prompts, **config["system_prompts"]}
+
     # Build history context
     history_context = build_llm_history(messages) if messages else []
 
     # Route to appropriate implementation
-    active_personalities = get_active_personalities(org_id)
     if active_personalities:
         stage1_results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query, history_context, org_id, api_key, base_url, active_personalities, prompts
         )
     else:
         logger.warning("No active personalities found for Stage 1.")
@@ -151,6 +176,8 @@ async def _stage2_personality_mode(
     org_id: str,
     api_key: str,
     base_url: str,
+    active_personalities: list[dict[str, Any]],
+    prompts: dict[str, str],
 ) -> tuple[list[Stage2Result], dict[str, Any]]:
     """
     Stage 2 implementation for personality mode.
@@ -166,8 +193,6 @@ async def _stage2_personality_mode(
     Returns:
         Tuple of (rankings list, label_to_model mapping)
     """
-    active_personalities = get_active_personalities(org_id)
-    prompts = load_org_system_prompts(org_id)
     base_system_prompt = prompts["base_system_prompt"]
 
     logger.info(f"Stage 2: {len(active_personalities)} personalities participating in ranking")
@@ -269,6 +294,7 @@ async def stage2_collect_rankings(
     org_id: str = None,
     api_key: str = None,
     base_url: str = None,
+    user_id: str = None,
 ) -> tuple[list[Stage2Result], dict[str, Any]]:
     """
     Stage 2: Each model ranks the anonymized responses.
@@ -282,6 +308,22 @@ async def stage2_collect_rankings(
         Tuple of (rankings list, label_to_model mapping)
     """
     logger.info("Starting Stage 2: Collecting rankings from council members")
+
+    # Resolve Context (Config) - Should be cached ideally but for now re-fetch is safer for statelessness
+    session = get_tenant_session(org_id)
+    try:
+        config = PackService.get_active_configuration(session, user_id or "anonymous", org_id)
+    finally:
+        session.close()
+
+    # Resolve Personalities
+    all_personas = get_all_personalities(org_id)
+    active_ids = set(config["personalities"])
+    active_personalities = [p for p in all_personas if p["id"] in active_ids]
+
+    # Resolve Prompts
+    base_prompts = load_org_system_prompts(org_id)
+    prompts = {**base_prompts, **config["system_prompts"]}
 
     # Build history context
     history_context = build_llm_history(messages) if messages else []
@@ -298,10 +340,16 @@ async def stage2_collect_rankings(
     ]
 
     # Route to appropriate implementation
-    active_personalities = get_active_personalities(org_id)
     if active_personalities:
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, typed_stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            typed_stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            active_personalities,
+            prompts,
         )
     else:
         logger.warning("No active personalities found for Stage 2.")
@@ -320,6 +368,7 @@ async def stage3_synthesize_final(
     org_id: str = None,
     api_key: str = None,
     base_url: str = None,
+    user_id: str = None,
 ) -> Stage3Result:
     """
     Stage 3: Chairman synthesizes final response.
@@ -334,6 +383,17 @@ async def stage3_synthesize_final(
         Dict with 'model' and 'response' keys
     """
     logger.info("Starting Stage 3: Synthesizing final response")
+
+    # Resolve Prompts
+    # We don't necessarily need personalities here, but we do need prompts
+    session = get_tenant_session(org_id)
+    try:
+        config = PackService.get_active_configuration(session, user_id or "anonymous", org_id)
+    finally:
+        session.close()
+
+    base_prompts = load_org_system_prompts(org_id)
+    prompts = {**base_prompts, **config["system_prompts"]}
 
     # Build history context
     history_context = build_llm_history(messages) if messages else []
@@ -368,7 +428,6 @@ async def stage3_synthesize_final(
 
     voting_details_text = "\n".join(voting_details)
 
-    prompts = load_org_system_prompts(org_id)
     chairman_prompt_template = prompts["chairman_prompt"]
     models_config = load_org_models_config(org_id)
     chairman_model = models_config["chairman_model"]
@@ -458,6 +517,7 @@ async def run_council_cycle(
     api_key: str = None,
     base_url: str = None,
     consensus_enabled: bool = False,
+    user_id: str = None,
 ) -> AsyncGenerator[dict[str, Any]]:
     """
     Execute the council logic sequence and yield events for each stage.
@@ -470,7 +530,9 @@ async def run_council_cycle(
     # --- Stage 1 ---
     yield {"type": "stage_start", "data": {"stage": 1, "name": "Individual Responses"}}
 
-    stage1_results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
+    stage1_results = await stage1_collect_responses(
+        user_query, messages, org_id, api_key, base_url, user_id=user_id
+    )
 
     # Check termination if Stage 1 failed completely (logic from run_full_council)
     if not stage1_results:
@@ -485,7 +547,7 @@ async def run_council_cycle(
     yield {"type": "stage_start", "data": {"stage": 2, "name": "Peer Ranking"}}
 
     stage2_results, label_to_model = await stage2_collect_rankings(
-        user_query, stage1_results, messages, org_id, api_key, base_url
+        user_query, stage1_results, messages, org_id, api_key, base_url, user_id=user_id
     )
 
     aggregate_rankings = calculate_aggregate_rankings(stage2_results, label_to_model)
@@ -530,6 +592,7 @@ async def run_council_cycle(
             org_id,
             api_key,
             base_url,
+            user_id=user_id,
         )
 
     yield {"type": "stage3_complete", "data": {"results": stage3_result}}
@@ -542,6 +605,7 @@ async def run_full_council(
     api_key: str = None,
     base_url: str = None,
     consensus_enabled: bool = False,
+    user_id: str = None,
 ) -> tuple[list[Stage1Result], list[Stage2Result], Stage3Result, dict[str, Any]]:
     """
     Run the complete 3-stage council process (Batch/Sync wrapper).
@@ -562,7 +626,7 @@ async def run_full_council(
     metadata = {}
 
     async for event in run_council_cycle(
-        user_query, messages, org_id, api_key, base_url, consensus_enabled
+        user_query, messages, org_id, api_key, base_url, consensus_enabled, user_id
     ):
         event_type = event["type"]
         data = event["data"]

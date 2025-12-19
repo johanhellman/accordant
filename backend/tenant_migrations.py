@@ -16,6 +16,30 @@ TENANT_MIGRATIONS = [
         UPDATE conversations SET processing_state = 'idle' WHERE processing_state IS NULL;
         """,
     ),
+    (
+        2,
+        "add_council_packs_and_config",
+        """
+        CREATE TABLE council_packs (
+            id VARCHAR PRIMARY KEY,
+            display_name VARCHAR NOT NULL,
+            description TEXT,
+            config_json TEXT NOT NULL,
+            is_system BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE council_configuration (
+            user_id VARCHAR PRIMARY KEY,
+            active_pack_id VARCHAR,
+            active_personalities_json TEXT,
+            active_strategy_id VARCHAR,
+            active_system_prompts_json TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+    ),
 ]
 
 

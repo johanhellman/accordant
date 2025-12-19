@@ -94,9 +94,9 @@ def get_tenant_session(org_id: str):
     if is_fresh_db:
         # If we just created the DB, we are effectively at the latest schema version.
         # We implicitly skip all migrations that are "catch-up" for existing/legacy DBs.
-        # Currently, latest migration is 1.
-        logger.info("Initialized fresh Tenant DB. Setting version to 1.")
-        set_version(engine, 1)
+        # Currently, latest migration is 2.
+        logger.info("Initialized fresh Tenant DB. Setting version to 2.")
+        set_version(engine, 2)
     else:
         # Existing DB: Apply standard migrations
         apply_tenant_migrations(engine)
