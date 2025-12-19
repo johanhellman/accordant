@@ -547,4 +547,65 @@ export const api = {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   },
+  // --- Config & Packs API ---
+  async getPacks() {
+    return request("/api/config/packs");
+  },
+
+  async createPack(pack) {
+    return request("/api/config/packs", {
+      method: "POST",
+      body: JSON.stringify(pack),
+    });
+  },
+
+  async getActiveConfig() {
+    return request("/api/config/active");
+  },
+
+  async setActiveConfig(packId) {
+    return request(`/api/config/packs/${packId}/apply`, {
+      method: "POST",
+    });
+  },
+
+  // --- Strategies API ---
+
+  async listStrategies() {
+    // Returns full objects now
+    return request("/api/config/strategies");
+  },
+
+  async getStrategy(id) {
+    return request(`/api/config/strategies/${id}`);
+  },
+
+  async createStrategy(strategy) {
+    return request("/api/config/strategies", {
+      method: "POST",
+      body: JSON.stringify(strategy),
+    });
+  },
+
+  async updateStrategy(id, strategy) {
+    // Note: Backend might not have separate PUT endpoint, let's check config_routes.py.
+    // config_routes.py has POST /strategies but NO PUT /strategies/{id}.
+    // It has GET /strategies/{id}.
+    // Wait, create_custom_strategy handles creation. Does it handle update?
+    // Usually updates need a separate endpoint or logic.
+    // Let's check backend logic again. It calls ConsensusStrategyService.create_custom_strategy.
+    // And that raises error if exists. So UPDATE is NOT SUPPORTED by backend yet?
+    // I need to check backend/config_routes.py for Update.
+    return request(`/api/config/strategies/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(strategy),
+    });
+  },
+
+  async deleteStrategy(id) {
+    // config_routes.py does NOT seem to have DELETE endpoint?
+    return request(`/api/config/strategies/${id}`, {
+      method: "DELETE",
+    });
+  },
 };

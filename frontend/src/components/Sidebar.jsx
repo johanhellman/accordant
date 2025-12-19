@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus, Settings, Users, HelpCircle, LogOut } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Settings,
+  Users,
+  HelpCircle,
+  LogOut,
+  Layers,
+  GitBranch,
+  FileText,
+} from "lucide-react";
 import "./Sidebar.css";
 import Logo from "./Logo";
 
@@ -13,7 +24,6 @@ export default function Sidebar({
   user,
   onLogout,
   isOpen, // New prop
-  onClose, // New prop
 }) {
   const [councilExpanded, setCouncilExpanded] = useState(false);
   const [orgExpanded, setOrgExpanded] = useState(false);
@@ -70,7 +80,29 @@ export default function Sidebar({
                     className={`nav-item ${currentView === "personalities" ? "active" : ""}`}
                     onClick={() => onViewChange("personalities")}
                   >
+                    <Users size={14} style={{ marginRight: "8px" }} />
                     Personalities
+                  </div>
+                  <div
+                    className={`nav-item ${currentView === "config-packs" ? "active" : ""}`}
+                    onClick={() => onViewChange("config-packs")}
+                  >
+                    <Layers size={14} style={{ marginRight: "8px" }} />
+                    Council Packs
+                  </div>
+                  <div
+                    className={`nav-item ${currentView === "config-strategies" ? "active" : ""}`}
+                    onClick={() => onViewChange("config-strategies")}
+                  >
+                    <GitBranch size={14} style={{ marginRight: "8px" }} />
+                    Consensus Strategies
+                  </div>
+                  <div
+                    className={`nav-item ${currentView === "config-system-prompts" ? "active" : ""}`}
+                    onClick={() => onViewChange("config-system-prompts")}
+                  >
+                    <FileText size={14} style={{ marginRight: "8px" }} />
+                    System Prompts
                   </div>
                 </div>
               )}

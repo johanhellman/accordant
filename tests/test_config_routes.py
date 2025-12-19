@@ -102,11 +102,22 @@ def test_get_active_config(mock_auth, mock_db_session):
         assert response.json()["active_pack_id"] == "p1"
 
 
-def test_list_strategies(mock_auth):
+def test_list_strategies(mock_auth, mock_db_session):
     with patch(
-        "backend.config_routes.get_available_consensus_strategies",
-        return_value=["strat1", "strat2"],
+        "backend.config.consensus_strategies.ConsensusStrategyService.get_all_strategies",
+        return_value=[
+            {
+                "id": "strat1",
+                "display_name": "S1",
+                "description": "d",
+                "prompt_content": "p",
+                "source": "system",
+                "is_editable": False,
+            }
+        ],
     ):
         response = client.get("/api/config/strategies")
         assert response.status_code == 200
-        assert response.json() == ["strat1", "strat2"]
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["id"] == "strat1"

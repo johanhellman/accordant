@@ -16,6 +16,9 @@ const Layout = ({ conversations, onNewConversation, user, onLogout, loadConversa
     if (path === "/" || path.startsWith("/chat")) return "chat";
     if (path.startsWith("/settings")) return "settings";
     if (path.startsWith("/personalities")) return "personalities";
+    if (path.startsWith("/config/packs")) return "config-packs";
+    if (path.startsWith("/config/strategies")) return "config-strategies";
+    if (path.startsWith("/config/system-prompts")) return "config-system-prompts";
     if (path.startsWith("/users")) return "users";
     if (path.startsWith("/dashboard")) return "dashboard";
     if (path.startsWith("/organizations")) return "organizations";
@@ -75,6 +78,9 @@ const Layout = ({ conversations, onNewConversation, user, onLogout, loadConversa
           if (view === "chat") navigate("/");
           else if (view === "settings") navigate("/settings");
           else if (view === "personalities") navigate("/personalities");
+          else if (view === "config-packs") navigate("/config/packs");
+          else if (view === "config-strategies") navigate("/config/strategies");
+          else if (view === "config-system-prompts") navigate("/config/system-prompts");
           else if (view === "users") navigate("/users");
           else if (view === "dashboard") navigate("/dashboard");
           else if (view === "organizations") navigate("/organizations");
