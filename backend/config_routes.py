@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth import get_current_user
 from backend.config.packs import PackService
+from backend.config.prompts import get_available_consensus_strategies
 from backend.database import get_tenant_session
 from backend.users import User
 
@@ -102,3 +103,12 @@ async def get_active_config(
 ):
     """Get the current active configuration for the user."""
     return PackService.get_active_configuration(db, current_user.id, current_user.org_id)
+
+
+@router.get("/strategies", response_model=list[str])
+async def list_strategies(current_user: User = Depends(get_current_user)):
+    """
+    List available consensus strategies.
+    Reads from data/defaults/consensus/*.md.
+    """
+    return get_available_consensus_strategies()
