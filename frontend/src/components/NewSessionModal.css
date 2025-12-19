@@ -12,7 +12,7 @@
 }
 
 .new-session-modal {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 500px;
