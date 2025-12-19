@@ -1,7 +1,7 @@
 # Design Document: Council Packs
 
 **Status**: Draft
-**Date**: 2025-12-18
+**Date**: 2025-12-19
 **Author**: Antigravity (AI Assistant)
 **Context**: Feature Planning
 
@@ -16,10 +16,10 @@ This strictly manual process makes it difficult to switch between different "mod
 
 ## 2. Proposed Solution: Council Packs
 
-A **Council Pack** is a predefined configuration bundle that instantly sets up the Council for a specific purpose. It follows the same hierarchical pattern as Personalities:
+A **Council Pack** is a predefined configuration bundle that instantly sets up the Council for a specific purpose. It follows a hybrid data pattern:
 
-1.  **System Packs**: Default packs provided by the instance (read-only for users).
-2.  **Custom Packs**: Organization-specific packs created by admins.
+1.  **System Packs**: Default packs provided by the instance (read-only code-as-config).
+2.  **Custom Packs**: User-created packs stored in the tenant database.
 
 It encapsulates:
 1.  **The Team**: A specific set of enabled personalities.
@@ -29,115 +29,130 @@ It encapsulates:
 ### 2.1. User Stories
 *   "As a user, I want to one-click switch to 'Coding Mode' so that I have the Architect, Hacker, and QA personalities enabled without manually toggling them."
 *   "As a user, I want a 'Red Team' pack that enables critical personalities and sets the consensus strategy to 'Find Flaws'."
+*   "As a user, I want to create my own pack based on my current configuration."
 
 ## 3. Data Model & Schema
 
 We will introduce a new entity: `CouncilPack`.
 
-### 3.1. File Storage Hierarchy
+### 3.1. Hybrid Storage Hierarchy
 
-Mirroring the `Personalities` architecture:
+To align with **ADR-016 (Multi-Tenant SQLite Sharding)** and **ADR-017**:
 
-*   **System Defaults**: `data/defaults/packs/*.yaml`
-    *   Available to all organizations.
-    *   Immutable via API.
-*   **Organization Custom**: `data/organizations/{org_id}/packs/*.yaml`
+*   **System Defaults**: `data/defaults/packs/*.yaml` (Filesystem)
+    *   Immutable templates available to all organizations.
+    *   Loaded into memory at startup.
+*   **Organization Custom**: `tenant.db` -> `council_packs` (Database)
     *   Created by Org Admins.
-    *   Can "shadow" a system pack if they share the same `id` (allowing overrides), or be completely new.
+    *   Stored strictly within the tenant's isolated shard.
 
-### 3.2. Schema Definition
+### 3.2. Database Schema (Tenant DB)
+
+We will introduce two new tables in `tenant.db`:
+
+#### `council_packs`
+Stores the definition of custom packs.
+
+```sql
+CREATE TABLE council_packs (
+    id TEXT PRIMARY KEY,           -- UUID
+    display_name TEXT NOT NULL,
+    description TEXT,
+    
+    -- Serialized configuration
+    -- Contains: { "personalities": [ids], "consensus_strategy": "strat_id", "system_prompts": {...} }
+    config_json TEXT NOT NULL, 
+    
+    is_system BOOLEAN DEFAULT FALSE, -- Future proofing, currently FALSE for all DB rows
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### `council_configuration`
+Stores the **Active Runtime State** for the Council. This moves runtime toggles out of the System DB (`Organization.settings`) into the Tenant DB.
+
+**Update (Per-User Configuration)**:
+We will scope the active configuration to the `user_id`. This allows different users in the same organization to have different active packs (e.g., User A is Brainstorming, User B is Debugging).
+
+```sql
+CREATE TABLE council_configuration (
+    user_id TEXT PRIMARY KEY,      -- User ID (from System DB, logical link)
+    active_pack_id TEXT,           -- Reference to a pack (System or Custom)
+    
+    -- The actual active settings (snapshot)
+    -- This allows "drift" from the pack if the user manually toggles a personality after applying
+    active_personalities_json TEXT, -- List of enabled IDs
+    active_strategy_id TEXT,
+    active_system_prompts_json TEXT,
+    
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 3.3. System Pack YAML Schema (Filesystem)
 
 ```yaml
 id: creative_brainstorming
-name: "Creative Brainstorming Team"
-description: "A group of divergent thinkers designed to generate novel ideas. Fosters creativity over safety."
+display_name: "Creative Brainstorming Team"
+description: "A group of divergent thinkers designed to generate novel ideas."
 
-# 1. Personalities to Enable
-# These IDs must match the `id` field in personality YAMLs.
-# All other personalities will be disabled when this pack is applied.
+# 1. Personalities to Enable (References IDs in data/defaults/personalities/)
 personalities:
   - gpt_creative
   - claude_poet
   - gemini_futurist
-  - grok_contrarian
 
 # 2. Consensus Strategy
-# Maps to a filename in `data/defaults/consensus/` (without .md extension)
 consensus_strategy: novelty_focus 
 
-# 3. System Prompt Overrides (Optional)
-# Allows changing the global instructions for this specific mode.
+# 3. System Prompt Overrides
 system_prompts:
-  # Appended to the base prompt or fully replacing sections
   stage1_meta_structure: |
-    IMPORTANT context for this session:
-    You are in a brainstorming session. NO IDEA is too wild.
-    Suspend judgment. Build on each other's ideas ("Yes, and...").
+    IMPORTANT context: You are in a brainstorming session.
 ```
 
 ## 4. Backend Architecture Changes
 
-### 4.1. New Configuration Module
-We need a new module `backend/config/packs.py` responsible for:
-*   Loading pack definitions from `data/defaults/packs/`.
-*   Validating that referenced personalities and strategies exist.
+### 4.1. New Module: `backend/packs.py`
+Responsible for:
+*   `PackService`:
+    *   `get_all_packs(session)`: Merges System Packs (YAML) + Custom Packs (SQL).
+    *   `apply_pack(session, user_id, pack_id)`: writes to `council_configuration` for that user.
+    *   `create_custom_pack(session, name, config)`: writes to `council_packs`.
 
-### 4.2. API Endpoints
-New endpoints in `backend/admin_routes.py`:
+### 4.2. API Endpoints (`backend/org_routes.py` or new `backend/config_routes.py`)
 
-*   `GET /api/packs`: List all available packs (merging System + Custom).
-    *   Response includes `source`: "system" | "custom" and `is_editable`.
-*   `POST /api/packs`: Create a new Custom Pack.
-*   `PUT /api/packs/{pack_id}`: Update a Custom Pack.
-*   `DELETE /api/packs/{pack_id}`: Delete a Custom Pack.
-*   `POST /api/packs/{pack_id}/apply`: Apply a pack to the current organization.
-    *   **Side Effect**: Updates `Organization.settings` to:
-        *   Set `enabled` = `True` for listed personalities.
-        *   Set `enabled` = `False` for all others.
-        *   Update `consensus_strategy` setting.
-        *   Update `system_prompt_overrides` (new field in settings).
+*   `GET /api/config/packs`: List all available packs.
+*   `POST /api/config/packs`: Create a Custom Pack (from current state or scratch).
+*   `POST /api/config/packs/{pack_id}/apply`: Apply a pack (Updates `council_configuration` for current user).
+*   `GET /api/config/active`: Get current active personalities/strategy for current user.
 
 ### 4.3. Impact on `council.py`
-The `run_council_cycle` and `get_active_personalities` functions currently read directly from config. They need to be aware of the "Applied Pack" state, primarily through the `Organization.settings` which they likely already consult (or should).
-
-*   **Prompt Loading**: `load_org_system_prompts` needs to check if a pack is active and if it has overrides.
-*   **Consensus Strategy**: Needs to be plumbed from `Organization.settings` into the `ConsensusService`.
+The `run_council_cycle` currently reads from `backend/config.py`.
+*   **Refactor**: It must now inject a `ConfigurationService` or read from `tenant.db` using the session and `user_id`.
+*   **Fallback**: If no config user exists, use a default fallback (All System Personalities Enabled).
 
 ## 5. Frontend / UX
 
-1.  **Pack Gallery**: A new tab in the "Council" or "Settings" page displaying cards for each Pack.
-    *   **System Packs**: Distinct visual style (e.g., gold border).
-    *   **Custom Packs**: User-created, with Edit/Delete options.
-    *   "Apply Pack" button on all.
-    *   "Create New Pack" button.
-2.  **Active State**: When a pack is active, the UI should indicate "Current Pack: Creative Brainstorming".
-3.  **Manual Override**: If a user manually toggles a personality after applying a pack, the UI should show the pack as "Modified" or "Custom".
+1.  **Pack Gallery**:
+    *   Cards for System Packs (Gold border) and Custom Packs.
+    *   "Apply" button.
+    *   "Clone" button on System Packs (creates a Custom copy).
+2.  **Active State Indicator**:
+    *   "Current Pack: [Name]"
+    *   If user manually toggles a switch: "Current Pack: [Name] (Modified)"
+3.  **Create Pack Flow**:
+    *   "Save Current Setup as Pack" button.
 
-## 6. Dependencies & Migration
-*   **Consensus Mode UX**: The user noted that Consensus Modes are not currently exposed in UX. This feature (Packs) will be the primary way users interact with them initially.
-*   **Default Pack**: Use the current manual configuration as a "Custom" state.
-*   **Validation**: Ensure packs don't reference missing personalities (e.g. if a user deleted a custom personality that a custom pack referenced).
+## 6. Migration & Compatibility
+*   **Migration**: New migration script for `tenant.db` to create tables.
+*   **Backwards Compatibility**: Existing `Organization.settings` usage for `enabled_personalities` will be deprecated. The first time a user accesses the system, we will migrate them to a default pack if no config exists.
 
-## 7. Gap Analysis
-Based on a review of the current codebase (`backend/council.py`, `backend/consensus_service.py`) and ADRs:
-
-1.  **Frontend Gap**:
-    *   No UI exists for "Consensus Strategy" selection.
-    *   No UI exists for "Pack" management.
-    *   *Decision*: We will implement the Pack Gallery as the primary mechanism for both.
-
-2.  **Backend Gap**:
-    *   `Organization.settings` schema is loosely defined (JSON). We need to formalize the storage of `active_pack_id`.
-    *   `consensus_service.py` exists and supports swappable prompts, but currently relies on `get_active_consensus_prompt` which defaults to a single config key `consensus_strategy`. We need to wire this to the `Organization.settings` properly.
-
-## 8. Documentation Impact (ADRs)
-
-*   **ADR-007 (Modular Personality Config)**:
-    *   *Status*: Remains valid, but needs to be extended.
-    *   *Action*: We will implicitly extend this pattern to Packs without a formal update, as the pattern is identical (System Defaults + Org Custom).
-*   **ADR-024 (Strategic Consensus)**:
-    *   *Status*: Accepted and Implemented.
-    *   *Action*: No changes needed. The design relies heavily on this foundation.
-*   **New ADR Recommendation**:
-    *   We should technically draft **ADR-026: Configuration Packs** to formalize the "Meta-Configuration" layer (bundling multiple settings into a single entity).
-
+## 7. Implementation Steps
+1.  **Documentation**: ADR-026 (Configuration Packs).
+2.  **Backend**: Create `council_packs` and `council_configuration` tables (Migration).
+3.  **Backend**: Implement `PackService` to read YAMLs + SQL.
+4.  **Backend**: Implement "Apply" logic (writing to config table).
+5.  **Refactor**: Update `council.py` to read from DB Config instead of File/Env var defaults.
+6.  **Frontend**: Build Pack Gallery UI.
