@@ -28,14 +28,28 @@ const ChatPage = () => {
     [navigate]
   );
 
+  const [activePack, setActivePack] = useState(null);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const [config, packs] = await Promise.all([api.getActiveConfig(), api.getPacks()]);
+
+        if (config.active_pack_id) {
+          const pack = packs.find((p) => p.id === config.active_pack_id);
+          setActivePack(pack);
+        }
+      } catch (error) {
+        console.error("Failed to load active pack config", error);
+      }
+    };
+    loadConfig();
+  }, []);
+
   useEffect(() => {
     if (id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadConversation(id);
     } else {
-      // No ID means new chat or empty state?
-      // Typically /chat/:id. If we are at /, we might show a "Select a chat" or "New Chat" view
-      // But for now, App.jsx treated "no id" as empty.
       setConversation(null);
     }
   }, [id, loadConversation]);
@@ -229,6 +243,7 @@ const ChatPage = () => {
       onSendMessage={handleSendMessage}
       onDelete={handleDeleteConversation}
       isLoading={isLoading}
+      activePack={activePack}
     />
   );
 };

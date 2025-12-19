@@ -8,7 +8,13 @@ import Stage3 from "./Stage3";
 import "./ChatInterface.css";
 import ContextualHelp from "./ContextualHelp";
 
-export default function ChatInterface({ conversation, onSendMessage, onDelete, isLoading }) {
+export default function ChatInterface({
+  conversation,
+  onSendMessage,
+  onDelete,
+  isLoading,
+  activePack,
+}) {
   const [consensusEnabled, setConsensusEnabled] = useState(false);
   const [input, setInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -77,9 +83,19 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
   return (
     <div className="chat-interface">
       <div className="chat-header">
-        <h2>
-          {conversation?.title || "New Council Session"} <ContextualHelp topic="stages" />
-        </h2>
+        <div className="header-title-group">
+          <h2>
+            {conversation?.title || "New Council Session"} <ContextualHelp topic="stages" />
+          </h2>
+          {activePack && (
+            <div
+              className="active-pack-badge"
+              title={`Active Strategy: ${activePack.config.consensus_strategy}`}
+            >
+              <span className="pack-label">Active Pack:</span> {activePack.display_name}
+            </div>
+          )}
+        </div>
         {conversation?.id && (
           <button
             className="btn-icon delete-btn"
@@ -171,7 +187,14 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
 
       <form className="input-form" onSubmit={handleSubmit}>
         <div className="consensus-toggle-container">
-          <label className="toggle-label" title="Enable Strategic Consensus Mode">
+          <label
+            className="toggle-label"
+            title={
+              activePack
+                ? `Enable to use ${activePack.config.consensus_strategy} strategy`
+                : "Enable formal consensus process"
+            }
+          >
             <input
               type="checkbox"
               checked={consensusEnabled}
@@ -179,6 +202,11 @@ export default function ChatInterface({ conversation, onSendMessage, onDelete, i
             />
             <span className="toggle-text">Strategic Consensus</span>
           </label>
+          <div className="toggle-helper-text">
+            {consensusEnabled
+              ? "Council will synthesize a formal answer using the active strategy."
+              : "Council will provide individual perspectives without synthesis."}
+          </div>
         </div>
         <textarea
           id="message-input"

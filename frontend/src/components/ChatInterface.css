@@ -32,6 +32,28 @@
   gap: 0.5rem;
 }
 
+.header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.active-pack-badge {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.pack-label {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
 .btn-icon.delete-btn {
   background: none;
   border: none;
@@ -105,6 +127,15 @@
   flex-shrink: 0;
   white-space: nowrap;
   min-width: fit-content;
+}
+
+.toggle-helper-text {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  white-space: normal;
+  max-width: 250px;
+  line-height: 1.2;
 }
 
 .toggle-label {
