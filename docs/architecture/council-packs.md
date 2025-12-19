@@ -12,6 +12,8 @@ Currently, users must manually configure their Council by:
 2.  Selecting a Consensus Strategy (if implemented in UI).
 3.  Potentially modifying system prompts for specific use cases.
 
+**Note on Consensus Strategies**: Currently, strategies are defined as System Prompts (Markdown files) in `data/defaults/consensus/*.md`. There is no UI to edit them directly.
+
 This strictly manual process makes it difficult to switch between different "modes" of operation. For example, switching from a **"Brainstorming"** setup (Creative personalities, Novelty-seeking consensus) to a **"Risk Assessment"** setup (Skeptical personalities, Risk-Averse consensus) requires many clicks and intimate knowledge of which personalities fit which role.
 
 ## 2. Proposed Solution: Council Packs
@@ -25,6 +27,10 @@ It encapsulates:
 1.  **The Team**: A specific set of enabled personalities.
 2.  **The Strategy**: A specific Consensus Strategy (e.g., `balanced`, `risk_averse`, `creative`).
 3.  **The Context**: (Optional) Overrides for system prompts to set a global tone or context.
+
+**Safe-Fail Integrity**:
+*   **Updates**: Packs reference personalities by ID. Updates to the underlying personality YAML are automatically reflected.
+*   **Deletes**: If a Pack references a missing personality ID (e.g., file deleted), that ID is **ignored** at runtime. The Council proceeds with the remaining valid personalities. This prevents "broken" packs from blocking the system.
 
 ### 2.1. User Stories
 *   "As a user, I want to one-click switch to 'Coding Mode' so that I have the Architect, Hacker, and QA personalities enabled without manually toggling them."
@@ -127,6 +133,7 @@ Responsible for:
 *   `POST /api/config/packs`: Create a Custom Pack (from current state or scratch).
 *   `POST /api/config/packs/{pack_id}/apply`: Apply a pack (Updates `council_configuration` for current user).
 *   `GET /api/config/active`: Get current active personalities/strategy for current user.
+*   `GET /api/config/strategies`: List all available consensus strategies (dynamic from file system).
 
 ### 4.3. Impact on `council.py`
 The `run_council_cycle` currently reads from `backend/config.py`.

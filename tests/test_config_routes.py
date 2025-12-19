@@ -100,3 +100,13 @@ def test_get_active_config(mock_auth, mock_db_session):
         response = client.get("/api/config/active")
         assert response.status_code == 200
         assert response.json()["active_pack_id"] == "p1"
+
+
+def test_list_strategies(mock_auth):
+    with patch(
+        "backend.config_routes.get_available_consensus_strategies",
+        return_value=["strat1", "strat2"],
+    ):
+        response = client.get("/api/config/strategies")
+        assert response.status_code == 200
+        assert response.json() == ["strat1", "strat2"]
