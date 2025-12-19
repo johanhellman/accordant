@@ -147,3 +147,40 @@ class ConsensusContribution(TenantBase):
 
     reasoning = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CouncilPack(TenantBase):
+    """
+    Definition of a Council Pack (Custom or System mirror).
+    """
+
+    __tablename__ = "council_packs"
+
+    id = Column(String, primary_key=True)
+    display_name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+
+    # Serialized configuration: {personalities: [], strategy: "", system_prompts: {}}
+    config_json = Column(Text, nullable=False)
+
+    is_system = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CouncilConfiguration(TenantBase):
+    """
+    Active runtime configuration for a user.
+    """
+
+    __tablename__ = "council_configuration"
+
+    user_id = Column(String, primary_key=True)
+    active_pack_id = Column(String, nullable=True)
+
+    # Snapshot of active settings (allows drift from pack)
+    active_personalities_json = Column(Text, nullable=True)  # List[str]
+    active_strategy_id = Column(String, nullable=True)
+    active_system_prompts_json = Column(Text, nullable=True)  # Dict[str, str]
+
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -34,7 +34,15 @@ mimetypes.add_type("font/otf", ".otf")
 mimetypes.add_type("application/x-font-ttf", ".ttf")
 mimetypes.add_type("application/font-woff", ".woff")
 
-from . import admin_routes, admin_users_routes, invitations, models, org_routes, storage
+from . import (
+    admin_routes,
+    admin_users_routes,
+    config_routes,
+    invitations,
+    models,
+    org_routes,
+    storage,
+)
 from .database import get_system_db, system_engine
 
 # Create tables on startup (System DB only - Tenants created on demand)
@@ -169,6 +177,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.include_router(admin_routes.router)
 app.include_router(admin_users_routes.router)
 app.include_router(org_routes.router)
+app.include_router(config_routes.router)
 
 # Configure CORS from environment variables
 _cors_origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
@@ -842,6 +851,7 @@ async def send_message(
         api_key=api_key,
         base_url=base_url,
         consensus_enabled=request_data.consensus_enabled,
+        user_id=current_user.id,
     )
 
     # Record voting history
