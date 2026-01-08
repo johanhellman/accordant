@@ -948,12 +948,18 @@ async def test_governance_evolution_flow():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.side_effect = [
@@ -1007,12 +1013,18 @@ async def test_daily_counsel_flow():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.side_effect = [
@@ -1066,12 +1078,18 @@ async def test_initial_setup_flow():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.side_effect = [
@@ -1122,12 +1140,18 @@ async def test_stage1_collect_responses_partial_failure():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         # First succeeds, second fails
@@ -1169,12 +1193,18 @@ async def test_stage1_collect_responses_all_fail():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.return_value = None  # All queries fail
@@ -1196,10 +1226,13 @@ async def test_stage1_collect_responses_no_personalities():
     from backend.council import stage1_collect_responses
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.build_llm_history") as mock_build_history,
     ):
-        mock_get_personalities.return_value = []
+        mock_get_all_personalities.return_value = []
+        mock_get_config.return_value = {"personalities": [], "system_prompts": {}}
         mock_build_history.return_value = []
 
         results = await stage1_collect_responses(
@@ -1242,12 +1275,18 @@ async def test_stage1_collect_responses_with_history():
     ]
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = mock_history
         mock_query.return_value = {"content": "Response"}
@@ -1318,12 +1357,18 @@ async def test_stage2_collect_rankings_success():
 2. {RESPONSE_LABEL_PREFIX}B"""
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.side_effect = [
@@ -1411,12 +1456,18 @@ async def test_stage2_collect_rankings_excludes_self():
         return {"content": "Ranking response"}
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         mock_query.side_effect = capture_query_messages
@@ -1485,12 +1536,18 @@ async def test_stage2_collect_rankings_partial_failure():
     }
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_load_prompts,
         patch("backend.council.build_llm_history") as mock_build_history,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_load_prompts.return_value = mock_prompts
         mock_build_history.return_value = []
         # First succeeds, second fails
@@ -1530,10 +1587,16 @@ async def test_stage2_collect_rankings_empty_stage1():
     ]
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.build_llm_history") as mock_build_history,
     ):
-        mock_get_personalities.return_value = mock_personalities
+        mock_get_all_personalities.return_value = mock_personalities
+        mock_get_config.return_value = {
+            "personalities": [p["id"] for p in mock_personalities],
+            "system_prompts": {},
+        }
         mock_build_history.return_value = []
 
         stage2_results, label_to_model = await stage2_collect_rankings(
@@ -1564,10 +1627,13 @@ async def test_stage2_collect_rankings_no_personalities():
     ]
 
     with (
-        patch("backend.council.get_active_personalities") as mock_get_personalities,
+        patch("backend.council.get_all_personalities") as mock_get_all_personalities,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.build_llm_history") as mock_build_history,
     ):
-        mock_get_personalities.return_value = []
+        mock_get_all_personalities.return_value = []
+        mock_get_config.return_value = {"personalities": [], "system_prompts": {}}
         mock_build_history.return_value = []
 
         stage2_results, label_to_model = await stage2_collect_rankings(
@@ -1633,14 +1699,17 @@ async def test_stage3_synthesize_final_success():
     }
 
     with (
-        patch("backend.council.load_org_system_prompts") as mock_load_prompts,
-        patch("backend.council.load_org_models_config") as mock_load_models,
-        patch("backend.council.build_llm_history") as mock_build_history,
-        patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.consensus_service.get_active_consensus_prompt") as mock_get_prompt,
+        patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.council.load_org_models_config") as mock_load_models_council,
+        patch("backend.consensus_service.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
     ):
-        mock_load_prompts.return_value = mock_prompts
+        mock_get_prompt.return_value = ("test-strategy", mock_prompts["chairman_prompt"])
+        mock_get_config.return_value = {}
         mock_load_models.return_value = mock_models_config
-        mock_build_history.return_value = []
+        mock_load_models_council.return_value = mock_models_config
         mock_query.return_value = {"content": "Final synthesized answer"}
 
         result = await stage3_synthesize_final(
@@ -1704,14 +1773,17 @@ async def test_stage3_synthesize_final_includes_voting_details():
         return {"content": "Final answer"}
 
     with (
-        patch("backend.council.load_org_system_prompts") as mock_load_prompts,
-        patch("backend.council.load_org_models_config") as mock_load_models,
-        patch("backend.council.build_llm_history") as mock_build_history,
-        patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.consensus_service.get_active_consensus_prompt") as mock_get_prompt,
+        patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.council.load_org_models_config") as mock_load_models_council,
+        patch("backend.consensus_service.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
     ):
-        mock_load_prompts.return_value = mock_prompts
+        mock_get_prompt.return_value = ("test-strategy", mock_prompts["chairman_prompt"])
+        mock_get_config.return_value = {}
         mock_load_models.return_value = mock_models_config
-        mock_build_history.return_value = []
+        mock_load_models_council.return_value = mock_models_config
         mock_query.side_effect = capture_messages
 
         await stage3_synthesize_final(
@@ -1728,12 +1800,12 @@ async def test_stage3_synthesize_final_includes_voting_details():
         # Verify voting details are included in the prompt
         assert len(captured_messages) == 1
         messages = captured_messages[0]
-        # Find the user message with the chairman prompt
+        # Find the user message with the chairman prompt (Context)
         user_message = next((m for m in messages if m["role"] == "user"), None)
         assert user_message is not None
-        assert (
-            "voting_details_text" in user_message["content"] or "Voter:" in user_message["content"]
-        )
+        # ConsensusService puts reviews in SECTION B
+        assert "SECTION B: PEER REVIEWS" in user_message["content"]
+        assert "Ranking text" in user_message["content"]
 
 
 @pytest.mark.asyncio
@@ -1770,14 +1842,17 @@ async def test_stage3_synthesize_final_chairman_failure():
     }
 
     with (
-        patch("backend.council.load_org_system_prompts") as mock_load_prompts,
-        patch("backend.council.load_org_models_config") as mock_load_models,
-        patch("backend.council.build_llm_history") as mock_build_history,
-        patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.consensus_service.get_active_consensus_prompt") as mock_get_prompt,
+        patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.council.load_org_models_config") as mock_load_models_council,
+        patch("backend.consensus_service.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
     ):
-        mock_load_prompts.return_value = mock_prompts
+        mock_get_prompt.return_value = ("test-strategy", mock_prompts["chairman_prompt"])
+        mock_get_config.return_value = {}
         mock_load_models.return_value = mock_models_config
-        mock_build_history.return_value = []
+        mock_load_models_council.return_value = mock_models_config
         mock_query.return_value = None  # Chairman fails
 
         result = await stage3_synthesize_final(
@@ -1793,7 +1868,7 @@ async def test_stage3_synthesize_final_chairman_failure():
 
         assert result["model"] == "gemini/gemini-pro"
         assert "Error" in result["response"]
-        assert "Unable to generate final synthesis" in result["response"]
+        assert "Failed to generate consensus" in result["response"]
 
 
 @pytest.mark.asyncio
@@ -1810,14 +1885,17 @@ async def test_stage3_synthesize_final_empty_results():
     }
 
     with (
-        patch("backend.council.load_org_system_prompts") as mock_load_prompts,
-        patch("backend.council.load_org_models_config") as mock_load_models,
-        patch("backend.council.build_llm_history") as mock_build_history,
-        patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.consensus_service.get_active_consensus_prompt") as mock_get_prompt,
+        patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.council.load_org_models_config") as mock_load_models_council,
+        patch("backend.consensus_service.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
     ):
-        mock_load_prompts.return_value = mock_prompts
+        mock_get_prompt.return_value = ("test-strategy", mock_prompts["chairman_prompt"])
+        mock_get_config.return_value = {}
         mock_load_models.return_value = mock_models_config
-        mock_build_history.return_value = []
+        mock_load_models_council.return_value = mock_models_config
         mock_query.return_value = {"content": "Final answer"}
 
         result = await stage3_synthesize_final(
@@ -1866,11 +1944,6 @@ async def test_stage3_synthesize_final_with_history():
         {"role": "assistant", "stage3": {"model": "model1", "response": "Previous answer"}},
     ]
 
-    mock_history = [
-        {"role": "user", "content": "Previous question"},
-        {"role": "assistant", "content": "Previous answer"},
-    ]
-
     mock_prompts = {
         "chairman_prompt": "Synthesize for {user_query}",
     }
@@ -1880,14 +1953,17 @@ async def test_stage3_synthesize_final_with_history():
     }
 
     with (
-        patch("backend.council.load_org_system_prompts") as mock_load_prompts,
-        patch("backend.council.load_org_models_config") as mock_load_models,
-        patch("backend.council.build_llm_history") as mock_build_history,
-        patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.consensus_service.get_active_consensus_prompt") as mock_get_prompt,
+        patch("backend.config.personalities.load_org_models_config") as mock_load_models,
+        patch("backend.council.load_org_models_config") as mock_load_models_council,
+        patch("backend.consensus_service.query_model", new_callable=AsyncMock) as mock_query,
+        patch("backend.council.PackService.get_active_configuration") as mock_get_config,
+        patch("backend.council.get_tenant_session"),
     ):
-        mock_load_prompts.return_value = mock_prompts
+        mock_get_prompt.return_value = ("test-strategy", mock_prompts["chairman_prompt"])
+        mock_get_config.return_value = {}
         mock_load_models.return_value = mock_models_config
-        mock_build_history.return_value = mock_history
+        mock_load_models_council.return_value = mock_models_config
         mock_query.return_value = {"content": "Final answer"}
 
         result = await stage3_synthesize_final(
@@ -1902,7 +1978,7 @@ async def test_stage3_synthesize_final_with_history():
         )
 
         assert result["model"] == "gemini/gemini-pro"
-        mock_build_history.assert_called_once_with(mock_messages)
+        # mock_build_history.assert_called_once_with(mock_messages) # Removed assertion as history is ignored
 
 
 @pytest.mark.asyncio
