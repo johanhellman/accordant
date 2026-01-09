@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
@@ -42,7 +42,7 @@ async def test_calculate_league_table(system_engine, tenant_engine, mock_active_
             candidate_model="Personality A",
             rank=1,
             reasoning="Good",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         v2 = Vote(
             id="v2",
@@ -53,7 +53,7 @@ async def test_calculate_league_table(system_engine, tenant_engine, mock_active_
             candidate_model="Personality B",
             rank=2,
             reasoning="Okay",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         # Session 2: Tie or swap
         v3 = Vote(
@@ -65,7 +65,7 @@ async def test_calculate_league_table(system_engine, tenant_engine, mock_active_
             candidate_model="Personality A",
             rank=2,
             reasoning="Worse",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         v4 = Vote(
             id="v4",
@@ -76,7 +76,7 @@ async def test_calculate_league_table(system_engine, tenant_engine, mock_active_
             candidate_model="Personality B",
             rank=1,
             reasoning="Better",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         db.add_all([v1, v2, v3, v4])
         db.commit()
@@ -119,7 +119,7 @@ async def test_generate_feedback_summary(system_engine, tenant_engine, mock_acti
             candidate_model="Personality A",
             rank=1,
             reasoning="Great concise answer.",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         db.add(v1)
         db.commit()
