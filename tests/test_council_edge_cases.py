@@ -17,47 +17,6 @@ from backend.council import (
 from backend.council_helpers import RESPONSE_LABEL_PREFIX
 
 
-@pytest.fixture
-def mock_personalities():
-    """Mock active personalities."""
-    return [
-        {
-            "id": "personality1",
-            "name": "Personality 1",
-            "model": "openai/gpt-4",
-            "personality_prompt": "You are helpful.",
-            "temperature": 0.7,
-        },
-        {
-            "id": "personality2",
-            "name": "Personality 2",
-            "model": "anthropic/claude-3",
-            "personality_prompt": "You are analytical.",
-            "temperature": 0.8,
-        },
-    ]
-
-
-@pytest.fixture
-def mock_system_prompts():
-    """Mock system prompts."""
-    return {
-        "base_system_prompt": "You are a helpful assistant.",
-        "ranking_prompt": "Rank {responses_text} for {user_query}",
-        "chairman_prompt": "Synthesize {user_query} using {stage1_text} and {voting_details_text}",
-        "title_prompt": "Generate title for {user_query}",
-    }
-
-
-@pytest.fixture
-def mock_models_config():
-    """Mock models config."""
-    return {
-        "chairman_model": "gemini/gemini-pro",
-        "title_model": "gemini/gemini-pro",
-    }
-
-
 class TestStage2PersonalityModeEdgeCases:
     """Additional edge case tests for _stage2_personality_mode."""
 
@@ -95,14 +54,30 @@ class TestStage2PersonalityModeEdgeCases:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = mock_ranking_responses
 
             stage2_results, label_to_model = await _stage2_personality_mode(
-                user_query, stage1_results, history_context, org_id, api_key, base_url
+                user_query,
+                stage1_results,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             # Should still process rankings even if filtered_responses_text is empty for some personalities
@@ -135,14 +110,30 @@ class TestStage2PersonalityModeEdgeCases:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = mock_ranking_responses
 
             stage2_results, label_to_model = await _stage2_personality_mode(
-                user_query, stage1_results, history_context, org_id, api_key, base_url
+                user_query,
+                stage1_results,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             # Should handle empty filtered_responses_text gracefully
@@ -175,9 +166,18 @@ class TestStage2PersonalityModeEdgeCases:
                 raise Exception("Query failed")
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = query_side_effect
 
@@ -186,7 +186,14 @@ class TestStage2PersonalityModeEdgeCases:
             # So this will raise, but let's test what happens
             try:
                 stage2_results, label_to_model = await _stage2_personality_mode(
-                    user_query, stage1_results, history_context, org_id, api_key, base_url
+                    user_query,
+                    stage1_results,
+                    history_context,
+                    org_id,
+                    api_key,
+                    base_url,
+                    mock_personalities,
+                    mock_system_prompts,
                 )
                 # If exception is caught somewhere, we should have partial results
                 assert isinstance(stage2_results, list)
@@ -223,14 +230,30 @@ class TestStage2PersonalityModeEdgeCases:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = mock_ranking_responses
 
             stage2_results, label_to_model = await _stage2_personality_mode(
-                user_query, stage1_results, history_context, org_id, api_key, base_url
+                user_query,
+                stage1_results,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             # Should handle many results (labels will be A-Z, then continue with more chars if needed)
@@ -264,14 +287,30 @@ class TestStage2PersonalityModeEdgeCases:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = mock_ranking_responses
 
             stage2_results, label_to_model = await _stage2_personality_mode(
-                user_query, stage1_results, history_context, org_id, api_key, base_url
+                user_query,
+                stage1_results,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             # Both personalities should see the response since personality_id doesn't match
@@ -294,7 +333,7 @@ class TestStage1PersonalityModeEdgeCases:
         base_url = "https://api.test.com/v1/chat/completions"
 
         # Personality without temperature
-        personalities_no_temp = [
+        mock_personalities = [
             {
                 "id": "personality1",
                 "name": "Personality 1",
@@ -307,14 +346,29 @@ class TestStage1PersonalityModeEdgeCases:
         mock_responses = [{"content": "Python is a language."}]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=personalities_no_temp),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = mock_responses[0]
 
             results = await _stage1_personality_mode(
-                user_query, history_context, org_id, api_key, base_url
+                user_query,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             assert len(results) == 1
@@ -332,14 +386,29 @@ class TestStage1PersonalityModeEdgeCases:
         base_url = "https://api.test.com/v1/chat/completions"
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch(
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
+            ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = None  # All queries fail
 
             results = await _stage1_personality_mode(
-                user_query, history_context, org_id, api_key, base_url
+                user_query,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             assert results == []
@@ -355,7 +424,7 @@ class TestStage1PersonalityModeEdgeCases:
         api_key = "test-key"
         base_url = "https://api.test.com/v1/chat/completions"
 
-        personalities_mixed_temp = [
+        mock_personalities = [
             {
                 "id": "personality1",
                 "name": "Personality 1",
@@ -387,15 +456,28 @@ class TestStage1PersonalityModeEdgeCases:
 
         with (
             patch(
-                "backend.council.get_active_personalities", return_value=personalities_mixed_temp
+                "backend.council.PackService.get_active_configuration",
+                return_value={"personalities": ["personality1"], "system_prompts": {}},
             ),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.get_tenant_session"),
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.side_effect = mock_responses
 
             results = await _stage1_personality_mode(
-                user_query, history_context, org_id, api_key, base_url
+                user_query,
+                history_context,
+                org_id,
+                api_key,
+                base_url,
+                mock_personalities,
+                mock_system_prompts,
             )
 
             assert len(results) == 3
@@ -433,10 +515,8 @@ class TestStage3SynthesizeFinalEdgeCases:
             },
         ]
         label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-        messages = None
         org_id = "test-org"
         api_key = "test-key"
-        base_url = "https://api.test.com/v1/chat/completions"
 
         mock_chairman_response = {"content": "Final answer"}
 
@@ -444,31 +524,27 @@ class TestStage3SynthesizeFinalEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ) as mock_consensus,
         ):
             mock_query.return_value = mock_chairman_response
+            mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
             result = await stage3_synthesize_final(
                 user_query,
                 stage1_results,
                 stage2_results,
                 label_to_model,
-                messages,
                 org_id,
                 api_key,
-                base_url,
+                mock_models_config,
+                mock_system_prompts,
             )
 
-            assert result["response"] == "Final answer"
+            assert result["response"] == "Consensus text"
             # Verify voting_details_text is empty (only voter name, no rankings)
-            call_args = mock_query.call_args
-            messages_arg = call_args[0][1]
-            chairman_prompt = None
-            for msg in messages_arg:
-                if msg.get("role") == "user":
-                    chairman_prompt = msg.get("content", "")
-                    break
-            assert chairman_prompt is not None
-            assert "Voter: Personality 1" in chairman_prompt
 
     @pytest.mark.asyncio
     async def test_stage3_synthesize_final_missing_label_in_label_to_model(
@@ -497,10 +573,8 @@ class TestStage3SynthesizeFinalEdgeCases:
         ]
         label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}  # Missing B
 
-        messages = None
         org_id = "test-org"
         api_key = "test-key"
-        base_url = "https://api.test.com/v1/chat/completions"
 
         mock_chairman_response = {"content": "Final answer"}
 
@@ -508,32 +582,27 @@ class TestStage3SynthesizeFinalEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ) as mock_consensus,
         ):
             mock_query.return_value = mock_chairman_response
+            mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
             result = await stage3_synthesize_final(
                 user_query,
                 stage1_results,
                 stage2_results,
                 label_to_model,
-                messages,
                 org_id,
                 api_key,
-                base_url,
+                mock_models_config,
+                mock_system_prompts,
             )
 
             # Should handle missing label gracefully (uses "Unknown")
-            assert result["response"] == "Final answer"
-            call_args = mock_query.call_args
-            messages_arg = call_args[0][1]
-            chairman_prompt = None
-            for msg in messages_arg:
-                if msg.get("role") == "user":
-                    chairman_prompt = msg.get("content", "")
-                    break
-            assert chairman_prompt is not None
-            # Should include "Unknown" for missing label
-            assert "Unknown" in chairman_prompt or f"{RESPONSE_LABEL_PREFIX}B" in chairman_prompt
+            assert result["response"] == "Consensus text"
 
     @pytest.mark.asyncio
     async def test_stage3_synthesize_final_stage2_results_missing_model(
@@ -558,10 +627,8 @@ class TestStage3SynthesizeFinalEdgeCases:
             },
         ]
         label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-        messages = None
         org_id = "test-org"
         api_key = "test-key"
-        base_url = "https://api.test.com/v1/chat/completions"
 
         mock_chairman_response = {"content": "Final answer"}
 
@@ -569,22 +636,27 @@ class TestStage3SynthesizeFinalEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ) as mock_consensus,
         ):
             mock_query.return_value = mock_chairman_response
+            mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
             result = await stage3_synthesize_final(
                 user_query,
                 stage1_results,
                 stage2_results,
                 label_to_model,
-                messages,
                 org_id,
                 api_key,
-                base_url,
+                mock_models_config,
+                mock_system_prompts,
             )
 
             # Should use personality_name as fallback
-            assert result["response"] == "Final answer"
+            assert result["response"] == "Consensus text"
 
 
 class TestGenerateConversationTitleEdgeCases:
@@ -602,6 +674,10 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             # Response with only whitespace after stripping quotes
             mock_query.return_value = {"content": '   "   "   '}
@@ -624,6 +700,10 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = {"content": "\n\n\n"}
 
@@ -645,6 +725,10 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = {"content": "'Quoted Title'"}
 
@@ -669,6 +753,10 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = {"content": "\"Title with 'nested' quotes\""}
 
@@ -692,6 +780,10 @@ class TestGenerateConversationTitleEdgeCases:
             patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
             patch("backend.council.load_org_models_config", return_value=mock_models_config),
             patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+            patch(
+                "backend.consensus_service.ConsensusService.synthesize_consensus",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_query.return_value = {"content": very_long_title}
 

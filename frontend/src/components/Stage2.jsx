@@ -42,6 +42,8 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
     return null;
   }
 
+  const activeRank = rankings.find((_, index) => index === activeTab) || rankings[0];
+
   return (
     <div className="stage stage2">
       <h3 className="stage-title">Stage 2: Peer Rankings</h3>
@@ -68,30 +70,31 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
 
       <div className="tab-content">
         <div className="ranking-model">
-          {rankings[activeTab].personality_name ? (
+          {activeRank.personality_name ? (
             <>
-              <span className="personality-name">{rankings[activeTab].personality_name}</span>
-              <span className="model-detail"> ({rankings[activeTab].model || "Unknown"})</span>
+              <span className="personality-name">{activeRank.personality_name}</span>
+              <span className="model-detail"> ({activeRank.model || "Unknown"})</span>
             </>
           ) : (
-            rankings[activeTab].model || "Unknown"
+            activeRank.model || "Unknown"
           )}
         </div>
         <div className="ranking-content markdown-content">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {deAnonymizeText(rankings[activeTab].ranking || "", labelToModel)}
+            {deAnonymizeText(activeRank.ranking || "", labelToModel)}
           </ReactMarkdown>
         </div>
 
-        {rankings[activeTab].parsed_ranking &&
-          Array.isArray(rankings[activeTab].parsed_ranking) &&
-          rankings[activeTab].parsed_ranking.length > 0 && (
+        {activeRank.parsed_ranking &&
+          Array.isArray(activeRank.parsed_ranking) &&
+          activeRank.parsed_ranking.length > 0 && (
             <div className="parsed-ranking">
               <strong>Extracted Ranking:</strong>
               <ol>
-                {rankings[activeTab].parsed_ranking.map((label, i) => (
+                {activeRank.parsed_ranking.map((label, i) => (
                   <li key={i}>
                     {(() => {
+                      // eslint-disable-next-line security/detect-object-injection
                       const val = labelToModel && labelToModel[label];
                       if (!val) return label;
                       const name =

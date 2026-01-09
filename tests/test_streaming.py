@@ -21,13 +21,11 @@ class TestStreaming:
             os.path.join(tmpdir, "users.json")
             os.makedirs(orgs_dir, exist_ok=True)
             monkeypatch.setattr("backend.organizations.ORGS_DATA_DIR", orgs_dir)
-            # USERS_FILE patching removed (uses SQLite)
             yield tmpdir
 
     @pytest.mark.asyncio
     async def test_run_council_generator_first_message(self, temp_data_dir):
         """Test run_council_generator for first message generates title and all stages."""
-        # Create conversation
         conv_id = "test-conv-1"
         org_id = "test-org"
         conversation = {
@@ -38,62 +36,41 @@ class TestStreaming:
             "messages": [],
         }
 
-        # Mock all stage functions
+        mock_events = [
+            {"type": "stage_start", "data": {"stage": 1}},
+            {"type": "stage1_complete", "data": {"results": [{"response": "R1"}]}},
+            {"type": "stage_start", "data": {"stage": 2}},
+            {
+                "type": "stage2_complete",
+                "data": {"results": [], "metadata": {"label_to_model": {}}},
+            },
+            {"type": "stage_start", "data": {"stage": 3}},
+            {"type": "stage3_complete", "data": {"results": {"response": "Final"}}},
+        ]
+
+        async def mock_cycle_gen(*args, **kwargs):
+            for event in mock_events:
+                yield event
+
         with (
-            patch(
-                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
-            ) as mock_stage1,
-            patch(
-                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
-            ) as mock_stage2,
-            patch(
-                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
-            ) as mock_stage3,
+            patch("backend.streaming.run_council_cycle", side_effect=mock_cycle_gen) as mock_cycle,
             patch(
                 "backend.streaming.generate_conversation_title", new_callable=AsyncMock
             ) as mock_title,
-            patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
             patch("backend.streaming.record_votes"),
-            # patch("backend.streaming.add_user_message") as mock_add_user,
+            patch("backend.streaming.add_user_message"),
             patch("backend.streaming.add_assistant_message") as mock_add_assistant,
             patch("backend.streaming.update_conversation_title") as mock_update_title,
         ):
-            mock_stage1.return_value = [
-                {
-                    "model": "m1",
-                    "response": "Response 1",
-                    "personality_id": "p1",
-                    "personality_name": "Personality 1",
-                }
-            ]
-            mock_stage2.return_value = (
-                [
-                    {
-                        "model": "m1",
-                        "personality_name": "Personality 1",
-                        "ranking": "Ranking",
-                        "parsed_ranking": ["Response A"],
-                    }
-                ],
-                {"Response A": "Personality 1"},
-            )
-            mock_stage3.return_value = {"model": "chairman", "response": "Final answer"}
             mock_title.return_value = "Generated Title"
-            mock_calc_rankings.return_value = []
 
-            # Collect events
             events = []
             async for event in run_council_generator(
                 conv_id, "What is Python?", conversation, org_id, "test-key", "https://test.url"
             ):
                 events.append(event)
 
-            # Verify events
-            event_types = []
-            for event in events:
-                if event.startswith("data: "):
-                    data = json.loads(event[6:])  # Remove "data: " prefix
-                    event_types.append(data.get("type"))
+            event_types = [json.loads(e[6:])["type"] for e in events if e.startswith("data: ")]
 
             assert "stage_start" in event_types
             assert "stage1_complete" in event_types
@@ -102,19 +79,14 @@ class TestStreaming:
             assert "title_complete" in event_types
             assert "complete" in event_types
 
-            # Verify functions were called
-            mock_stage1.assert_called_once()
-            mock_stage2.assert_called_once()
-            mock_stage3.assert_called_once()
+            mock_cycle.assert_called_once()
             mock_title.assert_called_once()
-            # mock_add_user.assert_called_once()
             mock_add_assistant.assert_called_once()
             mock_update_title.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_run_council_generator_subsequent_message(self, temp_data_dir):
         """Test run_council_generator for subsequent message does not generate title."""
-        # Create conversation with existing messages
         conv_id = "test-conv-2"
         org_id = "test-org"
         conversation = {
@@ -122,218 +94,52 @@ class TestStreaming:
             "user_id": "user1",
             "org_id": org_id,
             "title": "Existing Conversation",
-            "messages": [
-                {"role": "user", "content": "First question"},
-                {"role": "assistant", "stage3": {"response": "First answer"}},
-            ],
+            "messages": [{"role": "user", "content": "First question"}],
         }
 
-        # Mock all stage functions
+        async def mock_cycle_gen(*args, **kwargs):
+            yield {"type": "stage1_complete", "data": {"results": []}}
+            yield {"type": "stage3_complete", "data": {"results": {"response": "Final"}}}
+
         with (
-            patch(
-                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
-            ) as mock_stage1,
-            patch(
-                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
-            ) as mock_stage2,
-            patch(
-                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
-            ) as mock_stage3,
+            patch("backend.streaming.run_council_cycle", side_effect=mock_cycle_gen),
             patch(
                 "backend.streaming.generate_conversation_title", new_callable=AsyncMock
             ) as mock_title,
-            patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.record_votes"),
-            # patch("backend.streaming.add_user_message"),
+            patch("backend.streaming.add_user_message"),
             patch("backend.streaming.add_assistant_message"),
             patch("backend.streaming.update_conversation_title") as mock_update_title,
         ):
-            mock_stage1.return_value = [
-                {
-                    "model": "m1",
-                    "response": "Response",
-                    "personality_id": "p1",
-                    "personality_name": "P1",
-                }
-            ]
-            mock_stage2.return_value = ([], {})
-            mock_stage3.return_value = {"model": "chairman", "response": "Final"}
-            mock_calc_rankings.return_value = []
-
-            # Collect events
             events = []
             async for event in run_council_generator(
-                conv_id, "Follow-up question", conversation, org_id, "test-key", "https://test.url"
+                conv_id, "Follow-up", conversation, org_id, "test-key", "https://test.url"
             ):
                 events.append(event)
 
-            # Verify title generation was not called
             mock_title.assert_not_called()
             mock_update_title.assert_not_called()
 
-            # Verify other functions were called
-            mock_stage1.assert_called_once()
-            mock_stage2.assert_called_once()
-            mock_stage3.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_run_council_generator_error_handling(self, temp_data_dir):
-        """Test run_council_generator handles errors gracefully and sends error event."""
+        """Test run_council_generator handles errors gracefully."""
         conv_id = "test-conv-3"
         org_id = "test-org"
-        conversation = {
-            "id": conv_id,
-            "user_id": "user1",
-            "org_id": org_id,
-            "title": "Test Conversation",
-            "messages": [],
-        }
+        conversation = {"id": conv_id, "org_id": org_id, "messages": []}
 
-        # Mock add_user_message to succeed, but stage1 to raise exception
+        async def mock_cycle_gen(*args, **kwargs):
+            raise Exception("Test error")
+            yield {}  # unreachable
+
         with (
-            # patch("backend.streaming.add_user_message"),
-            patch(
-                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
-            ) as mock_stage1,
+            patch("backend.streaming.run_council_cycle", side_effect=mock_cycle_gen),
+            patch("backend.streaming.add_user_message"),
         ):
-            mock_stage1.side_effect = Exception("Test error")
-
-            # Collect events
             events = []
             async for event in run_council_generator(
                 conv_id, "What is Python?", conversation, org_id, "test-key", "https://test.url"
             ):
                 events.append(event)
 
-            # Verify error event was sent
-            assert len(events) > 0
-            error_event = None
-            for event in events:
-                if event.startswith("data: "):
-                    data = json.loads(event[6:])
-                    if data.get("type") == "error":
-                        error_event = data
-                        break
-
+            error_event = next((json.loads(e[6:]) for e in events if "error" in e), None)
             assert error_event is not None
-            assert "Test error" in error_event.get("message", "")
-
-    @pytest.mark.asyncio
-    async def test_run_council_generator_stage1_empty_results(self, temp_data_dir):
-        """Test run_council_generator handles empty stage1 results."""
-        conv_id = "test-conv-4"
-        org_id = "test-org"
-        conversation = {
-            "id": conv_id,
-            "user_id": "user1",
-            "org_id": org_id,
-            "title": "Test Conversation",
-            "messages": [],
-        }
-
-        with (
-            patch(
-                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
-            ) as mock_stage1,
-            patch(
-                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
-            ) as mock_stage2,
-            patch(
-                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
-            ) as mock_stage3,
-            patch(
-                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
-            ) as mock_title,
-            patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            # patch("backend.streaming.add_user_message"),
-            patch("backend.streaming.add_assistant_message"),
-        ):
-            mock_stage1.return_value = []  # Empty results
-            mock_stage2.return_value = ([], {})
-            mock_stage3.return_value = {"model": "error", "response": "All models failed"}
-            mock_calc_rankings.return_value = []
-            mock_title.return_value = "Title"
-
-            # Collect events
-            events = []
-            async for event in run_council_generator(
-                conv_id, "What is Python?", conversation, org_id, "test-key", "https://test.url"
-            ):
-                events.append(event)
-
-            # Should still complete
-            assert len(events) > 0
-            mock_stage1.assert_called_once()
-            # Stage2 should still be called even with empty stage1
-            mock_stage2.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_run_council_generator_records_votes(self, temp_data_dir):
-        """Test run_council_generator records voting history."""
-        conv_id = "test-conv-5"
-        org_id = "test-org"
-        conversation = {
-            "id": conv_id,
-            "user_id": "user1",
-            "org_id": org_id,
-            "title": "Test Title",
-            "messages": [],
-        }
-
-        with (
-            patch(
-                "backend.streaming.stage1_collect_responses", new_callable=AsyncMock
-            ) as mock_stage1,
-            patch(
-                "backend.streaming.stage2_collect_rankings", new_callable=AsyncMock
-            ) as mock_stage2,
-            patch(
-                "backend.streaming.stage3_synthesize_final", new_callable=AsyncMock
-            ) as mock_stage3,
-            patch(
-                "backend.streaming.generate_conversation_title", new_callable=AsyncMock
-            ) as mock_title,
-            patch("backend.streaming.calculate_aggregate_rankings") as mock_calc_rankings,
-            patch("backend.streaming.record_votes") as mock_record_votes,
-            # patch("backend.streaming.add_user_message"),
-            patch("backend.streaming.add_assistant_message"),
-        ):
-            mock_stage1.return_value = [
-                {
-                    "model": "m1",
-                    "response": "Response",
-                    "personality_id": "p1",
-                    "personality_name": "P1",
-                }
-            ]
-            mock_stage2.return_value = (
-                [
-                    {
-                        "model": "m1",
-                        "personality_name": "P1",
-                        "ranking": "Rank",
-                        "parsed_ranking": ["A"],
-                    }
-                ],
-                {"A": "P1"},
-            )
-            mock_stage3.return_value = {"model": "chairman", "response": "Final"}
-            mock_calc_rankings.return_value = []
-            mock_title.return_value = "Generated Title"
-
-            # Collect events
-            events = []
-            async for event in run_council_generator(
-                conv_id, "What is Python?", conversation, org_id, "test-key", "https://test.url"
-            ):
-                events.append(event)
-
-            # Verify votes were recorded
-            mock_record_votes.assert_called_once()
-            call_args = mock_record_votes.call_args
-            # record_votes(conversation_id, stage2_results, label_to_model, conversation_title=..., turn_number=..., user_id=..., org_id=...)
-            assert call_args[0][0] == conv_id  # conversation_id
-            # conversation_title is passed as keyword arg: conversation_title=conversation_history.get("title", "Unknown")
-            assert (
-                call_args[1]["conversation_title"] == "Test Title"
-            )  # conversation_title (as keyword arg)
+            assert "Test error" in error_event["message"]

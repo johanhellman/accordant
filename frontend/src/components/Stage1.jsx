@@ -10,6 +10,8 @@ export default function Stage1({ responses }) {
     return null;
   }
 
+  const activeResponse = responses.find((_, index) => index === activeTab) || responses[0];
+
   return (
     <div className="stage stage1">
       <h3 className="stage-title">Stage 1: Individual Responses</h3>
@@ -28,17 +30,17 @@ export default function Stage1({ responses }) {
 
       <div className="tab-content">
         <div className="model-name">
-          {responses[activeTab].personality_name ? (
+          {activeResponse.personality_name ? (
             <>
-              <span className="personality-name">{responses[activeTab].personality_name}</span>
-              <span className="model-detail"> ({responses[activeTab].model})</span>
+              <span className="personality-name">{activeResponse.personality_name}</span>
+              <span className="model-detail"> ({activeResponse.model})</span>
             </>
           ) : (
-            responses[activeTab].model
+            activeResponse.model
           )}
         </div>
         <div className="response-text markdown-content">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{responses[activeTab].response}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeResponse.response}</ReactMarkdown>
         </div>
       </div>
     </div>

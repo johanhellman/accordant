@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import "./LeagueTable.css";
 import ContextualHelp from "./ContextualHelp";
@@ -7,14 +7,10 @@ const LeagueTable = ({ isInstanceAdmin }) => {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
-  const [feedbackData, setFeedbackData] = useState({});
+  const [feedbackData, setFeedbackData] = useState(new Map());
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [isInstanceAdmin]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const data = isInstanceAdmin
@@ -26,7 +22,11 @@ const LeagueTable = ({ isInstanceAdmin }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isInstanceAdmin]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const toggleRow = async (personalityId) => {
     if (expandedRow === personalityId) {
@@ -37,7 +37,7 @@ const LeagueTable = ({ isInstanceAdmin }) => {
     setExpandedRow(personalityId);
 
     // Fetch feedback if not already cached
-    if (!feedbackData[personalityId]) {
+    if (!feedbackData.has(personalityId)) {
       try {
         setFeedbackLoading(true);
         // Note: fetchPersonalityFeedback needs ID.
@@ -48,10 +48,18 @@ const LeagueTable = ({ isInstanceAdmin }) => {
         if (!personalityId) return;
 
         const data = await api.getPersonalityFeedback(personalityId);
-        setFeedbackData((prev) => ({ ...prev, [personalityId]: data.summary }));
+        setFeedbackData((prev) => {
+          const next = new Map(prev);
+          next.set(personalityId, data.summary);
+          return next;
+        });
       } catch (error) {
         console.error("Failed to fetch feedback:", error);
-        setFeedbackData((prev) => ({ ...prev, [personalityId]: "Failed to load feedback." }));
+        setFeedbackData((prev) => {
+          const next = new Map(prev);
+          next.set(personalityId, "Failed to load feedback.");
+          return next;
+        });
       } finally {
         setFeedbackLoading(false);
       }
@@ -124,13 +132,13 @@ const LeagueTable = ({ isInstanceAdmin }) => {
                   <td colSpan="7">
                     <div className="feedback-content">
                       <h4>Community Feedback Analysis</h4>
-                      {feedbackLoading && !feedbackData[r.id] ? (
+                      {feedbackLoading && !feedbackData.has(r.id) ? (
                         <div className="spinner-small">Generating analysis...</div>
                       ) : (
                         <div className="feedback-text">
                           {isInstanceAdmin && !r.id
                             ? "Qualitative feedback is local to organizations and not aggregated globally."
-                            : feedbackData[r.id] || "No feedback available."}
+                            : feedbackData.get(r.id) || "No feedback available."}
                         </div>
                       )}
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import PersonalityPromptEditor from "./PersonalityPromptEditor";
 import "./PersonalityManager.css"; // Reusing existing styles for now
@@ -13,9 +13,9 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
 
   useEffect(() => {
     loadData();
-  }, [personalityId]);
+  }, [loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [pData, mList, sPrompts] = await Promise.all([
@@ -56,7 +56,7 @@ const PersonalityEditor = ({ personalityId, onSave, onCancel }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [personalityId]);
 
   const handleSave = async () => {
     if (!personality) return;

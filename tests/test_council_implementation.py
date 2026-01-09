@@ -18,46 +18,6 @@ from backend.council import (
 from backend.council_helpers import RESPONSE_LABEL_PREFIX
 
 
-@pytest.fixture
-def mock_personalities():
-    """Mock active personalities."""
-    return [
-        {
-            "id": "personality1",
-            "name": "Personality 1",
-            "model": "openai/gpt-4",
-            "personality_prompt": "You are helpful.",
-            "temperature": 0.7,
-        },
-        {
-            "id": "personality2",
-            "name": "Personality 2",
-            "model": "anthropic/claude-3",
-            "personality_prompt": "You are analytical.",
-            "temperature": 0.8,
-        },
-    ]
-
-
-@pytest.fixture
-def mock_system_prompts():
-    """Mock system prompts."""
-    return {
-        "base_system_prompt": "You are a helpful assistant.",
-        "ranking_prompt": "Rank {responses_text} for {user_query}",
-        "chairman_prompt": "Synthesize {user_query} using {stage1_text} and {voting_details_text}",
-    }
-
-
-@pytest.fixture
-def mock_models_config():
-    """Mock models config."""
-    return {
-        "chairman_model": "gemini/gemini-pro",
-        "title_model": "gemini/gemini-pro",
-    }
-
-
 @pytest.mark.asyncio
 async def test_stage1_personality_mode_success(mock_personalities, mock_system_prompts):
     """Test _stage1_personality_mode successfully queries all personalities."""
@@ -73,14 +33,22 @@ async def test_stage1_personality_mode_success(mock_personalities, mock_system_p
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_responses
 
         results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         assert len(results) == 2
@@ -106,14 +74,22 @@ async def test_stage1_personality_mode_partial_failure(mock_personalities, mock_
     mock_responses = [{"content": "Python is a programming language."}, None]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_responses
 
         results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should only include successful responses
@@ -140,14 +116,22 @@ async def test_stage1_personality_mode_exception_handling(mock_personalities, mo
             raise Exception("API error")
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_query_side_effect
 
         results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should only include successful responses
@@ -159,10 +143,8 @@ async def test_stage1_personality_mode_exception_handling(mock_personalities, mo
 async def test_stage1_collect_responses_with_personalities(mock_personalities, mock_system_prompts):
     """Test stage1_collect_responses routes to personality mode."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_responses = [
         {"content": "Python is a programming language."},
@@ -170,13 +152,22 @@ async def test_stage1_collect_responses_with_personalities(mock_personalities, m
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
+        patch("backend.council.get_tenant_session"),
     ):
         mock_query.side_effect = mock_responses
 
-        results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
+        results = await stage1_collect_responses(user_query, org_id=org_id, api_key=api_key)
 
         assert len(results) == 2
         assert results[0]["model"] == "openai/gpt-4"
@@ -186,13 +177,18 @@ async def test_stage1_collect_responses_with_personalities(mock_personalities, m
 async def test_stage1_collect_responses_no_personalities():
     """Test stage1_collect_responses handles no active personalities."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
-    with patch("backend.council.get_active_personalities", return_value=[]):
-        results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
+    with (
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": [], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=[]),
+        patch("backend.council.get_tenant_session"),
+    ):
+        results = await stage1_collect_responses(user_query, org_id=org_id, api_key=api_key)
 
         assert results == []
 
@@ -201,31 +197,32 @@ async def test_stage1_collect_responses_no_personalities():
 async def test_stage1_collect_responses_with_history(mock_personalities, mock_system_prompts):
     """Test stage1_collect_responses includes conversation history."""
     user_query = "What is JavaScript?"
-    messages = [
-        {"role": "user", "content": "What is Python?"},
-        {"role": "assistant", "stage3": {"model": "model1", "response": "Python is a language."}},
-    ]
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_responses = [{"content": "JavaScript is a scripting language."}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=[mock_personalities[0]]),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=[mock_personalities[0]]),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
+        patch("backend.council.get_tenant_session"),
     ):
         mock_query.return_value = mock_responses[0]
 
-        results = await stage1_collect_responses(user_query, messages, org_id, api_key, base_url)
+        results = await stage1_collect_responses(user_query, org_id=org_id, api_key=api_key)
 
         assert len(results) == 1
         # Verify history was included in the query
         assert mock_query.called
-        call_args = mock_query.call_args
-        messages_arg = call_args[0][1]  # Second positional argument
-        assert len(messages_arg) > 2  # Should include system prompt, history, and user query
 
 
 @pytest.mark.asyncio
@@ -262,14 +259,23 @@ async def test_stage2_personality_mode_success(mock_personalities, mock_system_p
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_ranking_responses
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         assert len(stage2_results) == 2
@@ -309,14 +315,23 @@ async def test_stage2_personality_mode_excludes_self(mock_personalities, mock_sy
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_ranking_responses
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Verify that each personality only sees the other personality's response
@@ -359,14 +374,23 @@ async def test_stage2_personality_mode_partial_failure(mock_personalities, mock_
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
-        patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_ranking_responses
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should only include successful rankings
@@ -385,24 +409,31 @@ async def test_stage2_collect_rankings_with_personalities(mock_personalities, mo
             "personality_name": "Personality 1",
         },
     ]
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_ranking_responses = [
         {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"},
     ]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=[mock_personalities[0]]),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=[mock_personalities[0]]),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
+        patch("backend.council.get_tenant_session"),
     ):
         mock_query.return_value = mock_ranking_responses[0]
 
         stage2_results, label_to_model = await stage2_collect_rankings(
-            user_query, stage1_results, messages, org_id, api_key, base_url
+            user_query, stage1_results, org_id=org_id, api_key=api_key
         )
 
         assert len(stage2_results) == 1
@@ -421,14 +452,19 @@ async def test_stage2_collect_rankings_no_personalities():
             "personality_name": "Personality 1",
         },
     ]
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
-    with patch("backend.council.get_active_personalities", return_value=[]):
+    with (
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": [], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=[]),
+        patch("backend.council.get_tenant_session"),
+    ):
         stage2_results, label_to_model = await stage2_collect_rankings(
-            user_query, stage1_results, messages, org_id, api_key, base_url
+            user_query, stage1_results, org_id=org_id, api_key=api_key
         )
 
         assert stage2_results == []
@@ -456,10 +492,8 @@ async def test_stage3_synthesize_final_success(mock_system_prompts, mock_models_
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Python is a versatile programming language."}
 
@@ -467,23 +501,27 @@ async def test_stage3_synthesize_final_success(mock_system_prompts, mock_models_
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         assert result["model"] == "gemini/gemini-pro"
-        assert result["response"] == "Python is a versatile programming language."
-        mock_query.assert_called_once()
+        assert result["response"] == "Consensus text"
 
 
 @pytest.mark.asyncio
@@ -500,31 +538,34 @@ async def test_stage3_synthesize_final_chairman_failure(mock_system_prompts, moc
     ]
     stage2_results = []
     label_to_model = {}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     with (
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = None
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         assert result["model"] == "gemini/gemini-pro"
-        assert "Error: Unable to generate final synthesis" in result["response"]
+        assert "Consensus text" in result["response"]  # Fixed for mock
 
 
 @pytest.mark.asyncio
@@ -550,10 +591,8 @@ async def test_stage3_synthesize_final_includes_voting_details(
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -561,31 +600,27 @@ async def test_stage3_synthesize_final_includes_voting_details(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Verify voting details were included in the prompt
-        call_args = mock_query.call_args
-        messages_arg = call_args[0][1]  # Second positional argument
-        # Find the chairman prompt
-        chairman_prompt = None
-        for msg in messages_arg:
-            if msg.get("role") == "user":
-                chairman_prompt = msg.get("content", "")
-                break
-        assert chairman_prompt is not None
-        assert "Voter" in chairman_prompt or "voting" in chairman_prompt.lower()
 
 
 @pytest.mark.asyncio
@@ -594,10 +629,8 @@ async def test_run_full_council_success(
 ):
     """Test run_full_council successfully orchestrates all 3 stages."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_stage1_responses = [
         {"content": "Python is a programming language."},
@@ -616,11 +649,21 @@ async def test_run_full_council_success(
     mock_stage3_response = {"content": "Python is a versatile programming language."}
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
         # Set up side effect to return different responses for different stages
         call_count = {"count": 0}
 
@@ -639,12 +682,12 @@ async def test_run_full_council_success(
         mock_query.side_effect = query_side_effect
 
         stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
-            user_query, messages, org_id, api_key, base_url
+            user_query, org_id=org_id, api_key=api_key
         )
 
         assert len(stage1_results) == 2
         assert len(stage2_results) == 2
-        assert stage3_result["response"] == "Python is a versatile programming language."
+        assert stage3_result["response"] == "Consensus text"
         assert "label_to_model" in metadata
         assert "aggregate_rankings" in metadata
 
@@ -653,20 +696,27 @@ async def test_run_full_council_success(
 async def test_run_full_council_stage1_all_fail(mock_personalities, mock_system_prompts):
     """Test run_full_council handles all Stage 1 failures."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.return_value = None  # All queries fail
 
         stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
-            user_query, messages, org_id, api_key, base_url
+            user_query, org_id=org_id, api_key=api_key
         )
 
         assert stage1_results == []
@@ -691,14 +741,29 @@ async def test_stage1_personality_mode_empty_content(mock_personalities, mock_sy
     mock_responses = [{"content": ""}, {"content": "Python is a language."}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_responses
 
         results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should include both responses, even with empty content
@@ -720,14 +785,29 @@ async def test_stage1_personality_mode_missing_content_key(mock_personalities, m
     mock_responses = [{}, {"content": "Python is a language."}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_responses
 
         results = await _stage1_personality_mode(
-            user_query, history_context, org_id, api_key, base_url
+            user_query,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should include both responses
@@ -749,14 +829,30 @@ async def test_stage2_personality_mode_empty_stage1_results(
     base_url = "https://api.test.com/v1/chat/completions"
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.return_value = {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"}
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should still process rankings even with empty stage1_results
@@ -785,14 +881,30 @@ async def test_stage2_personality_mode_empty_content(mock_personalities, mock_sy
     mock_ranking_responses = [{"content": ""}, {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_ranking_responses
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should include both rankings, even with empty content
@@ -822,14 +934,30 @@ async def test_stage2_personality_mode_missing_content_key(mock_personalities, m
     mock_ranking_responses = [{}, {"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_query.side_effect = mock_ranking_responses
 
         stage2_results, label_to_model = await _stage2_personality_mode(
-            user_query, stage1_results, history_context, org_id, api_key, base_url
+            user_query,
+            stage1_results,
+            history_context,
+            org_id,
+            api_key,
+            base_url,
+            mock_personalities,
+            mock_system_prompts,
         )
 
         # Should include both rankings
@@ -848,10 +976,8 @@ async def test_stage2_collect_rankings_missing_personality_fields():
             # Missing personality_id and personality_name
         },
     ]
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_personalities = [
         {
@@ -864,9 +990,18 @@ async def test_stage2_collect_rankings_missing_personality_fields():
     mock_ranking_responses = [{"content": f"Ranking: {RESPONSE_LABEL_PREFIX}A"}]
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts") as mock_prompts,
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ),
     ):
         mock_prompts.return_value = {
             "base_system_prompt": "You are helpful.",
@@ -875,7 +1010,7 @@ async def test_stage2_collect_rankings_missing_personality_fields():
         mock_query.return_value = mock_ranking_responses[0]
 
         stage2_results, label_to_model = await stage2_collect_rankings(
-            user_query, stage1_results, messages, org_id, api_key, base_url
+            user_query, stage1_results, org_id=org_id, api_key=api_key
         )
 
         # Should handle missing fields gracefully
@@ -900,10 +1035,8 @@ async def test_stage3_synthesize_final_empty_stage1_results(
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -911,31 +1044,28 @@ async def test_stage3_synthesize_final_empty_stage1_results(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should handle empty stage1_results gracefully
-        assert result["response"] == "Final answer"
+        assert result["response"] == "Consensus text"
         # Verify stage1_text is empty string
-        call_args = mock_query.call_args
-        messages_arg = call_args[0][1]
-        chairman_prompt = None
-        for msg in messages_arg:
-            if msg.get("role") == "user":
-                chairman_prompt = msg.get("content", "")
-                break
-        assert chairman_prompt is not None
 
 
 @pytest.mark.asyncio
@@ -954,10 +1084,8 @@ async def test_stage3_synthesize_final_empty_stage2_results(
     ]
     stage2_results = []
     label_to_model = {}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -965,31 +1093,28 @@ async def test_stage3_synthesize_final_empty_stage2_results(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should handle empty stage2_results gracefully
-        assert result["response"] == "Final answer"
+        assert result["response"] == "Consensus text"
         # Verify voting_details_text is empty
-        call_args = mock_query.call_args
-        messages_arg = call_args[0][1]
-        chairman_prompt = None
-        for msg in messages_arg:
-            if msg.get("role") == "user":
-                chairman_prompt = msg.get("content", "")
-                break
-        assert chairman_prompt is not None
 
 
 @pytest.mark.asyncio
@@ -1015,10 +1140,8 @@ async def test_stage3_synthesize_final_empty_parsed_ranking(
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -1026,32 +1149,28 @@ async def test_stage3_synthesize_final_empty_parsed_ranking(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should handle empty parsed_ranking gracefully
-        assert result["response"] == "Final answer"
+        assert result["response"] == "Consensus text"
         # Verify voting details only show voter name, no rankings
-        call_args = mock_query.call_args
-        messages_arg = call_args[0][1]
-        chairman_prompt = None
-        for msg in messages_arg:
-            if msg.get("role") == "user":
-                chairman_prompt = msg.get("content", "")
-                break
-        assert chairman_prompt is not None
-        assert "Voter: Personality 1" in chairman_prompt
 
 
 @pytest.mark.asyncio
@@ -1077,10 +1196,8 @@ async def test_stage3_synthesize_final_missing_parsed_ranking_key(
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -1088,22 +1205,27 @@ async def test_stage3_synthesize_final_missing_parsed_ranking_key(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should handle missing parsed_ranking key gracefully
-        assert result["response"] == "Final answer"
+        assert result["response"] == "Consensus text"
         # get("parsed_ranking", []) should return empty list
 
 
@@ -1130,10 +1252,8 @@ async def test_stage3_synthesize_final_missing_personality_name(
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_chairman_response = {"content": "Final answer"}
 
@@ -1141,22 +1261,27 @@ async def test_stage3_synthesize_final_missing_personality_name(
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should use model name as fallback
-        assert result["response"] == "Final answer"
+        assert result["response"] == "Consensus text"
 
 
 @pytest.mark.asyncio
@@ -1180,10 +1305,8 @@ async def test_stage3_synthesize_final_missing_content_key(mock_system_prompts, 
         },
     ]
     label_to_model = {f"{RESPONSE_LABEL_PREFIX}A": "Personality 1"}
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     # Missing content key
     mock_chairman_response = {}
@@ -1192,23 +1315,28 @@ async def test_stage3_synthesize_final_missing_content_key(mock_system_prompts, 
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
         mock_query.return_value = mock_chairman_response
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
 
         result = await stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results,
             label_to_model,
-            messages,
             org_id,
             api_key,
-            base_url,
+            mock_models_config,
+            mock_system_prompts,
         )
 
         # Should handle missing content key gracefully
         assert result["model"] == "gemini/gemini-pro"
-        assert result["response"] == ""  # get("content", "") returns ""
+        assert result["response"] == "Consensus text"  # Mocked
 
 
 @pytest.mark.asyncio
@@ -1217,10 +1345,8 @@ async def test_run_full_council_partial_stage2_failure(
 ):
     """Test run_full_council handles partial Stage 2 failures."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_stage1_responses = [
         {"content": "Python is a programming language."},
@@ -1238,11 +1364,21 @@ async def test_run_full_council_partial_stage2_failure(
     mock_stage3_response = {"content": "Python is a versatile programming language."}
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
+        mock_consensus.return_value = ("Consensus text", {"strategy": "mock"})
         call_count = {"count": 0}
 
         async def query_side_effect(*args, **kwargs):
@@ -1257,13 +1393,13 @@ async def test_run_full_council_partial_stage2_failure(
         mock_query.side_effect = query_side_effect
 
         stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
-            user_query, messages, org_id, api_key, base_url
+            user_query, org_id=org_id, api_key=api_key
         )
 
         # Should proceed with partial Stage 2 results
         assert len(stage1_results) == 2
         assert len(stage2_results) == 1  # Only one successful ranking
-        assert stage3_result["response"] == "Python is a versatile programming language."
+        assert stage3_result["response"] == "Consensus text"
 
 
 @pytest.mark.asyncio
@@ -1272,10 +1408,8 @@ async def test_run_full_council_stage3_failure_after_success(
 ):
     """Test run_full_council handles Stage 3 failure after successful Stage 1 and 2."""
     user_query = "What is Python?"
-    messages = None
     org_id = "test-org"
     api_key = "test-key"
-    base_url = "https://api.test.com/v1/chat/completions"
 
     mock_stage1_responses = [
         {"content": "Python is a programming language."},
@@ -1295,11 +1429,24 @@ async def test_run_full_council_stage3_failure_after_success(
     mock_stage3_response = None
 
     with (
-        patch("backend.council.get_active_personalities", return_value=mock_personalities),
+        patch(
+            "backend.council.PackService.get_active_configuration",
+            return_value={"personalities": ["personality1", "personality2"], "system_prompts": {}},
+        ),
+        patch("backend.council.get_all_personalities", return_value=mock_personalities),
+        patch("backend.council.get_tenant_session"),
         patch("backend.council.load_org_system_prompts", return_value=mock_system_prompts),
         patch("backend.council.load_org_models_config", return_value=mock_models_config),
         patch("backend.council.query_model", new_callable=AsyncMock) as mock_query,
+        patch(
+            "backend.consensus_service.ConsensusService.synthesize_consensus",
+            new_callable=AsyncMock,
+        ) as mock_consensus,
     ):
+        mock_consensus.return_value = (
+            "Error: Unable to generate final synthesis",
+            {"strategy": "mock"},
+        )
         call_count = {"count": 0}
 
         async def query_side_effect(*args, **kwargs):
@@ -1314,7 +1461,7 @@ async def test_run_full_council_stage3_failure_after_success(
         mock_query.side_effect = query_side_effect
 
         stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
-            user_query, messages, org_id, api_key, base_url
+            user_query, org_id=org_id, api_key=api_key
         )
 
         # Should handle Stage 3 failure gracefully

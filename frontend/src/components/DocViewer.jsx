@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { api } from "../api";
@@ -13,9 +13,9 @@ export default function DocViewer({ docId, onBack, title }) {
 
   useEffect(() => {
     loadDoc();
-  }, [docId]);
+  }, [loadDoc]);
 
-  const loadDoc = async () => {
+  const loadDoc = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getDocumentation(docId);
@@ -26,7 +26,7 @@ export default function DocViewer({ docId, onBack, title }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [docId]);
 
   return (
     <div className="doc-viewer-page">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import PromptEditor from "./PromptEditor";
 import ModelSelector from "./ModelSelector";
@@ -57,9 +57,9 @@ function SystemPromptsEditor({ scope }) {
 
   useEffect(() => {
     loadData();
-  }, [scope]);
+  }, [loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [c, mList] = await Promise.all([
@@ -73,7 +73,7 @@ function SystemPromptsEditor({ scope }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [scope]);
 
   const handleSave = async () => {
     setIsSaving(true);
