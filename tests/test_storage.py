@@ -25,7 +25,7 @@ class TestStorageOperations:
         assert conversation["messages"] == []
 
         # Verify DB insertion
-        conv_db = tenant_db_session.query(models.Conversation).get(conversation_id)
+        conv_db = tenant_db_session.get(models.Conversation, conversation_id)
         assert conv_db is not None
         assert conv_db.id == conversation_id
         assert conv_db.user_id == "user1"
