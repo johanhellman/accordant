@@ -424,7 +424,7 @@ async def test_update_system_prompts_invalid_tags(tmp_path, monkeypatch):
 
         # Call function - should raise 400
         with pytest.raises(HTTPException) as exc_info:
-            await update_system_prompts(config.dict(), current_user=mock_user)
+            await update_system_prompts(config.model_dump(), current_user=mock_user)
 
         assert exc_info.value.status_code == 400
         assert "missing required tags" in exc_info.value.detail.lower()
