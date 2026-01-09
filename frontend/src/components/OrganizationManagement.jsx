@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import { Trash2, Edit2, ShieldAlert, X, Users } from "lucide-react";
 import "./OrganizationManagement.css";
@@ -22,9 +22,9 @@ export default function OrganizationManagement() {
 
   useEffect(() => {
     loadOrganizations();
-  }, []);
+  }, [loadOrganizations]);
 
-  const loadOrganizations = async () => {
+  const loadOrganizations = useCallback(async () => {
     try {
       const data = await api.listOrganizations();
       setOrganizations(data);
@@ -34,7 +34,7 @@ export default function OrganizationManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleError = (err) => {
     if (err.status === 401) {

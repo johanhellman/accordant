@@ -69,6 +69,7 @@ const PersonalityPromptEditor = ({ promptData, systemPrompts, onChange }) => {
           <div className="section-editor">
             <PromptEditor
               label={currentSectionDef?.label.toUpperCase()}
+              // eslint-disable-next-line security/detect-object-injection
               value={promptData[activeSection] || ""}
               onChange={(val) => handleChange(activeSection, val)}
               rows={15}

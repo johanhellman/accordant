@@ -255,7 +255,7 @@ function VotesTable({ votes }) {
 function VotingHeatmap({ history, showEnabledOnly, personalities }) {
   // Calculate aggregate stats
   const stats = useMemo(() => {
-    const matrix = {}; // { voter: { candidate: { sum: 0, count: 0 } } }
+    const matrix = new Map(); // Map<voter, Map<candidate, { sum: 0, count: 0 }>>
     const allVoters = new Set();
     const allCandidates = new Set();
 
@@ -276,7 +276,11 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
 
         allVoters.add(voter);
 
-        if (!matrix[voter]) matrix[voter] = {};
+        if (!matrix.has(voter)) {
+          matrix.set(voter, new Map());
+        }
+
+        const voterMap = matrix.get(voter);
 
         vote.rankings.forEach((rank) => {
           const candidate = rank.candidate;
@@ -288,32 +292,18 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
 
           allCandidates.add(candidate);
 
-          if (!matrix[voter][candidate]) {
-            matrix[voter][candidate] = { sum: 0, count: 0 };
+          if (!voterMap.has(candidate)) {
+            voterMap.set(candidate, { sum: 0, count: 0 });
           }
 
-          matrix[voter][candidate].sum += rank.rank;
-          matrix[voter][candidate].count += 1;
+          const cell = voterMap.get(candidate);
+          cell.sum += rank.rank;
+          cell.count += 1;
         });
       });
     });
 
     // Calculate average rank received for each candidate to sort columns
-    const candidateScores = {};
-    allCandidates.forEach((candidate) => {
-      let totalSum = 0;
-      let totalCount = 0;
-      allVoters.forEach((voter) => {
-        const cell = matrix[voter]?.[candidate];
-        if (cell) {
-          totalSum += cell.sum;
-          totalCount += cell.count;
-        }
-      });
-      candidateScores[candidate] = totalCount > 0 ? totalSum / totalCount : 999;
-    });
-
-    // Sort candidates alphabetically
     const sortedCandidates = Array.from(allCandidates).sort();
 
     // Sort voters alphabetically
@@ -360,7 +350,7 @@ function VotingHeatmap({ history, showEnabledOnly, personalities }) {
               <tr key={voter}>
                 <th className="voter-header">{voter}</th>
                 {stats.candidates.map((candidate) => {
-                  const cell = stats.matrix[voter]?.[candidate];
+                  const cell = stats.matrix.get(voter)?.get(candidate);
                   const avg = cell ? (cell.sum / cell.count).toFixed(1) : "-";
                   const count = cell ? cell.count : 0;
 

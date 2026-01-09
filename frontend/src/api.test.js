@@ -213,6 +213,7 @@ describe("API Client", () => {
       let callCount = 0;
       mockReader.read.mockImplementation(() => {
         if (callCount < mockEvents.length) {
+          // eslint-disable-next-line security/detect-object-injection
           const value = new TextEncoder().encode(mockEvents[callCount]);
           callCount++;
           return Promise.resolve({ done: false, value });

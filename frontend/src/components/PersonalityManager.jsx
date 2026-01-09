@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import "./PersonalityManager.css";
 import PersonalityEditor from "./PersonalityEditor";
@@ -28,21 +28,21 @@ const PersonalityManager = () => {
     personality_prompt: "",
   });
 
-  useEffect(() => {
-    loadData();
-    checkUserRole();
-  }, []);
-
-  const checkUserRole = async () => {
+  const checkUserRole = useCallback(async () => {
     try {
       const user = await api.getCurrentUser();
       setIsInstanceAdmin(user.is_instance_admin);
     } catch (e) {
       console.error("Failed to check user role", e);
     }
-  };
+  }, []);
 
-  const loadData = async () => {
+  useEffect(() => {
+    loadData();
+    checkUserRole();
+  }, [loadData, checkUserRole]);
+
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const data =
@@ -55,11 +55,11 @@ const PersonalityManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [scope]);
 
   useEffect(() => {
     loadData();
-  }, [scope]);
+  }, [loadData]);
 
   const handleCreate = async () => {
     try {

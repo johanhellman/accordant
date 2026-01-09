@@ -138,8 +138,8 @@ class PackService:
                                         "system_prompts": data.get("system_prompts", {}),
                                     }
                                     break
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.warning(f"Failed to read potential system pack {filename}: {e}")
 
         if not pack_data:
             raise ValueError(f"Pack {pack_id} not found.")

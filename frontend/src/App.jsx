@@ -48,12 +48,26 @@ function AppContentWithRouter() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      loadConversations();
-    } else {
-      setConversations([]);
+    let ignore = false;
+    async function startFetching() {
+      if (user) {
+        try {
+          const convs = await api.listConversations();
+          if (!ignore) {
+            setConversations(convs);
+          }
+        } catch (error) {
+          console.error("Failed to load conversations:", error);
+        }
+      } else {
+        setConversations([]);
+      }
     }
-  }, [user, loadConversations]);
+    startFetching();
+    return () => {
+      ignore = true;
+    };
+  }, [user]);
 
   // Triggered by Sidebar "New Session" button
   const handleOpenNewSession = () => {

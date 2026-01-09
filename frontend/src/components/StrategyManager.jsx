@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import PromptEditor from "./PromptEditor";
 import { Plus, Trash2, Save, GitBranch, AlertTriangle } from "lucide-react";
@@ -21,9 +21,20 @@ const StrategyManager = () => {
 
   useEffect(() => {
     loadStrategies();
+  }, [loadStrategies]);
+
+  const selectStrategy = useCallback((strategy) => {
+    setSelectedId(strategy.id);
+    setEditForm({
+      id: strategy.id,
+      display_name: strategy.display_name,
+      description: strategy.description || "",
+      prompt_content: strategy.prompt_content,
+      source: strategy.source,
+    });
   }, []);
 
-  const loadStrategies = async () => {
+  const loadStrategies = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.listStrategies();
@@ -40,18 +51,7 @@ const StrategyManager = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const selectStrategy = (strategy) => {
-    setSelectedId(strategy.id);
-    setEditForm({
-      id: strategy.id,
-      display_name: strategy.display_name,
-      description: strategy.description || "",
-      prompt_content: strategy.prompt_content,
-      source: strategy.source,
-    });
-  };
+  }, [selectedId, selectStrategy]);
 
   const handleCreateNew = () => {
     const newStrat = {

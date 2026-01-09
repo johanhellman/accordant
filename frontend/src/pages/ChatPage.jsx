@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import ChatInterface from "../components/ChatInterface";
 import { api } from "../api";
@@ -10,23 +10,6 @@ const ChatPage = () => {
 
   const [conversation, setConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const loadConversation = useCallback(
-    async (convId) => {
-      try {
-        const conv = await api.getConversation(convId);
-        setConversation(conv);
-      } catch (error) {
-        console.error("Failed to load conversation:", error);
-        // If not found, maybe redirect to home?
-        // check error status if possible, for now just log
-        if (error?.status === 404) {
-          navigate("/");
-        }
-      }
-    },
-    [navigate]
-  );
 
   const [activePack, setActivePack] = useState(null);
 
@@ -47,12 +30,29 @@ const ChatPage = () => {
   }, []);
 
   useEffect(() => {
-    if (id) {
-      loadConversation(id);
-    } else {
-      setConversation(null);
+    let ignore = false;
+    async function fetchConversation() {
+      if (id) {
+        try {
+          const conv = await api.getConversation(id);
+          if (!ignore) {
+            setConversation(conv);
+          }
+        } catch (error) {
+          console.error("Failed to load conversation:", error);
+          if (!ignore && error?.status === 404) {
+            navigate("/");
+          }
+        }
+      } else {
+        setConversation(null);
+      }
     }
-  }, [id, loadConversation]);
+    fetchConversation();
+    return () => {
+      ignore = true;
+    };
+  }, [id, navigate]);
 
   const handleSendMessage = async (content, consensusEnabled = false) => {
     let currentId = id;
