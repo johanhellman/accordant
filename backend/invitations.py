@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from pydantic import BaseModel
 
@@ -65,13 +65,13 @@ def create_invitation(org_id: str, created_by: str, expires_in_days: int = 7) ->
     # Generate a secure random code
     code = secrets.token_urlsafe(16)
 
-    expires_at = (datetime.utcnow() + timedelta(days=expires_in_days)).isoformat()
+    expires_at = (datetime.now(UTC) + timedelta(days=expires_in_days)).isoformat()
 
     new_invitation = InvitationInDB(
         code=code,
         org_id=org_id,
         created_by=created_by,
-        created_at=datetime.utcnow().isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
         expires_at=expires_at,
     )
 
@@ -99,13 +99,12 @@ def use_invitation(code: str, user_id: str) -> bool:
         return False
     if invitation.used_by:
         return False
-    if datetime.fromisoformat(invitation.expires_at) < datetime.utcnow():
+    if datetime.fromisoformat(invitation.expires_at) < datetime.now(UTC):
         return False
 
     invitation.used_by = user_id
     invitation.is_active = False  # One-time use? Or multi-use? Plan didn't specify.
     # Usually invite links are multi-use or single-use.
-    # Let's assume single-use for security unless specified otherwise.
     # Actually, "Invite Link" usually implies multi-use for a team.
     # But "Secret Code" might be single use.
     # Let's make it single-use for now for stricter control, or add a flag.

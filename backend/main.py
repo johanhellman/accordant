@@ -5,7 +5,7 @@ import logging
 import mimetypes
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -441,7 +441,7 @@ async def health_check():
         "status": status_overall,
         "service": "Accordant API",
         "version": "0.3.0",  # Should ideally match config
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat(),
         "checks": {
             "backend": {"status": "ok", "response_time_ms": round(process_time, 2)},
             "storage": {

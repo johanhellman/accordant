@@ -3,7 +3,7 @@
 import json
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -160,8 +160,8 @@ class TestInvitations:
 
     def test_invitation_model_validation(self):
         """Test that Invitation model validates correctly."""
-        now = datetime.utcnow().isoformat()
-        expires = (datetime.utcnow() + timedelta(days=7)).isoformat()
+        now = datetime.now(UTC).isoformat()
+        expires = (datetime.now(UTC) + timedelta(days=7)).isoformat()
 
         invitation = Invitation(
             code="test-code",
