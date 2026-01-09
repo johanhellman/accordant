@@ -85,9 +85,9 @@ def test_tenant_migrations_fresh_install():
     # Expectation: Logic detects column exists, sets version to 1, skips ALTER TABLE
     apply_tenant_migrations(engine)
 
-    # Verify version 1
+    # Verify version 3
     version = get_current_version(engine)
-    assert version == 1
+    assert version == 3
 
 
 def test_tenant_migrations_legacy_upgrade():
@@ -106,9 +106,9 @@ def test_tenant_migrations_legacy_upgrade():
     # Apply migrations
     apply_tenant_migrations(engine)
 
-    # Verify version 1
+    # Verify version 3
     version = get_current_version(engine)
-    assert version == 1
+    assert version == 3
 
     # Verify column exists
     inspector = inspect(engine)
@@ -131,7 +131,7 @@ def test_tenant_migrations_legacy_idempotency():
     apply_tenant_migrations(engine)
 
     version = get_current_version(engine)
-    assert version == 1
+    assert version == 3
 
     # Verify we didn't try to add it again (which would fail in sqlite usually or succeed if defensive)
     # The code logic specifically checks for this.

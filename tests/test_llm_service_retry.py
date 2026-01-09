@@ -30,9 +30,10 @@ async def test_query_model_retry_429(mocker):
     """Test retry on 429 Too Many Requests."""
     mock_post = mocker.patch("httpx.AsyncClient.post", new_callable=AsyncMock)
 
-    # First call fails with 429, second succeeds
     fail_response = mocker.Mock()
     fail_response.status_code = 429
+    # Important: tenacity retries if _execute_request raises HTTPStatusError
+    # which it does manually for 429
     fail_response.raise_for_status.side_effect = httpx.HTTPStatusError(
         "Too Many Requests", request=mocker.Mock(), response=fail_response
     )
@@ -42,13 +43,10 @@ async def test_query_model_retry_429(mocker):
     success_response.json.return_value = {
         "choices": [{"message": {"content": "Success after retry", "reasoning_details": None}}]
     }
+    success_response.raise_for_status = mocker.Mock()
 
-    mock_post.side_effect = [
-        httpx.HTTPStatusError("429", request=mocker.Mock(), response=fail_response),
-        success_response,
-    ]
+    mock_post.side_effect = [fail_response, success_response]
 
-    # Mock sleep to avoid waiting in tests
     mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
     result = await query_model(
@@ -66,17 +64,18 @@ async def test_query_model_retry_500(mocker):
 
     fail_response = mocker.Mock()
     fail_response.status_code = 500
+    fail_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "Server Error", request=mocker.Mock(), response=fail_response
+    )
 
     success_response = mocker.Mock()
     success_response.status_code = 200
     success_response.json.return_value = {
         "choices": [{"message": {"content": "Success after 500", "reasoning_details": None}}]
     }
+    success_response.raise_for_status = mocker.Mock()
 
-    mock_post.side_effect = [
-        httpx.HTTPStatusError("500", request=mocker.Mock(), response=fail_response),
-        success_response,
-    ]
+    mock_post.side_effect = [fail_response, success_response]
 
     mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
@@ -98,8 +97,9 @@ async def test_query_model_retry_timeout(mocker):
     success_response.json.return_value = {
         "choices": [{"message": {"content": "Success after timeout", "reasoning_details": None}}]
     }
+    success_response.raise_for_status = mocker.Mock()
 
-    mock_post.side_effect = [httpx.TimeoutException("Timeout"), success_response]
+    mock_post.side_effect = [httpx.ReadTimeout("Timeout"), success_response]
 
     mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
@@ -107,6 +107,7 @@ async def test_query_model_retry_timeout(mocker):
         "test-model", [{"role": "user", "content": "hi"}], api_key="key", base_url="url"
     )
 
+    assert result is not None
     assert result["content"] == "Success after timeout"
     assert mock_post.call_count == 2
 
@@ -118,14 +119,14 @@ async def test_query_model_max_retries_fail(mocker):
 
     fail_response = mocker.Mock()
     fail_response.status_code = 500
-
-    mock_post.side_effect = httpx.HTTPStatusError(
+    fail_response.raise_for_status.side_effect = httpx.HTTPStatusError(
         "500", request=mocker.Mock(), response=fail_response
     )
 
+    mock_post.return_value = fail_response
+
     mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
-    # Import LLM_MAX_RETRIES to check call count
     from backend.config import LLM_MAX_RETRIES
 
     result = await query_model(
@@ -142,11 +143,12 @@ async def test_query_model_non_retriable_error(mocker):
     mock_post = mocker.patch("httpx.AsyncClient.post", new_callable=AsyncMock)
 
     fail_response = mocker.Mock()
-    fail_response.status_code = 400  # Bad Request
-
-    mock_post.side_effect = httpx.HTTPStatusError(
+    fail_response.status_code = 400
+    fail_response.raise_for_status.side_effect = httpx.HTTPStatusError(
         "400", request=mocker.Mock(), response=fail_response
     )
+
+    mock_post.return_value = fail_response
 
     mocker.patch("asyncio.sleep", new_callable=AsyncMock)
 
@@ -155,4 +157,4 @@ async def test_query_model_non_retriable_error(mocker):
     )
 
     assert result is None
-    assert mock_post.call_count == 1  # Should not retry
+    assert mock_post.call_count == 1

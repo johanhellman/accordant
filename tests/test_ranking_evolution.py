@@ -89,14 +89,20 @@ async def test_feedback_summary_privacy(tenant_db_session):
 
     with (
         patch("backend.ranking_service.get_active_personalities", return_value=active),
-        patch("backend.ranking_service.get_active_personalities", return_value=active),
+        patch("backend.ranking_service.get_tenant_session", return_value=tenant_db_session),
         patch("backend.openrouter.query_model", new_callable=AsyncMock) as mock_llm,
-        patch("backend.config.personalities.load_org_system_prompts", return_value={}),
+        patch(
+            "backend.config.personalities.load_org_system_prompts",
+            return_value={
+                "feedback_synthesis_prompt": "{personality_name} feedback:\n{feedback_text}"
+            },
+        ),
     ):
         mock_llm.return_value = {"content": "Strengths: Excellent."}
 
         summary = await generate_feedback_summary(org_id, target_name, "key", "url")
 
+        assert summary is not None
         assert "Strengths: Excellent" in summary
 
         # Verify LLM was called with the reasoning from DB
