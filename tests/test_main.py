@@ -519,17 +519,16 @@ class TestMessageEndpoints:
         # However, the test uses TestClient which runs the app.
         # Let's try to run the real streaming logic but mock the LLM calls inside it.
 
+        async def mock_streaming(*args, **kwargs):
+            yield {"type": "stage_start", "data": {"stage": "stage1"}}
+            yield {"type": "stage_end", "data": {"stage": "stage1", "responses": []}}
+
         with (
-            patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as m1,
-            patch("backend.streaming.stage2_collect_rankings", new_callable=AsyncMock) as m2,
-            patch("backend.streaming.stage3_synthesize_final", new_callable=AsyncMock) as m3,
+            patch("backend.streaming.run_council_cycle", side_effect=mock_streaming),
             patch(
                 "backend.streaming.generate_conversation_title", new_callable=AsyncMock
             ) as m_title,
         ):
-            m1.return_value = []
-            m2.return_value = ([], {})
-            m3.return_value = {}
             m_title.return_value = "Title"
 
             response = client.post(
@@ -551,10 +550,8 @@ class TestMessageEndpoints:
         create_resp = client.post("/api/conversations", json={}, headers=headers)
         conv_id = create_resp.json()["id"]
 
-        # Mock stage1 to raise exception
-        with patch(
-            "backend.streaming.stage1_collect_responses", side_effect=Exception("Test error")
-        ):
+        # Mock run_council_cycle to raise exception
+        with patch("backend.streaming.run_council_cycle", side_effect=Exception("Test error")):
             response = client.post(
                 f"/api/conversations/{conv_id}/message/stream",
                 json={"content": "Test"},

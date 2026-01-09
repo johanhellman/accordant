@@ -34,7 +34,13 @@ async def test_stale_conversation_snapshot_main():
     ):
         mock_run_council.return_value = ([], [], {}, {"label_to_model": {}})
 
-        await send_message("conv1", SendMessageRequest(content="New User Msg"), mock_user)
+        mock_request = MagicMock()
+        await send_message(
+            mock_request,
+            "conv1",
+            SendMessageRequest(content="New User Msg"),
+            current_user=mock_user,
+        )
 
         # Verify add_user_message was called
         mock_add_msg.assert_called_once()
@@ -65,20 +71,22 @@ async def test_stale_conversation_snapshot_streaming():
     # We patch the class attribute on the *class itself* in the module
     with (
         patch("backend.streaming.CouncilManager._instance", None),
-        patch("backend.streaming.stage1_collect_responses", new_callable=AsyncMock) as mock_stage1,
+        patch("backend.streaming.run_council_cycle") as mock_run_cycle,
     ):
+        mock_run_cycle.return_value.__aiter__.return_value = []
         # Consume the generator
         async for _ in run_council_generator(
             "conv1", "New User Msg", mock_conversation, "org1", "key", "url"
         ):
             pass
 
-        # Verify stage 1 was called with updated messages
-        call_args = mock_stage1.call_args
-        messages_arg = call_args[0][1]
-
-        assert len(messages_arg) == 2, f"Expected 2 messages, got {len(messages_arg)}"
-        assert messages_arg[-1]["content"] == "New User Msg"
+        # Verify run_council_cycle was called with updated messages
+        if mock_run_cycle.call_args:
+            messages_arg = mock_run_cycle.call_args[0][1]
+            assert len(messages_arg) == 2, f"Expected 2 messages, got {len(messages_arg)}"
+            assert messages_arg[-1]["content"] == "New User Msg"
+        else:
+            pytest.fail("run_council_cycle was not called")
 
 
 @pytest.mark.asyncio

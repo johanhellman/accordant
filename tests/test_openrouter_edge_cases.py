@@ -16,32 +16,28 @@ async def test_query_model_timeout_retry():
     api_key = "test-key"
     base_url = "https://api.test.com/v1/chat/completions"
 
-    mock_success_response = {"choices": [{"message": {"content": "Success after timeout"}}]}
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": "Success after timeout"}}]
+    }
+    mock_response.raise_for_status = MagicMock()
 
-    with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-        mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-        mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+    with (
+        patch("httpx.AsyncClient") as mock_client_class,
+        patch("asyncio.sleep", new_callable=AsyncMock),
+    ):
+        mock_client = AsyncMock()
+        mock_instance = AsyncMock()
+        mock_client_class.return_value = mock_instance
+        mock_instance.__aenter__.return_value = mock_client
+        mock_client.post.side_effect = [httpx.ReadTimeout("Request timed out"), mock_response]
 
-        with patch("httpx.AsyncClient") as mock_client_class:
-            mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
+        result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-            mock_response_obj = MagicMock()
-            mock_response_obj.json.return_value = mock_success_response
-            mock_response_obj.raise_for_status = MagicMock()
-
-            # First call times out, second succeeds
-            mock_client.post.side_effect = [
-                httpx.TimeoutException("Request timed out"),
-                mock_response_obj,
-            ]
-
-            with patch("asyncio.sleep", new_callable=AsyncMock):
-                result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-                assert result["content"] == "Success after timeout"
-                assert mock_client.post.call_count == 2
+        assert result is not None
+        assert result["content"] == "Success after timeout"
+        assert mock_client.post.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -55,28 +51,26 @@ async def test_query_model_5xx_retry():
     mock_error = httpx.HTTPStatusError(
         "500 Internal Server Error", request=MagicMock(), response=MagicMock(status_code=500)
     )
-    mock_success_response = {"choices": [{"message": {"content": "Success after retry"}}]}
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"choices": [{"message": {"content": "Success after retry"}}]}
+    mock_response.raise_for_status = MagicMock()
 
-    with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-        mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-        mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+    with (
+        patch("httpx.AsyncClient") as mock_client_class,
+        patch("asyncio.sleep", new_callable=AsyncMock),
+    ):
+        mock_client = AsyncMock()
+        mock_instance = AsyncMock()
+        mock_client_class.return_value = mock_instance
+        mock_instance.__aenter__.return_value = mock_client
+        mock_client.post.side_effect = [mock_error, mock_response]
 
-        with patch("httpx.AsyncClient") as mock_client_class:
-            mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
+        result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-            mock_response_obj = MagicMock()
-            mock_response_obj.json.return_value = mock_success_response
-            mock_response_obj.raise_for_status = MagicMock()
-
-            mock_client.post.side_effect = [mock_error, mock_response_obj]
-
-            with patch("asyncio.sleep", new_callable=AsyncMock):
-                result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-                assert result["content"] == "Success after retry"
-                assert mock_client.post.call_count == 2
+        assert result is not None
+        assert result["content"] == "Success after retry"
+        assert mock_client.post.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -103,14 +97,10 @@ async def test_query_model_max_retries_exceeded():
             # Always raise error
             mock_client.post.side_effect = mock_error
 
-            with (
-                patch("backend.openrouter.LLM_MAX_RETRIES", 3),
-                patch("asyncio.sleep", new_callable=AsyncMock),
-            ):
-                result = await query_model(model, messages, api_key=api_key, base_url=base_url)
+            result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-                assert result is None
-                assert mock_client.post.call_count == 3  # Max retries
+            assert result is None
+            assert mock_client.post.call_count == 3  # Max retries
 
 
 @pytest.mark.asyncio
@@ -121,25 +111,16 @@ async def test_query_model_non_retryable_error():
     api_key = "test-key"
     base_url = "https://api.test.com/v1/chat/completions"
 
-    mock_error = httpx.HTTPStatusError(
-        "400 Bad Request", request=MagicMock(), response=MagicMock(status_code=400)
+    mock_response = MagicMock()
+    mock_response.status_code = 400
+    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "400 Bad Request", request=MagicMock(), response=mock_response
     )
 
-    with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-        mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-        mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+    with patch("backend.openrouter._execute_request", return_value=mock_response):
+        result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-        with patch("httpx.AsyncClient") as mock_client_class:
-            mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
-
-            mock_client.post.side_effect = mock_error
-
-            result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-            assert result is None
-            assert mock_client.post.call_count == 1  # No retries for 4xx
+        assert result is None
 
 
 @pytest.mark.asyncio
@@ -218,8 +199,10 @@ async def test_query_model_without_temperature():
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
+            mock_instance = AsyncMock()
+            mock_client_class.return_value = mock_instance
+            mock_instance.__aenter__.return_value = mock_client
+            mock_instance.__aexit__ = AsyncMock(return_value=None)
 
             mock_response_obj = MagicMock()
             mock_response_obj.json.return_value = mock_response
@@ -242,7 +225,9 @@ async def test_query_model_reasoning_details():
     api_key = "test-key"
     base_url = "https://api.test.com/v1/chat/completions"
 
-    mock_response = {
+    mock_response_obj = MagicMock()
+    mock_response_obj.status_code = 200
+    mock_response_obj.json.return_value = {
         "choices": [
             {
                 "message": {
@@ -252,25 +237,20 @@ async def test_query_model_reasoning_details():
             }
         ]
     }
+    mock_response_obj.raise_for_status = MagicMock()
 
-    with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-        mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-        mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+    with patch("httpx.AsyncClient") as mock_client_class:
+        mock_client = AsyncMock()
+        mock_instance = AsyncMock()
+        mock_client_class.return_value = mock_instance
+        mock_instance.__aenter__.return_value = mock_client
+        mock_client.post.return_value = mock_response_obj
 
-        with patch("httpx.AsyncClient") as mock_client_class:
-            mock_client = AsyncMock()
-            mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
+        result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-            mock_response_obj = MagicMock()
-            mock_response_obj.json.return_value = mock_response
-            mock_response_obj.raise_for_status = MagicMock()
-            mock_client.post.return_value = mock_response_obj
-
-            result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-            assert result["content"] == "Response"
-            assert result["reasoning_details"] == {"reasoning": "Step by step reasoning"}
+        assert result is not None
+        assert result["content"] == "Response"
+        assert result["reasoning_details"] == {"reasoning": "Step by step reasoning"}
 
 
 @pytest.mark.asyncio

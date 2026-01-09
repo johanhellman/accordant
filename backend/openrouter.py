@@ -108,7 +108,6 @@ async def query_model(
                     "content": message.get("content"),
                     "reasoning_details": message.get("reasoning_details"),
                 }
-
         except Exception as e:
             logger.error(f"Error querying model {model}: {e}")
             return None

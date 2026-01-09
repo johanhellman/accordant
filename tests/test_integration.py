@@ -94,16 +94,21 @@ class TestFullCouncilFlow:
                         return value
 
             # Stage 3
-            elif "Chairman" in str(messages) or "COUNCIL REPORT" in str(messages):  # Stage 3
+            elif "SECTION A: PROPOSALS" in str(messages) or "COUNCIL REPORT" in str(
+                messages
+            ):  # Stage 3
                 return mock_llm_responses["stage3"]
 
             return None
 
-        # Patch get_active_personalities and load_org_system_prompts
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
             patch(
-                "backend.council.load_org_system_prompts",
+                "backend.config.personalities.get_all_personalities",
+                return_value=mock_personalities,
+            ),
+            patch("backend.config.packs.PackService.get_active_configuration") as mock_pack,
+            patch(
+                "backend.config.personalities.load_org_system_prompts",
                 return_value={
                     "base_system_prompt": "",
                     "chairman_prompt": "You are the Chairman.\n{user_query}\n{stage1_text}\n{voting_details_text}",
@@ -112,15 +117,16 @@ class TestFullCouncilFlow:
                 },
             ),
             patch(
-                "backend.council.load_org_models_config",
+                "backend.config.personalities.load_org_models_config",
                 return_value={
                     "chairman_model": "model1",
                     "title_model": "model1",
                     "ranking_model": "model1",
                 },
             ),
-            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.openrouter.query_model", side_effect=mock_query_single),
         ):
+            mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             user_query = "What is Python?"
             messages = []
 
@@ -182,12 +188,14 @@ class TestFullCouncilFlow:
             return None
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.PackService.get_active_configuration") as mock_pack,
             patch(
                 "backend.council.load_org_system_prompts", return_value={"base_system_prompt": ""}
             ),
-            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.openrouter.query_model", side_effect=mock_query_single),
         ):
+            mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             results = await stage1_collect_responses(
                 "What is Python?", [], org_id="org1", api_key="key", base_url="url"
             )
@@ -242,12 +250,14 @@ class TestFullCouncilFlow:
             return None
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
+            patch("backend.council.get_all_personalities", return_value=mock_personalities),
+            patch("backend.council.PackService.get_active_configuration") as mock_pack,
             patch(
                 "backend.council.load_org_system_prompts", return_value={"base_system_prompt": ""}
             ),
-            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.openrouter.query_model", side_effect=mock_query_single),
         ):
+            mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             rankings, label_to_model = await stage2_collect_rankings(
                 "What is Python?", stage1_results, [], org_id="org1", api_key="key", base_url="url"
             )
@@ -286,9 +296,9 @@ class TestFullCouncilFlow:
             return mock_llm_responses["stage3"]
 
         with (
-            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.openrouter.query_model", side_effect=mock_query_single),
             patch(
-                "backend.council.load_org_system_prompts",
+                "backend.config.personalities.load_org_system_prompts",
                 return_value={
                     "chairman_prompt": "{user_query}\n{stage1_text}\n{voting_details_text}"
                 },
@@ -348,7 +358,7 @@ class TestFullCouncilFlow:
                         return value
 
             # Stage 3
-            elif "Chairman" in str(messages) or "COUNCIL REPORT" in str(messages):
+            elif "SECTION A: PROPOSALS" in str(messages) or "COUNCIL REPORT" in str(messages):
                 return mock_llm_responses["stage3"]
 
             return None
@@ -371,9 +381,13 @@ class TestFullCouncilFlow:
         ]
 
         with (
-            patch("backend.council.get_active_personalities", return_value=mock_personalities),
             patch(
-                "backend.council.load_org_system_prompts",
+                "backend.config.personalities.get_all_personalities",
+                return_value=mock_personalities,
+            ),
+            patch("backend.config.packs.PackService.get_active_configuration") as mock_pack,
+            patch(
+                "backend.config.personalities.load_org_system_prompts",
                 return_value={
                     "base_system_prompt": "",
                     "chairman_prompt": "You are the Chairman.\n{user_query}\n{stage1_text}\n{voting_details_text}",
@@ -382,15 +396,16 @@ class TestFullCouncilFlow:
                 },
             ),
             patch(
-                "backend.council.load_org_models_config",
+                "backend.config.personalities.load_org_models_config",
                 return_value={
                     "chairman_model": "model1",
                     "title_model": "model1",
                     "ranking_model": "model1",
                 },
             ),
-            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.openrouter.query_model", side_effect=mock_query_single),
         ):
+            mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             user_query = "What is JavaScript?"
             stage1_results, stage2_results, stage3_result, metadata = await run_full_council(
                 user_query, conversation["messages"], org_id="org1", api_key="key", base_url="url"

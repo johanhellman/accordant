@@ -118,27 +118,15 @@ class TestQueryModelResponseParsingEdgeCases:
         api_key = "test-key"
         base_url = "https://api.test.com/v1/chat/completions"
 
-        mock_response = {"choices": [{"message": {}}]}  # Missing content key
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"choices": [{"message": {}}]}
 
-        with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-            mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-            mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+        with patch("backend.openrouter._execute_request", return_value=mock_response):
+            result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-            with patch("httpx.AsyncClient") as mock_client_class:
-                mock_client = AsyncMock()
-                mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-                mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
-
-                mock_response_obj = MagicMock()
-                mock_response_obj.json.return_value = mock_response
-                mock_response_obj.raise_for_status = MagicMock()
-                mock_client.post.return_value = mock_response_obj
-
-                result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-                # Should handle missing content gracefully (get("content") returns None)
-                assert result is not None
-                assert result["content"] is None
+            # Should handle missing content gracefully (get("content") returns None)
+            assert result is not None
+            assert result["content"] is None
 
     @pytest.mark.asyncio
     async def test_query_model_json_parse_error(self):
@@ -175,26 +163,14 @@ class TestQueryModelResponseParsingEdgeCases:
         api_key = "test-key"
         base_url = "https://api.test.com/v1/chat/completions"
 
-        mock_response = {"choices": [{"message": {"content": None}}]}
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"choices": [{"message": {"content": None}}]}
 
-        with patch("backend.openrouter.get_semaphore") as mock_semaphore:
-            mock_semaphore.return_value.__aenter__ = AsyncMock(return_value=None)
-            mock_semaphore.return_value.__aexit__ = AsyncMock(return_value=None)
+        with patch("backend.openrouter._execute_request", return_value=mock_response):
+            result = await query_model(model, messages, api_key=api_key, base_url=base_url)
 
-            with patch("httpx.AsyncClient") as mock_client_class:
-                mock_client = AsyncMock()
-                mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client)
-                mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
-
-                mock_response_obj = MagicMock()
-                mock_response_obj.json.return_value = mock_response
-                mock_response_obj.raise_for_status = MagicMock()
-                mock_client.post.return_value = mock_response_obj
-
-                result = await query_model(model, messages, api_key=api_key, base_url=base_url)
-
-                assert result is not None
-                assert result["content"] is None
+            assert result is not None
+            assert result["content"] is None
 
     @pytest.mark.asyncio
     async def test_query_model_custom_timeout(self):
@@ -323,16 +299,21 @@ class TestQueryModelsParallelEdgeCases:
         api_key = "test-key"
         base_url = "https://api.test.com/v1/chat/completions"
 
-        async def mock_query_model(*args, **kwargs):
-            return {"content": "Response from model1"}
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": "Response from model1"}}]
+        }
 
-        with patch("backend.openrouter.query_model", side_effect=mock_query_model):
+        with (
+            patch("backend.openrouter._execute_request", return_value=mock_response),
+            patch("asyncio.sleep", new_callable=AsyncMock),
+        ):
             result = await query_models_parallel(
                 models, messages, api_key=api_key, base_url=base_url
             )
 
-            assert len(result) == 1
-            assert result["model1"]["content"] == "Response from model1"
+        assert len(result) == 1
+        assert result["model1"]["content"] == "Response from model1"
 
     @pytest.mark.asyncio
     async def test_query_models_parallel_many_models(self):
@@ -342,18 +323,25 @@ class TestQueryModelsParallelEdgeCases:
         api_key = "test-key"
         base_url = "https://api.test.com/v1/chat/completions"
 
-        async def mock_query_model(*args, **kwargs):
-            model = args[0]
-            return {"content": f"Response from {model}"}
+        # Mock _execute_request to return specialized response based on payload/model
+        async def mock_execute(client, base_url, headers, payload):
+            m = MagicMock()
+            m.json.return_value = {
+                "choices": [{"message": {"content": f"Response from {payload['model']}"}}]
+            }
+            return m
 
-        with patch("backend.openrouter.query_model", side_effect=mock_query_model):
+        with (
+            patch("backend.openrouter._execute_request", side_effect=mock_execute),
+            patch("asyncio.sleep", new_callable=AsyncMock),
+        ):
             result = await query_models_parallel(
                 models, messages, api_key=api_key, base_url=base_url
             )
 
-            assert len(result) == 50
-            for i in range(50):
-                assert result[f"model{i}"]["content"] == f"Response from model{i}"
+        assert len(result) == 50
+        for i in range(50):
+            assert result[f"model{i}"]["content"] == f"Response from model{i}"
 
 
 class TestGetSemaphoreEdgeCases:
