@@ -103,12 +103,12 @@ class TestFullCouncilFlow:
 
         with (
             patch(
-                "backend.config.personalities.get_all_personalities",
+                "backend.council.get_all_personalities",
                 return_value=mock_personalities,
             ),
-            patch("backend.config.packs.PackService.get_active_configuration") as mock_pack,
+            patch("backend.council.PackService.get_active_configuration") as mock_pack,
             patch(
-                "backend.config.personalities.load_org_system_prompts",
+                "backend.council.load_org_system_prompts",
                 return_value={
                     "base_system_prompt": "",
                     "chairman_prompt": "You are the Chairman.\n{user_query}\n{stage1_text}\n{voting_details_text}",
@@ -117,14 +117,15 @@ class TestFullCouncilFlow:
                 },
             ),
             patch(
-                "backend.config.personalities.load_org_models_config",
+                "backend.council.load_org_models_config",
                 return_value={
                     "chairman_model": "model1",
                     "title_model": "model1",
                     "ranking_model": "model1",
                 },
             ),
-            patch("backend.openrouter.query_model", side_effect=mock_query_single),
+            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.consensus_service.query_model", side_effect=mock_query_single),
         ):
             mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             user_query = "What is Python?"
@@ -193,7 +194,8 @@ class TestFullCouncilFlow:
             patch(
                 "backend.council.load_org_system_prompts", return_value={"base_system_prompt": ""}
             ),
-            patch("backend.openrouter.query_model", side_effect=mock_query_single),
+            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.consensus_service.query_model", side_effect=mock_query_single),
         ):
             mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             results = await stage1_collect_responses(
@@ -255,7 +257,8 @@ class TestFullCouncilFlow:
             patch(
                 "backend.council.load_org_system_prompts", return_value={"base_system_prompt": ""}
             ),
-            patch("backend.openrouter.query_model", side_effect=mock_query_single),
+            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.consensus_service.query_model", side_effect=mock_query_single),
         ):
             mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             rankings, label_to_model = await stage2_collect_rankings(
@@ -296,9 +299,10 @@ class TestFullCouncilFlow:
             return mock_llm_responses["stage3"]
 
         with (
-            patch("backend.openrouter.query_model", side_effect=mock_query_single),
+            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.consensus_service.query_model", side_effect=mock_query_single),
             patch(
-                "backend.config.personalities.load_org_system_prompts",
+                "backend.council.load_org_system_prompts",
                 return_value={
                     "chairman_prompt": "{user_query}\n{stage1_text}\n{voting_details_text}"
                 },
@@ -382,12 +386,12 @@ class TestFullCouncilFlow:
 
         with (
             patch(
-                "backend.config.personalities.get_all_personalities",
+                "backend.council.get_all_personalities",
                 return_value=mock_personalities,
             ),
-            patch("backend.config.packs.PackService.get_active_configuration") as mock_pack,
+            patch("backend.council.PackService.get_active_configuration") as mock_pack,
             patch(
-                "backend.config.personalities.load_org_system_prompts",
+                "backend.council.load_org_system_prompts",
                 return_value={
                     "base_system_prompt": "",
                     "chairman_prompt": "You are the Chairman.\n{user_query}\n{stage1_text}\n{voting_details_text}",
@@ -396,14 +400,15 @@ class TestFullCouncilFlow:
                 },
             ),
             patch(
-                "backend.config.personalities.load_org_models_config",
+                "backend.council.load_org_models_config",
                 return_value={
                     "chairman_model": "model1",
                     "title_model": "model1",
                     "ranking_model": "model1",
                 },
             ),
-            patch("backend.openrouter.query_model", side_effect=mock_query_single),
+            patch("backend.council.query_model", side_effect=mock_query_single),
+            patch("backend.consensus_service.query_model", side_effect=mock_query_single),
         ):
             mock_pack.return_value = {"personalities": ["p1", "p2"], "system_prompts": {}}
             user_query = "What is JavaScript?"
