@@ -52,7 +52,7 @@ def _save_invitations(invitations: dict[str, InvitationInDB]):
     try:
         os.makedirs(os.path.dirname(INVITATIONS_FILE), exist_ok=True)
         with open(INVITATIONS_FILE, "w") as f:
-            json.dump([i.dict() for i in invitations.values()], f, indent=2)
+            json.dump([i.model_dump() for i in invitations.values()], f, indent=2)
     except Exception as e:
         logger.error(f"Error saving invitations: {e}")
         raise
