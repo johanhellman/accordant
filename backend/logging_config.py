@@ -1,21 +1,21 @@
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import json
 
 # Import context var for correlation ID
 from .middleware import request_id_context
 
 
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
+class CustomJsonFormatter(json.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
 
         # Standard fields
         if not log_record.get("timestamp"):
-            now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             log_record["timestamp"] = now
 
         if log_record.get("level"):
