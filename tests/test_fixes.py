@@ -72,9 +72,18 @@ async def test_stale_conversation_snapshot_streaming():
     with (
         patch("backend.streaming.CouncilManager._instance", None),
         patch("backend.streaming.run_council_cycle") as mock_run_cycle,
+        patch("backend.streaming.update_conversation_status"),
+        patch("backend.streaming.add_user_message"),
+        patch("backend.streaming.record_votes"),
+        patch("backend.streaming.add_assistant_message"),
+        patch("backend.streaming.generate_conversation_title", new_callable=AsyncMock),
     ):
-        mock_run_cycle.return_value.__aiter__.return_value = []
-        # Consume the generator
+
+        async def mock_generator(*args, **kwargs):
+            if False:
+                yield None
+
+        mock_run_cycle.side_effect = mock_generator
         async for _ in run_council_generator(
             "conv1", "New User Msg", mock_conversation, "org1", "key", "url"
         ):
