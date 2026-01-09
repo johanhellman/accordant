@@ -93,7 +93,7 @@ async def create_pack(
         raise HTTPException(status_code=403, detail="Only admins can create custom packs")
 
     return PackService.create_custom_pack(
-        db, request.display_name, request.config.dict(), request.description
+        db, request.display_name, request.config.model_dump(), request.description
     )
 
 

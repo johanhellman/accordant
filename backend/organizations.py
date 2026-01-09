@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from . import models
@@ -30,8 +30,7 @@ class Organization(BaseModel):
     settings: dict[str, Any] = {}
     api_config: dict[str, str] | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrganizationCreate(BaseModel):
@@ -60,7 +59,7 @@ def get_org(org_id: str, db: Session = None) -> OrganizationInDB | None:
 def _get_org_with_session(db: Session, org_id: str) -> OrganizationInDB | None:
     org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
     if org:
-        return OrganizationInDB.from_orm(org)
+        return OrganizationInDB.model_validate(org)
     return None
 
 
@@ -110,7 +109,7 @@ def create_org(
                     except Exception as e:
                         logger.warning(f"Failed to copy default file {f}: {e}")
 
-        return OrganizationInDB.from_orm(new_org)
+        return OrganizationInDB.model_validate(new_org)
     except Exception as e:
         if is_ephemeral:
             db.rollback()
@@ -141,7 +140,7 @@ def list_orgs() -> list[OrganizationDetails]:
 
         results = []
         for o in orgs:
-            details = OrganizationDetails.from_orm(o)
+            details = OrganizationDetails.model_validate(o)
             details.user_count = org_user_counts.get(o.id, 0)
             if o.owner_id:
                 details.owner_username = user_map.get(o.owner_id)
@@ -163,7 +162,7 @@ def update_org(org_id: str, updates: dict[str, Any]) -> OrganizationInDB | None:
 
         db.commit()
         db.refresh(org)
-        return OrganizationInDB.from_orm(org)
+        return OrganizationInDB.model_validate(org)
 
 
 def get_org_api_config(org_id: str) -> tuple[str, str]:

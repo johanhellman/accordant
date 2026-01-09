@@ -165,7 +165,7 @@ async def create_personality(
             status_code=400, detail=f"Personality with ID {personality.id} already exists"
         )
 
-    _save_yaml(file_path, personality.dict(exclude_none=True))
+    _save_yaml(file_path, personality.model_dump(exclude_none=True))
     return personality
 
 
@@ -196,7 +196,7 @@ async def update_personality(
     personalities_dir = get_org_personalities_dir(current_user.org_id)
     file_path = os.path.join(personalities_dir, f"{personality_id}.yaml")
 
-    _save_yaml(file_path, personality.dict(exclude_none=True))
+    _save_yaml(file_path, personality.model_dump(exclude_none=True))
     return personality
 
 
@@ -670,7 +670,7 @@ async def create_default_personality(
         )
 
     # Ensure it's marked as enabled by default usually, but we accept payload
-    _save_yaml(file_path, personality.dict(exclude_none=True))
+    _save_yaml(file_path, personality.model_dump(exclude_none=True))
     return personality
 
 
@@ -691,7 +691,7 @@ async def update_default_personality(
     # But files might be missing if manually messed with.
     # Let's save.
     os.makedirs(defaults_personalities_dir, exist_ok=True)
-    _save_yaml(file_path, personality.dict(exclude_none=True))
+    _save_yaml(file_path, personality.model_dump(exclude_none=True))
     return personality
 
 
