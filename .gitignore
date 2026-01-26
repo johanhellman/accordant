@@ -46,5 +46,8 @@ secrets/
 # Backup files
 *.backup
 
+# Setup documentation with sensitive information
+SETUP_COMPLETE.md
+
 # Submodule tracking (optional, usually not needed)
 # xmarkdigest/
