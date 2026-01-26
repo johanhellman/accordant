@@ -6,19 +6,91 @@ services:
       context: .
       dockerfile: Dockerfile
     image: accordant:latest
-    container_name: accordant
+    container_name: ai-stack_accordant
     restart: unless-stopped
+    
+    # SECURITY: Container hardening (REQUIRED)
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    
+    tmpfs:
+      - /tmp:exec
+      - /var/log
+    
+    # SECURITY: Resource limits (REQUIRED)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # SECURITY: Minimal network access (REQUIRED)
+    networks:
+      - frontend      # Required for Traefik routing
+      - internal      # Required for infrastructure services (if needed)
+    
     ports:
-      - "8000:8000"
+      - "8000:8000"   # Exposed for direct access (optional, can be removed if only via Traefik)
+    
     volumes:
       # Persist data to local ./data directory
       - ./data:/app/data
+    
+    # SECURITY: Use env_file for secrets (REQUIRED)
+    env_file:
+      - .env
+    
+    # Environment variables (non-secret only)
     environment:
       - LOG_LEVEL=INFO
       # Add other necessary env vars here or use env_file
-    networks:
-      - accordant-net
+    
+    # SECURITY: Health check (REQUIRED)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # SECURITY: Traefik labels (REQUIRED for public services)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.accordant.rule=Host(`accordant.eu`)"
+      - "traefik.http.routers.accordant.entrypoints=websecure"
+      - "traefik.http.routers.accordant.tls.certresolver=letsencrypt"
+      - "traefik.http.services.accordant.loadbalancer.server.port=8000"
+      - "traefik.http.routers.accordant.middlewares=secure-headers@file,rate-limit-accordant@file"
+      
+      # MONITORING: Monitoring labels (REQUIRED for auto-discovery)
+      - "monitoring.enabled=true"
+      - "monitoring.metrics.port=8000"
+      - "monitoring.metrics.path=/metrics"
+      - "monitoring.health.port=8000"
+      - "monitoring.health.path=/api/health"
+      - "monitoring.service=accordant"
+      - "monitoring.environment=production"
+      - "monitoring.domain=https://accordant.eu"
+      - "monitoring.health_url=https://accordant.eu/api/health"
+      
+      # SECURITY: Security metadata (REQUIRED)
+      - "security.owner=${SECURITY_OWNER}"
+      - "security.contact=${SECURITY_CONTACT}"
+      - "security.data-classification=internal"
+    
+    # SECURITY: NO Docker socket access!
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock  # FORBIDDEN
 
 networks:
-  accordant-net:
-    driver: bridge
+  frontend:
+    name: ai-stack_frontend
+    external: true
+  internal:
+    name: ai-stack_internal
+    external: true
