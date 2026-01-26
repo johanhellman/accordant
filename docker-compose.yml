@@ -1,12 +1,13 @@
-name: accordant-stack
+name: accordant
 
 services:
-  accordant:
+  web:
     build:
-      context: .
+      context: ./xmarkdigest
       dockerfile: Dockerfile
-    image: accordant:latest
-    container_name: ai-stack_accordant
+      target: web
+    image: accordant-web:latest
+    container_name: ai-stack_accordant_web
     restart: unless-stopped
     
     # SECURITY: Container hardening (REQUIRED)
@@ -32,14 +33,7 @@ services:
     # SECURITY: Minimal network access (REQUIRED)
     networks:
       - frontend      # Required for Traefik routing
-      - internal      # Required for infrastructure services (if needed)
-    
-    ports:
-      - "8000:8000"   # Exposed for direct access (optional, can be removed if only via Traefik)
-    
-    volumes:
-      # Persist data to local ./data directory
-      - ./data:/app/data
+      - internal      # Required for database and Redis access
     
     # SECURITY: Use env_file for secrets (REQUIRED)
     env_file:
@@ -47,16 +41,18 @@ services:
     
     # Environment variables (non-secret only)
     environment:
-      - LOG_LEVEL=INFO
-      # Add other necessary env vars here or use env_file
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://accordant.eu
+      - REDIS_HOST=ai-stack_redis
+      - REDIS_PORT=6379
     
     # SECURITY: Health check (REQUIRED)
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 40s
     
     # SECURITY: Traefik labels (REQUIRED for public services)
     labels:
@@ -64,14 +60,14 @@ services:
       - "traefik.http.routers.accordant.rule=Host(`accordant.eu`)"
       - "traefik.http.routers.accordant.entrypoints=websecure"
       - "traefik.http.routers.accordant.tls.certresolver=letsencrypt"
-      - "traefik.http.services.accordant.loadbalancer.server.port=8000"
+      - "traefik.http.services.accordant.loadbalancer.server.port=3000"
       - "traefik.http.routers.accordant.middlewares=secure-headers@file,rate-limit-accordant@file"
       
       # MONITORING: Monitoring labels (REQUIRED for auto-discovery)
       - "monitoring.enabled=true"
-      - "monitoring.metrics.port=8000"
+      - "monitoring.metrics.port=3000"
       - "monitoring.metrics.path=/metrics"
-      - "monitoring.health.port=8000"
+      - "monitoring.health.port=3000"
       - "monitoring.health.path=/api/health"
       - "monitoring.service=accordant"
       - "monitoring.environment=production"
@@ -83,10 +79,69 @@ services:
       - "security.contact=${SECURITY_CONTACT}"
       - "security.data-classification=internal"
     
-    # SECURITY: NO Docker socket access!
-    # volumes:
-    #   - /var/run/docker.sock:/var/run/docker.sock  # FORBIDDEN
-
+  worker:
+    build:
+      context: ./xmarkdigest
+      dockerfile: Dockerfile
+      target: worker
+    image: accordant-worker:latest
+    container_name: ai-stack_accordant_worker
+    restart: unless-stopped
+    
+    # SECURITY: Container hardening (REQUIRED)
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    
+    tmpfs:
+      - /tmp:exec
+      - /var/log
+    
+    # SECURITY: Resource limits (REQUIRED)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # SECURITY: Minimal network access (REQUIRED)
+    networks:
+      - internal      # Only internal network (no frontend access)
+    
+    # SECURITY: Use env_file for secrets (REQUIRED)
+    env_file:
+      - .env
+    
+    # Environment variables (non-secret only)
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=ai-stack_redis
+      - REDIS_PORT=6379
+    
+    # SECURITY: Health check (REQUIRED)
+    # Worker doesn't expose HTTP, so we check if process is running
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[n]ode.*dist/index.js' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # MONITORING: Monitoring labels (REQUIRED for auto-discovery)
+    labels:
+      - "monitoring.enabled=true"
+      - "monitoring.service=accordant-worker"
+      - "monitoring.environment=production"
+      
+      # SECURITY: Security metadata (REQUIRED)
+      - "security.owner=${SECURITY_OWNER}"
+      - "security.contact=${SECURITY_CONTACT}"
+      - "security.data-classification=internal"
+    
 networks:
   frontend:
     name: ai-stack_frontend
@@ -94,3 +149,5 @@ networks:
   internal:
     name: ai-stack_internal
     external: true
+
+volumes:

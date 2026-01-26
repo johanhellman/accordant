@@ -1,0 +1,3 @@
+[submodule "xmarkdigest"]
+	path = xmarkdigest
+	url = git@github.com:johanhellman/XMarkDigest.git
