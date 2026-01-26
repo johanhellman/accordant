@@ -1,45 +1,50 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Coverage reports
-.coverage
-.coverage.*
-coverage.json
-htmlcov/
-.pytest_cache/
-
-# Security and duplication analysis reports
-bandit-report.json
-jscpd-report/
-
-# Virtual environments
-.venv
-
-# Keys and secrets
+# Environment files
 .env
-# Allow .env.example to be tracked (it contains no secrets, only documentation)
-!.env.example
+.env.local
+.env.*.local
 
-# Data files
-data/*
-!data/defaults/
-!data/prompts/
+# Build artifacts
+*.log
+node_modules/
+.next/
+dist/
+build/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-# Logs
-logs/
-report/jscpd-report.json
-# Database
+# Docker
+*.tar
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Database files (if SQLite still used)
 *.db
 *.sqlite
 *.sqlite3
 
-.DS_Store
+# Secrets and keys
+*.pem
+*.key
+*.cert
+secrets/
+
+# Allow .env.example to be tracked (it contains no secrets, only documentation)
+!.env.example
+
+# Backup files
+*.backup
+
+# Submodule tracking (optional, usually not needed)
+# xmarkdigest/

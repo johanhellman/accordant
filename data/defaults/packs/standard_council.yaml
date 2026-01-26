@@ -1,9 +1,0 @@
-id: standard_council
-display_name: Standard Council
-description: A balanced council suitable for most general queries. Checks facts, offers diverse perspectives, and synthesizes a consensus.
-personalities:
-  - the_manager
-  - the_skeptic
-  - the_visionary
-consensus_strategy: standard_synthesis
-system_prompts: {}
