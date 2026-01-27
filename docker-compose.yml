@@ -149,5 +149,3 @@ networks:
   internal:
     name: ai-stack_internal
     external: true
-
-volumes:
